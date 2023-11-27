@@ -8,6 +8,7 @@ knap.pl
 file.txt
 tmp.txt
 *.txt
+!requirements.txt
 
 prologParser.html
 
