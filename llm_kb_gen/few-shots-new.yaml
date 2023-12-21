@@ -1,0 +1,9 @@
+few_shots:
+  system_msg:
+    role: 'system'
+    content: "Given a robotic problem, produce knowledge base in Prolog format"
+  files: 
+    - "few-shots/general.yaml"
+    - "few-shots/blocks_case.yaml"
+    - "few-shots/medical_case.yaml"
+    - "few-shots/service_case.yaml"

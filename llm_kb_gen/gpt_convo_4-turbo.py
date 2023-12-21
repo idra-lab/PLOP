@@ -10,14 +10,14 @@ from retry import retry
 # =======================================================================#
 #                           OPENAI API KEY                              #
 # =======================================================================#
-openai.api_key = os.environ["OPENAI_API_KEY"]  #
+openai.api_key = os.environ["OPENAI_API_KEY4_turbo"]  #
 # =======================================================================#
 
 
 # ===============================================#
 # Available GPT versions:                       #
 # =============================================================#
-llm_versions = ["LLMPlanning", "LLMPlanning2", "LLMPlanning35"]  #
+llm_versions = ["LLMPlanning4-128"]  #
 # =============================================================#
 
 
@@ -78,8 +78,8 @@ def connect_openai(
 ):
     # UNITN-key
     client = AzureOpenAI(
-        api_key=os.environ["OPENAI_API_KEY"],
-        azure_endpoint="https://disi-logic-programming.openai.azure.com/",
+        api_key=os.environ["OPENAI_API_KEY4_turbo"],
+        azure_endpoint="https://disi-logic-programming-gpt4-turbo.openai.azure.com/",
         api_version="2023-05-15",
     )
     response = client.chat.completions.create(

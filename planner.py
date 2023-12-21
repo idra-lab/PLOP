@@ -10,7 +10,7 @@ def main():
     stn = SimpTempNet(Actions, Times)
 
     if stn.checkConsistency():
-        print("No negative cycle, so the graph is fine")
+        print("No negative cycle, continuing")
     else:
         exit(-1)
 

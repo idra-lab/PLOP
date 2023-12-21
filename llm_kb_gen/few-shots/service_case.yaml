@@ -1,0 +1,262 @@
+few_shots:
+  convo:
+    ############################################################################
+    ###############################     0     ##################################
+    ############################################################################
+    0: 
+      Q: 
+        role: 'user'
+        content: |
+          There is a service robot, a teabag, an empty kettle, and an empty cup in the kitchen. The service robot is tasked with preparing tea.
+          Can you generate a prolog code including a set of actions in order for robot to fulfill the given task?    
+      A: 
+        role: 'assistant'
+        content: |
+          % The robot starts to hold an object
+          action(hold_start(Object),
+              [available(robot), at(robot, Place), at(Object, Place)], 
+              [holding(_)], 
+              [], 
+              [],
+              [del(available(robot)), del(at(Object, Place)), add(holding(Object))]).
+
+
+          % The robot stops to hold an object
+          action(hold_end(Object), 
+              [holding(Object)], 
+              [], 
+              [], 
+              [],
+              [del(holding(Object)), add(available(robot)), add(at(Object, kitchen))]).
+
+
+          % The robot starts to put water in a kettle
+          action(fill_kettle_start, 
+              [at(robot, kitchen), holding(kettle), empty(kettle)], 
+              [full(kettle)], 
+              [], 
+              [],
+              [del(empty(kettle))]).
+
+
+          % The robot stops to put water in a kettle
+          action(fill_kettle_end, 
+              [at(robot, kitchen), holding(kettle)], 
+              [empty(kettle)], 
+              [], 
+              [],
+              [add(full(kettle)), add(cold(water))]).
+
+
+          % The robot starts to boil water in kettle and the water is not cold anymore
+          action(boil_water_start, 
+              [at(robot, kitchen), holding(kettle), full(kettle), cold(water)], 
+              [empty(kettle), boiled(water)], 
+              [],
+              [], 
+              [del(cold(water))]).
+
+
+          % The robot stops to boil water in kettle 
+          action(boil_water_end,
+              [at(robot, kitchen), holding(kettle), full(kettle)],
+              [cold(water)],
+              [],
+              [],
+              [add(boiled(water))]).
+
+
+          % The robot starts to put water in a cup from a kettle
+          action(pour_water_start,
+              [at(robot, kitchen), holding(kettle), full(kettle), boiled(water), empty(cup), at(cup, kitchen)], 
+              [empty(kettle), full(cup)],
+              [],
+              [],
+              [del(empty(cup)), del(full(kettle))]).
+
+
+          % The robot stops to put water in a cup from a kettle
+          action(pour_water_end,
+              [at(robot, kitchen), holding(kettle), boiled(water), at(cup, kitchen)],
+              [],
+              [],
+              [],
+              [add(full(cup))]).
+
+
+          % The robot puts a teabag in a cup
+          action(add_teabag, 
+              [at(robot, kitchen), holding(teabag), at(cup, kitchen), boiled(water), full(cup), tea(notready)], 
+              [], 
+              [], 
+              [],
+              [del(tea(notready)), add(tea(ready)), add(available(robot)), del(holding(teabag)), del(boiled(water))]).
+    
+    ############################################################################
+    ###############################     1     ##################################
+    ############################################################################
+    1:
+      Q: 
+        role: 'user'
+        content: |
+          Can you generate a prolog code containing a new test case, namely test_case, in which we use a service robot to make a tea in the kitchen, where there is a service robot, a teabag, an empty kettle, and an empty cup in the kitchen?
+      A: 
+        role: 'assistant'
+        content: |
+          Sure , here is the Prolog code: 
+          ```prolog
+          testCase(Actions, Times) :- go(
+          [available(robot), at(robot, kitchen), at(teabag, kitchen), at(kettle, kitchen), at(cup, kitchen), empty(kettle), empty(cup), tea(notready)],
+          [at(robot, kitchen), available(robot), at(cup, kitchen), at(kettle, kitchen), full(cup), tea(ready)]
+          ).
+          ```
+
+    ############################################################################
+    ###############################     2     ##################################
+    ############################################################################
+    2:
+      Q: 
+        role: 'user'
+        content: |
+          % The robot starts to hold an object
+          action(hold_start(Object),
+              [available(robot), at(robot, Place), at(Object, Place)], 
+              [holding(_)], 
+              [], 
+              [],
+              [del(available(robot)), del(at(Object, Place)), add(holding(Object))]).
+
+
+          % The robot stops to hold an object
+          action(hold_end(Object), 
+              [holding(Object)], 
+              [], 
+              [], 
+              [],
+              [del(holding(Object)), add(available(robot)), add(at(Object, kitchen))]).
+
+
+          % The robot starts to put water in a kettle
+          action(fill_kettle_start, 
+              [at(robot, kitchen), holding(kettle), empty(kettle)], 
+              [full(kettle)], 
+              [], 
+              [],
+              [del(empty(kettle))]).
+
+
+          % The robot stops to put water in a kettle
+          action(fill_kettle_end, 
+              [at(robot, kitchen), holding(kettle)], 
+              [empty(kettle)], 
+              [], 
+              [],
+              [add(full(kettle)), add(cold(water))]).
+
+
+          % The robot starts to boil water in kettle and the water is not cold anymore
+          action(boil_water_start, 
+              [at(robot, kitchen), holding(kettle), full(kettle), cold(water)], 
+              [empty(kettle), boiled(water)], 
+              [],
+              [], 
+              [del(cold(water))]).
+
+
+          % The robot stops to boil water in kettle 
+          action(boil_water_end,
+              [at(robot, kitchen), holding(kettle), full(kettle)],
+              [cold(water)],
+              [],
+              [],
+              [add(boiled(water))]).
+
+
+          % The robot starts to put water in a cup from a kettle
+          action(pour_water_start,
+              [at(robot, kitchen), holding(kettle), full(kettle), boiled(water), empty(cup), at(cup, kitchen)], 
+              [empty(kettle), full(cup)],
+              [],
+              [],
+              [del(empty(cup)), del(full(kettle))]).
+
+
+          % The robot stops to put water in a cup from a kettle
+          action(pour_water_end,
+              [at(robot, kitchen), holding(kettle), boiled(water), at(cup, kitchen)],
+              [],
+              [],
+              [],
+              [add(full(cup))]).
+
+
+          % The robot puts a teabag in a cup
+          action(add_teabag, 
+              [at(robot, kitchen), holding(teabag), at(cup, kitchen), boiled(water), full(cup), tea(notready)], 
+              [], 
+              [], 
+              [],
+              [del(tea(notready)), add(tea(ready)), add(available(robot)), del(holding(teabag)), del(boiled(water))]).
+                          
+          Can you generate a list of predicates used in above prolog code?
+
+    
+      A: 
+        role: 'assistant'
+        content: |
+          Sure , here is the list of predicates in Prolog code format: 
+          ```prolog
+          %  /# of parameters for given predicate
+          :- dynamic at/2.
+          :- dynamic empty/1.
+          :- dynamic full/1.
+          :- dynamic boiled/1.
+          :- dynamic holding/1.
+          :- dynamic available/1.
+          :- dynamic tea/1.
+          :- discontiguous action/6.
+          ```
+          The 'at' predicate possesses 2 literals.
+          The 'empty' predicate possesses 1 literal.
+          The 'full' predicate possesses 1 literal.
+          The 'boiled' predicate possesses 1 literal.
+          The 'holding' predicate possesses 1 literal.
+          The 'available' predicate possesses 1 literal.
+          The 'tea' predicate possesses 1 literal.
+          The 'action' possesses 6 literals: actionName, ValidConditions, InvalidConditions, ValidConditionsAtEnd, ConditionOnKB, Effects.
+
+    ############################################################################
+    ###############################     3     ##################################
+    ############################################################################
+    3:
+      Q: 
+        role: 'user'
+        content: |
+          Can you generate a prolog code including a set of actions in order for an agent to fill a kettle which is initially empty and that is already been hold by the robot?    
+      A: 
+        role: 'assistant'
+        content: |
+          Sure, here is the Prolog code for the action template:
+          ```prolog
+          % The robot starts to put water in a kettle
+          action(fill_kettle_start, 
+            [at(robot, kitchen), holding(kettle), empty(kettle)], 
+            [full(kettle)], 
+            [], 
+            [],
+            [del(empty(kettle))]
+          ).
+
+
+          % The robot stops to put water in a kettle
+          action(fill_kettle_end, 
+            [at(robot, kitchen), holding(kettle)], 
+            [empty(kettle)], 
+            [], 
+            [],
+            [add(full(kettle)), add(cold(water))]
+          ).
+          ```
+          In InvalidConditions of the action `fill_kettle_start, [full(kettle)]` implies that the kettle must not have already been full.
+          In InvalidConditions of the action `fill_kettle_end, [empty(kettle)]` implies that the action of filling the kettle can not be finalized if the kettle is empty.
+

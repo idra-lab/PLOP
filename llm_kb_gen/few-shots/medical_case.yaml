@@ -1,0 +1,30 @@
+few_shots:
+  convo:
+    ############################################################################
+    ###############################     0     ##################################
+    ############################################################################
+    0:
+      Q:
+        role: 'user'
+        content: |
+          Can you tell me about ultrasound chest examination and how it should be done?
+
+    
+      A: 
+        role: 'assistant'
+        content: |
+          A chest ultrasound is a noninvasive diagnostic exam that produces images, which used to assess the organs and structures within the chest, such as the lungs, mediastinum (area in the chest containing the heart, aorta, trachea, esophagus, thymus, and lymph nodes), and pleural space (space between the lungs and the interior wall of the chest). Ultrasound technology allows quick visualization of the chest organs and structures from outside the body. Ultrasound may also be used to assess blood flow to chest organs.                           
+          The BLUE protocol is a useful chest screening algorithm to identify the cause of acute respiratory distress. According to the BLUE protocol, there are uppper and lower BLUE points on the each side of the chest. The upper BLUE point is a few centimeter below the collarbone and the lower BLUE point is a few centimeters above the nipple. In order to carry out a chest ultrasound examination, the BLUE points must be found on both right and left part of the chest.                           
+          
+          Here are the steps of the ultrasound chest examination:
+          1. Human-body positioning: The robot transfers the patient from his or her old position(seated) to a new position(supine). It is enough for patient to be positioned once in the supine position only by single agent(robot)
+          2. High-level Scan: Acqire an image of the whole body to know the position of the patient
+          3. Model Mapping: Check the acquired image against information about the human body. This is done to check if the image has been acquired preciesely
+          4. Find body segmant: The blue point exist in the upper body area. There are four regions of interest in chest where blue points are located: upper segment of right side of the chest, lower segment of right side of the chest, upper segment of left side of the chest, and lower segment of left side of the chest
+          5. Detailed video scan: This scan will be conducted in the defined regions of interest to find the blue points
+          6. Palpation: Use the tactile sensor to collect information using force feedback from human body 
+          7. Sensor Fusion: Identify anatomical landmarks by combining the information acquired by the images in the 5th step and tactile sensor in the 6th step
+          8. Gel application: (The robot do it) Put the gel on the identified areas
+          9. Scan: Scan the identified area to find the blue points. Store these images for further examination from the physician
+        
+
