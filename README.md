@@ -1,7 +1,18 @@
-![Prolog](https://img.shields.io/badge/Prolog-8A2BE2?style=for-the-badge&logo=prolog&logoColor=white)
-![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
-![ROS](https://img.shields.io/badge/ros-%230A0FF9.svg?style=for-the-badge&logo=ros&logoColor=white)
-![Ubuntu](https://img.shields.io/badge/Ubuntu-E95420?style=for-the-badge&logo=ubuntu&logoColor=white)
+<a href="https://www.swi-prolog.org/" target="_blank">
+    <img src="https://img.shields.io/badge/Prolog-8A2BE2?style=for-the-badge&logo=prolog&logoColor=white" target="_blank" />
+</a>
+<a href="https://www.python.org/" target="_blank">
+    <img src="https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54" target="_blank" />
+</a>
+<a href="https://www.ros.org/" target="_blank">
+    <img src="https://img.shields.io/badge/ros-%230A0FF9.svg?style=for-the-badge&logo=ros&logoColor=white" target="_blank" />
+</a>
+<a href="https://ubuntu.com/" target="_blank">
+    <img src="https://img.shields.io/badge/Ubuntu-E95420?style=for-the-badge&logo=ubuntu&logoColor=white" target="_blank" />
+</a>
+
+
+
 <p align='center'>
     <h1 align="center">Probabilistic and Logic Oriented Planning (PLOP)</h1>
 </p>
@@ -88,18 +99,37 @@ python3 -m pip install -U -r llm_kb_gen/requirements.txt
 
 ## Running
 
+### GPT Fine-Tuning
+
+Conversation data between a user and an assistant is stored in YAML files. To make this conversational data usable for fine-tuning purposes—improving the abilities of such language models—it needs to be converted into the JSONL as a means of ensuring compatibility and integration with fine-tuning.
+
+<ins>YAML to JSONL Conversion for GPT Fine-Tuning</ins>
+
+Fine-tuning large language models like GPT entails well-formatted data in a suitable format. YAML is a human-readable and structured format, while GPT models utilize the JSONL format for fine-tuning.
+Thus, It is necessary to convert YAML files into JSONL in order to ensure compatibility.
+
+<ins>Execution</ins>: Run the converter script, specifying the input YAML file(s) and desired output directory:
+```bash
+python3 dataset_generator.py -y <path_to_yaml_file_1> <path_to_yaml_file_2> <path_to_yaml_file_3> 
+```
+
+To shuffle the data during conversion:
+```bash
+python3 dataset_generator.py -y <path_to_yaml_file_1> <path_to_yaml_file_2> <path_to_yaml_file_3> -s true 
+```
+
 ### LLM KB Generation
 You can run the knowledge creation by calling the python script `gpt_convo.py`. It uses few-shots learning to teach the LLM how to respond. The examples are in the `few-shots.yaml` file, but other files can be added by using hte `-y/--yaml-files` arguments:
 
 ```bash
-python3 llm_kb_gen/gtp_convo.py -y ./llm_kb_gen/few-shots1.yaml ./llm_kb_gen/few-shots2.yaml
+python3 llm_kb_gen/gtp_convo.py -y <path_to_yaml_file_1> <path_to_yaml_file_2> <path_to_yaml_file_3>
 ```
 
 If not YAML file is passed, the default one will be used.
 
 Notice that the structure of the YAML file should be:
 ```YAML
-few_shots:
+entries:
   system_msg:
     role: 
     content: 
@@ -107,15 +137,18 @@ few_shots:
     0:
       Q:
         role:
+        content:
       A:
+        role:
         content:
     1:
       Q:
         role:
+        content:
       A:
+        role:
         content:
 ```
-The `system_msg` field should be defined only in one file though. 
 
 ### PROLOG ONLY
 In order to create a pillar use the `pillar/7` rule. This needs 7 parameters in input:
