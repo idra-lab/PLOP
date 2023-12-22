@@ -7,7 +7,7 @@
 <a href="https://www.ros.org/" target="_blank">
     <img src="https://img.shields.io/badge/ros-%230A0FF9.svg?style=for-the-badge&logo=ros&logoColor=white" target="_blank" />
 </a>
-<a href="" target="_blank">
+<a href="https://ubuntu.com/" target="_blank">
     <img src="https://img.shields.io/badge/Ubuntu-E95420?style=for-the-badge&logo=ubuntu&logoColor=white" target="_blank" />
 </a>
 
