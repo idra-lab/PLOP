@@ -1,0 +1,872 @@
+entries:
+  system_msg:
+    role: 'system'
+    content: "Given Prolog Knowledge Base, correct errors which exist in the code"
+  convo:
+    ############################################################################                                      
+    ###############################     0     ##################################              Mismatch: start_action => Effects (gripping) - end_action => ValidConditions
+    ############################################################################
+    0:
+      Q: 
+        role: 'user'
+        content: |
+        
+          We describe each state by a list of predicates, which define the position of the blocks and the status of the agents. 
+          For example, ontable(Block, X, Y) describes the fact that a block is on the table at coordinates (X, Y).
+          available(Agent) states that an agent is available to be used.
+          gripped(Agent, Block) states that a block is gripped by an agent.
+          gripped(_, Block) states that a block is gripped by any agent.
+
+          In our knowledge base, every action is splitted into 'start' and 'end' actions for both durative and instantaneous actions.
+          Our knowledge base is composed of predicates to describe the states, and Prolog rules that describe the actions leveraging the following structure:    
+          
+          action(
+            Name(Argument1, Argument2, ...),
+            [ValidConditions],
+            [InvalidConditions],
+            [InvalidConditionsAtEnd],
+            [ConditionsOnKB],
+            [Effects]
+          ).
+
+          The variable Name defines the name of the action and its argument, e.g., for the action corresponding to the gripping of an agent on a block, we use Name=grip(Agent,Block).
+          The six variables that follow are lists of conditions that must be checked before deciding whether to add the action or not:
+          - ValidConditions contains conditions that should be verified in the current state;
+          - InvalidConditions contains conditions that must not be verified in the current state;
+          - ValidConditionsAtEnd contains conditions that must not be verified in the goal;
+          - ConditionOnKB contains conditions that must be verified on the knowledge base before deciding on the action.
+          - Effects contains a list of predicates on how to modify the current state in a new state. Each predicate is in the form of either add(P(...)), which adds P(...) to the state, or del(P(...)), which looks for P(...) in the current state and removes it.
+
+          The predicates added in the 'Effects' of a start action must be present in the 'ValidConditions' of the corresponding end action. An example is the following one:
+          ```prolog
+          % The robot starts to do something
+          action(
+            start_action(Agent, Block),
+            [ValidCondition_1(Agent), ValidCondition_2(Block)],
+            [InvalidCondition_1(Agent)],
+            [],
+            [],
+            [add(Effect_1(Agent))]
+          ).
+          % The robot finalize doing something
+          action(
+            end_action(Agent, Block),
+            [Effect_1(Agent)],
+            [InvalidCondition_2(Agent)],
+            [],
+            [],
+            [add(Effect_2(Agent))]
+          ).
+          ```
+
+          The 'Effect_1(Agent)' effect occurs as a result of the 'start_action'. This is one of the conditions which must be present in the 'ValidConditions' to take the 'end_action'.
+
+          The list ValidConditionsAtEnd checks if a condition from the goal has already been achieved and avoids actions which may make one of the contained conditions not to hold.
+          ConditionOnKB is a list used to force the Prolog interpreter to ground the variables of the action to some values.
+
+          In particular, the knowledge base is composed of predicates: 
+          - pos(X,Y), which indicates positions that may be used by the agents to temporarily store blocks;
+          - The predicates inside the goal state.
+          
+          The reason for adding the goal state to the knowledge base is to avoid adding trivial and useless actions.
+          Indeed, the search in Prolog is not guided and if we were not to match the goal when choosing an action, the search would be completely unguided and the program may add useless actions such as the movement of a block in the same position.
+          To query for a solution, we provide the initial and final states as input parameters to the go function. This function serves as a convenient wrapper for the plan function, which is responsible for the actual plan-finding process.
+                          
+          Query: Can you generate a prolog code including a set of actions in order for an agent to grip a block on the table at coordinate(X,Y) in accrodance with the information provided above?
+
+          Code:
+          ```prolog
+          %  /# of parameters for given predicate
+          :- dynamic ontable/3.
+          :- dynamic available/1.
+          :- dynamic clear/1.  
+          :- dynamic gripping/2.
+          :- dynamic gripped/2.
+          :- discontiguous action/6.    
+
+          % The robot starts to grip the block
+          action(
+          grip_ontable_start(Agent, Block), 
+          [ontable(Block, X, Y), available(Agent), clear(Block)],
+          [gripped(_, Block), gripping(_, Block)],
+          [ontable(Block, X, Y)],
+          [],
+          [del(available(Agent))]
+          ).                           
+
+          % The robot finalize gripping the block
+          action(grip_end(Agent, Block),
+          [gripping(Agent, Block)],
+          [],
+          [],
+          [],
+          [del(clear(Block)), del(gripping(Agent, Block)), add(gripped(Agent, Block))]
+          ).
+          ```
+
+          Error Type: Mismatch between the Effects of the start action and the ValidConditions of the end action
+                          
+          Can you correct the error found in the code?
+
+      
+      A: 
+        role: 'assistant'
+        content: |
+        
+          Sure, here is the Prolog code:
+          ```prolog
+          %  /# of parameters for given predicate
+          :- dynamic ontable/3.
+          :- dynamic available/1.
+          :- dynamic clear/1.  
+          :- dynamic gripping/2.
+          :- dynamic gripped/2.
+          :- discontiguous action/6.    
+
+          % The robot starts to grip the block
+          action(
+          grip_ontable_start(Agent, Block), 
+          [ontable(Block, X, Y), available(Agent), clear(Block)],
+          [gripped(_, Block), gripping(_, Block)],
+          [ontable(Block, X, Y)],
+          [],
+          [del(available(Agent)), add(gripping(Agent, Block))]
+          ).                           
+
+          % The robot finalize gripping the block
+          action(grip_end(Agent, Block),
+          [gripping(Agent, Block)],
+          [],
+          [],
+          [],
+          [del(clear(Block)), del(gripping(Agent, Block)), add(gripped(Agent, Block))]
+          ).
+          ```
+
+          Explanation: The error can be fixed by adding '(gripping(Agent, Block)' into the 'Effects' of the 'grip_ontable_start' action.
+
+    ############################################################################
+    ###############################     1     ##################################             
+    ############################################################################
+    1:
+      Q: 
+        role: 'user'
+        content: |
+        
+          Query: Can you generate a prolog code including a set of actions in order for an agent to grip a block on the table at coordinate(X,Y) in accrodance with the information provided above?
+
+          Code:
+          ```prolog
+          %  /# of parameters for given predicate
+          :- dynamic at/2.
+          :- dynamic holding/1.
+          :- dynamic empty/1.  
+          :- dynamic full/1.
+          :- dynamic filling/2.  
+
+          % The robot starts filling the kettle with water
+          action(
+          fill_kettle_start(Agent,Kettle),
+          [at(Robot, Kitchen), holding(Kettle), empty(Kettle)], 
+          [],
+          [],
+          [],
+          [del(empty(Kettle)), add(filling(Robot, Kettle))]
+          ).
+          % The robot finalizes filling the kettle with water
+          action(
+          fill_kettle_end(Agent,Kettle),
+          [at(Robot, Kitchen), holding(Kettle)], 
+          [],
+          [],
+          [],
+          [add(full(Kettle))]
+          ).
+          ```
+
+          Error Type: Mismatch between the Effects of the start action and the ValidConditions of the end action
+                          
+          Can you correct the error found in the code?
+
+      
+      A: 
+        role: 'assistant'
+        content: |
+        
+          Sure, here is the Prolog code:
+          ```prolog
+          %  /# of parameters for given predicate
+          :- dynamic at/2.
+          :- dynamic holding/1.
+          :- dynamic empty/1.  
+          :- dynamic full/1.
+          :- dynamic filling/2.  
+
+          % The robot starts filling the kettle with water
+          action(
+          fill_kettle_start(Agent,Kettle),
+          [at(Robot, Kitchen), holding(Kettle), empty(Kettle)],
+          [],
+          [],
+          [],
+          [del(empty(Kettle)), add(filling(Robot, Kettle))]
+          ).
+          % The robot finalizes filling the kettle with water
+          action(
+          fill_kettle_end(Agent,Kettle),
+          [at(Robot, Kitchen), holding(Kettle), filling(Robot, Kettle)], 
+          [],
+          [],
+          [],
+          [add(full(Kettle))]
+          ).
+          ```
+
+          Explanation:  The predicates added in the 'Effects' of a start action must be present in the 'ValidConditions' of the corresponding end action. Therefore, the error can be fixed by adding 'filling(Robot, Kettle)' condition into the 'Effects' of the 'fill_kettle_start' action. 
+
+    ############################################################################
+    ###############################     2     ##################################             
+    ############################################################################
+    2:
+      Q: 
+        role: 'user'
+        content: |
+        
+          Query: Can you generate a prolog code including a set of actions in order for an agent to grip a block on the table at coordinate(X,Y) in accrodance with the information provided above?
+
+          Code:
+          ```prolog
+          %  /# of parameters for given predicate
+          :- dynamic at/2.
+          :- dynamic holding/1. 
+          :- dynamic full/1.
+          :- dynamic cold/1.
+          :- dynamic boiling/1.
+          :- dynamic boiled/1.          
+          
+          % The robot starts boiling water in the kettle
+          action(
+          boil_water_start(Robot, Kettle),
+          [at(Robot, Kitchen), holding(Kettle), full(Kettle), cold(Water)],
+          [],
+          [],
+          [],
+          [del(cold(Water)), add(boiling(Water))]
+          ).
+          % The robot finalizes filling the kettle with water
+          action(
+          boil_water_end(Robot,Kettle),
+          [at(Robot, Kitchen), holding(Kettle), full(Kettle)],
+          [],
+          [],
+          [],
+          [del(boiling(Water)), add(boiled(Water))]
+          ).
+          ```
+
+          Error Type: Mismatch between the Effects of the start action and the ValidConditions of the end action
+                          
+          Can you correct the error found in the code?
+
+      
+      A: 
+        role: 'assistant'
+        content: |
+        
+          Sure, here is the Prolog code:
+          ```prolog
+          %  /# of parameters for given predicate
+          :- dynamic at/2.
+          :- dynamic holding/1. 
+          :- dynamic full/1.
+          :- dynamic cold/1.
+          :- dynamic boiling/1.
+          :- dynamic boiled/1.          
+          
+          % The robot starts boiling water in the kettle
+          action(
+          boil_water_start(Robot, Kettle),
+          [at(Robot, Kitchen), holding(Kettle), full(Kettle), cold(Water)],
+          [],
+          [],
+          [],
+          [del(cold(Water)), add(boiling(Water))]
+          ).
+          % The robot finalizes filling the kettle with water
+          action(
+          boil_water_end(Robot,Kettle),
+          [at(Robot, Kitchen), holding(Kettle), full(Kettle), boiling(Water)],
+          [],
+          [],
+          [],
+          [del(boiling(Water)), add(boiled(Water))]
+          ).
+          ```
+
+          Explanation:  The predicates added in the 'Effects' of a start action must be present in the 'ValidConditions' of the corresponding end action. Therefore, the error can be fixed by adding 'boiling(Water)' condition into the 'ValidConditions' of the 'boil_water_end' action. 
+
+
+
+    ############################################################################
+    ###############################     3     ##################################              Wrong number of predicate definitions
+    ############################################################################
+    3:
+      Q: 
+        role: 'user'
+        content: |
+        
+          Query: Can you generate a prolog code including a set of actions in order for an agent to grip a block on the table at coordinate(X,Y)?
+
+          Code:
+          ```prolog
+          %  /# of parameters for given predicate
+          :- dynamic ontable/3.
+          :- dynamic available/1.
+          :- dynamic gripped/2.
+          :- discontiguous action/6.    
+
+          % The robot starts to grip the block
+          action(
+          grip_ontable_start(Agent, Block),
+          [gripped(_, Block), gripping(_, Block)],
+          [ontable(Block, X, Y)],
+          [],
+          [del(available(Agent))]
+          ).                           
+
+          % The robot finalize gripping the block
+          action(grip_end(Agent, Block),
+          [gripping(Agent, Block)],
+          [],
+          [],
+          [],
+          [del(clear(Block)), del(gripping(Agent, Block)), add(gripped(Agent, Block))]
+          ).
+          ```
+
+          Error Type: Wrong number of predicate definitions
+                          
+          Can you correct the error found in the code?
+
+      
+      A: 
+        role: 'assistant'
+        content: |
+        
+          Sure, here is the Prolog code:
+          ```prolog
+          %  /# of parameters for given predicate
+          :- dynamic ontable/3.
+          :- dynamic available/1.
+          :- dynamic clear/1.  
+          :- dynamic gripping/2.
+          :- dynamic gripped/2.
+          :- discontiguous action/6.    
+
+          % The robot starts to grip the block
+          action(
+          grip_ontable_start(Agent, Block), 
+          [ontable(Block, X, Y), available(Agent), clear(Block)],
+          [gripped(_, Block), gripping(_, Block)],
+          [ontable(Block, X, Y)],
+          [],
+          [del(available(Agent)), add(gripping(Agent, Block))]
+          ).                           
+
+          % The robot finalize gripping the block
+          action(grip_end(Agent, Block),
+          [gripping(Agent, Block)],
+          [],
+          [],
+          [],
+          [del(clear(Block)), del(gripping(Agent, Block)), add(gripped(Agent, Block))]
+          ).
+          ```
+
+          Explanation: The error can be fixed by adding missing predicate definitions: ':- dynamic clear/1.' and ':- dynamic gripping/2.'
+
+
+    ############################################################################
+    ###############################     4     ##################################              Wrong number of predicate definitions
+    ############################################################################
+    4:
+      Q: 
+        role: 'user'
+        content: |
+        
+          Query: Can you generate a prolog code including a set of actions in order for an agent to grip a block on the table at coordinate(X,Y)?
+
+          Sure, here is the Prolog code:
+          ```prolog
+          %  /# of parameters for given predicate
+          :- dynamic ontable/3.
+          :- dynamic available/1.
+          :- dynamic clear/1.  
+          :- dynamic gripping/2.
+          :- dynamic gripped/2.  
+
+          % The robot starts to grip the block
+          action(
+          grip_ontable_start(Agent, Block),
+          [gripped(_, Block), gripping(_, Block)],
+          [ontable(Block, X, Y)],
+          [],
+          [del(available(Agent))]
+          ).                           
+
+          % The robot finalize gripping the block
+          action(grip_end(Agent, Block),
+          [gripping(Agent, Block)],
+          [],
+          [],
+          [],
+          [del(clear(Block)), del(gripping(Agent, Block)), add(gripped(Agent, Block))]
+          ).
+          ```
+
+          Error Type: Wrong number of predicate definitions
+                          
+          Can you correct the error found in the code?
+
+      
+      A: 
+        role: 'assistant'
+        content: |
+        
+          Sure, here is the Prolog code:
+          ```prolog
+          %  /# of parameters for given predicate
+          :- dynamic ontable/3.
+          :- dynamic available/1.
+          :- dynamic clear/1.  
+          :- dynamic gripping/2.
+          :- dynamic gripped/2.
+          :- discontiguous action/6.    
+
+          % The robot starts to grip the block
+          action(
+          grip_ontable_start(Agent, Block), 
+          [ontable(Block, X, Y), available(Agent), clear(Block)],
+          [gripped(_, Block), gripping(_, Block)],
+          [ontable(Block, X, Y)],
+          [],
+          [del(available(Agent)), add(gripping(Agent, Block))]
+          ).                           
+
+          % The robot finalize gripping the block
+          action(grip_end(Agent, Block),
+          [gripping(Agent, Block)],
+          [],
+          [],
+          [],
+          [del(clear(Block)), del(gripping(Agent, Block)), add(gripped(Agent, Block))]
+          ).
+          ```
+
+          Explanation: The error can be fixed by adding missing predicate definitions: ':- discontiguous action/6.'
+
+
+    ############################################################################
+    ###############################     5     ##################################              Wrong number of predicate definitions
+    ############################################################################
+    5:
+      Q: 
+        role: 'user'
+        content: |
+        
+          Query: Can you generate a prolog code including a set of actions in order for an agent to grip a block on the table at coordinate(X,Y)?
+
+          Sure, here is the Prolog code:
+          ```prolog
+          %  /# of parameters for given predicate
+          :- dynamic at/2.
+          :- dynamic full/1.
+          :- dynamic cold/1.
+          :- dynamic boiled/1.          
+          
+          % The robot starts boiling water in the kettle
+          action(
+          boil_water_start(Robot, Kettle),
+          [at(Robot, Kitchen), holding(Kettle), full(Kettle), cold(Water)],
+          [],
+          [],
+          [],
+          [del(cold(Water)), add(boiling(Water))]
+          ).
+          % The robot finalizes filling the kettle with water
+          action(
+          boil_water_end(Robot,Kettle),
+          [at(Robot, Kitchen), holding(Kettle), full(Kettle), boiling(Water)],
+          [],
+          [],
+          [],
+          [del(boiling(Water)), add(boiled(Water))]
+          ).
+          ```
+
+          Error Type: Wrong number of predicate definitions
+                          
+          Can you correct the error found in the code?
+
+      
+      A: 
+        role: 'assistant'
+        content: |
+        
+          Sure, here is the Prolog code:
+          ```prolog
+          %  /# of parameters for given predicate
+          :- dynamic at/2.
+          :- dynamic holding/1.
+          :- dynamic full/1.
+          :- dynamic cold/1.
+          :- dynamic boiling/1.
+          :- dynamic boiled/1.          
+          
+          % The robot starts boiling water in the kettle
+          action(
+          boil_water_start(Robot, Kettle),
+          [at(Robot, Kitchen), holding(Kettle), full(Kettle), cold(Water)],
+          [],
+          [],
+          [],
+          [del(cold(Water)), add(boiling(Water))]
+          ).
+          % The robot finalizes filling the kettle with water
+          action(
+          boil_water_end(Robot,Kettle),
+          [at(Robot, Kitchen), holding(Kettle), full(Kettle), boiling(Water)],
+          [],
+          [],
+          [],
+          [del(boiling(Water)), add(boiled(Water))]
+          ).
+          ```
+
+          Explanation: The error can be fixed by adding missing predicate definitions: ':- dynamic holding/1.' , ':- dynamic boiling/1.'
+
+
+    ############################################################################
+    ###############################     6     ##################################              Wrong number of predicate definitions
+    ############################################################################
+    6:
+      Q: 
+        role: 'user'
+        content: |
+        
+          Query: Can you generate a prolog code including a set of actions in order for an agent to grip a block on the table at coordinate(X,Y)?
+
+          Sure, here is the Prolog code:
+          ```prolog
+          %  /# of parameters for given predicate
+          :- dynamic at/2.
+          :- dynamic holding/1.
+          :- dynamic full/1.
+          :- dynamic cold/1.
+          :- dynamic boiling/1.
+          
+          % The robot starts boiling water in the kettle
+          action(
+          boil_water_start(Robot, Kettle),
+          [at(Robot, Kitchen), holding(Kettle), full(Kettle), cold(Water)],
+          [],
+          [],
+          [],
+          [del(cold(Water)), add(boiling(Water))]
+          ).
+          % The robot finalizes filling the kettle with water
+          action(
+          boil_water_end(Robot,Kettle),
+          [at(Robot, Kitchen), holding(Kettle), full(Kettle), boiling(Water)],
+          [],
+          [],
+          [],
+          [del(boiling(Water)), add(boiled(Water))]
+          ).
+          ```
+
+          Error Type: Wrong number of predicate definitions
+                          
+          Can you correct the error found in the code?
+
+      
+      A: 
+        role: 'assistant'
+        content: |
+        
+          Sure, here is the Prolog code:
+          ```prolog
+          %  /# of parameters for given predicate
+          :- dynamic at/2.
+          :- dynamic holding/1.
+          :- dynamic full/1.
+          :- dynamic cold/1.
+          :- dynamic boiling/1.
+          :- dynamic boiled/1.          
+          
+          % The robot starts boiling water in the kettle
+          action(
+          boil_water_start(Robot, Kettle),
+          [at(Robot, Kitchen), holding(Kettle), full(Kettle), cold(Water)],
+          [],
+          [],
+          [],
+          [del(cold(Water)), add(boiling(Water))]
+          ).
+          % The robot finalizes filling the kettle with water
+          action(
+          boil_water_end(Robot,Kettle),
+          [at(Robot, Kitchen), holding(Kettle), full(Kettle), boiling(Water)],
+          [],
+          [],
+          [],
+          [del(boiling(Water)), add(boiled(Water))]
+          ).
+          ```
+
+          Explanation: The error can be fixed by adding missing predicate definitions: ':- dynamic boiled/1.'
+
+
+    ############################################################################
+    ###############################     7     ##################################              Wrong number of literals in the predicates
+    ############################################################################
+    7:
+      Q: 
+        role: 'user'
+        content: |
+        
+          Query: Can you generate a prolog code including a set of actions in order for an agent to grip a block on the table at coordinate(X,Y)?
+
+          Code:
+          ```prolog
+          %  /# of parameters for given predicate
+          :- dynamic ontable/3.
+          :- dynamic available/1.
+          :- dynamic clear/1.  
+          :- dynamic gripping/2.
+          :- dynamic gripped/2.
+          :- discontiguous action/6.    
+
+          % The robot starts to grip the block
+          action(
+          grip_ontable_start(Agent, Block), 
+          [ontable(Block, X, Y), available(Agent, Block), clear(Block)],
+          [gripped(_, Block), gripping(_, Block)],
+          [ontable(Block, X, Y)],
+          [],
+          [del(available(Agent, Block)), add(gripping(Agent, Block))]
+          ).                           
+
+          % The robot finalize gripping the block
+          action(grip_end(Agent, Block),
+          [gripping(Agent, Block)],
+          [],
+          [],
+          [],
+          [del(clear(Block)), del(gripping(Agent, Block)), add(gripped(Agent, Block))]
+          ).
+          ```
+
+          Error Type: Wrong number of literals in the predicates
+                          
+          Can you correct the error found in the code?
+
+      
+      A: 
+        role: 'assistant'
+        content: |
+        
+          Sure, here is the Prolog code:
+          ```prolog
+          %  /# of parameters for given predicate
+          :- dynamic ontable/3.
+          :- dynamic available/1.
+          :- dynamic clear/1.  
+          :- dynamic gripping/2.
+          :- dynamic gripped/2.
+          :- discontiguous action/6.    
+
+          % The robot starts to grip the block
+          action(
+          grip_ontable_start(Agent, Block), 
+          [ontable(Block, X, Y), available(Agent), clear(Block)],
+          [gripped(_, Block), gripping(_, Block)],
+          [ontable(Block, X, Y)],
+          [],
+          [del(available(Agent)), add(gripping(Agent, Block))]
+          ).                           
+
+          % The robot finalize gripping the block
+          action(grip_end(Agent, Block),
+          [gripping(Agent, Block)],
+          [],
+          [],
+          [],
+          [del(clear(Block)), del(gripping(Agent, Block)), add(gripped(Agent, Block))]
+          ).
+          ```
+
+          Explanation: The 'available' predicate can take only one literal. The error can be fixed by converting 'available(Agent, Block)' to 'available(Agent)'
+
+
+    ############################################################################
+    ###############################     8     ##################################              Wrong number of literals in the predicates
+    ############################################################################
+    8:
+      Q: 
+        role: 'user'
+        content: |
+        
+          Query: Can you generate a prolog code including a set of actions in order for an agent to grip a block on the table at coordinate(X,Y)?
+
+          Code:
+          ```prolog
+          %  /# of parameters for given predicate
+          :- dynamic ontable/3.
+          :- dynamic available/1.
+          :- dynamic clear/1.  
+          :- dynamic gripping/2.
+          :- dynamic gripped/2.
+          :- discontiguous action/6.    
+
+          % The robot starts to grip the block
+          action(
+          grip_ontable_start(Agent, Block), 
+          [ontable(Block, X, Y), available(Agent), clear(Block)],
+          [gripped(_, Block), gripping(_, Block)],
+          [ontable(Block, X, Y)],
+          [],
+          [del(available(Agent)), add(gripping(Agent, Block))]
+          ).                           
+
+          % The robot finalize gripping the block
+          action(grip_end(Agent, Block),
+          [gripping(Agent, Block)],
+          [],
+          [],
+          [],
+          [del(clear(Block)), del(gripping(Agent, Block)), add(gripped(Agent, Block))]
+          ).
+          ```
+
+          Error Type: Wrong number of literals in the predicates
+                          
+          Can you correct the error found in the code?
+
+      
+      A: 
+        role: 'assistant'
+        content: |
+        
+          Sure, here is the Prolog code:
+          ```prolog
+          %  /# of parameters for given predicate
+          :- dynamic ontable/3.
+          :- dynamic available/1.
+          :- dynamic clear/1.  
+          :- dynamic gripping/2.
+          :- dynamic gripped/2.
+          :- discontiguous action/6.    
+
+          % The robot starts to grip the block
+          action(
+          grip_ontable_start(Agent, Block), 
+          [ontable(Block, X, Y), available(Agent), clear(Block)],
+          [gripped(_, Block), gripping(_, Block)],
+          [ontable(Block, X, Y)],
+          [],
+          [del(available(Agent)), add(gripping(Agent, Block))]
+          ).                           
+
+          % The robot finalize gripping the block
+          action(grip_end(Agent, Block),
+          [gripping(Agent, Block)],
+          [],
+          [],
+          [],
+          [del(clear(Block)), del(gripping(Agent, Block)), add(gripped(Agent, Block))]
+          ).
+          ```
+
+          Explanation: The 'available' predicate can take only one literal. The error can be fixed by removing 'Block' literal from the 'available(Agent, Block)' predicate. Hence, it becomes 'available(Agent)'.
+
+
+    ############################################################################                                      
+    ###############################     9     ##################################              Wrong number of arguments in the actions     [ValidConditions missing in the start action]
+    ############################################################################
+    9:
+      Q: 
+        role: 'user'
+        content: |
+        
+          Query: Can you generate a prolog code including a set of actions in order for an agent to grip a block on the table at coordinate(X,Y)?
+
+          Code:
+          ```prolog
+          %  /# of parameters for given predicate
+          :- dynamic ontable/3.
+          :- dynamic available/1.
+          :- dynamic clear/1.  
+          :- dynamic gripping/2.
+          :- dynamic gripped/2.
+          :- discontiguous action/6.    
+
+          % The robot starts to grip the block
+          action(
+          grip_ontable_start(Agent, Block),
+          [gripped(_, Block), gripping(_, Block)],
+          [ontable(Block, X, Y)],
+          [],
+          [del(available(Agent)), add(gripping(Agent, Block))]
+          ).                           
+
+          % The robot finalize gripping the block
+          action(grip_end(Agent, Block),
+          [gripping(Agent, Block)],
+          [],
+          [],
+          [],
+          [del(clear(Block)), del(gripping(Agent, Block)), add(gripped(Agent, Block))]
+          ).
+          ```
+
+          Error Type: Wrong number of arguments in the actions
+
+          Can you correct the error found in the code?
+
+      
+      A: 
+        role: 'assistant'
+        content: |
+        
+          Sure, here is the Prolog code:
+          ```prolog
+          %  /# of parameters for given predicate
+          :- dynamic ontable/3.
+          :- dynamic available/1.
+          :- dynamic clear/1.  
+          :- dynamic gripping/2.
+          :- dynamic gripped/2.
+          :- discontiguous action/6.    
+
+          % The robot starts to grip the block
+          action(
+          grip_ontable_start(Agent, Block), 
+          [ontable(Block, X, Y), available(Agent), clear(Block)],
+          [gripped(_, Block), gripping(_, Block)],
+          [ontable(Block, X, Y)],
+          [],
+          [del(available(Agent)), add(gripping(Agent, Block))]
+          ).                           
+
+          % The robot finalize gripping the block
+          action(grip_end(Agent, Block),
+          [gripping(Agent, Block)],
+          [],
+          [],
+          [],
+          [del(clear(Block)), del(gripping(Agent, Block)), add(gripped(Agent, Block))]
+          ).
+          ```
+
+          Explanation : In the 'grip_ontable_start' action, ValidConditions is missing. The error can be fixed by inserting '[ontable(Block, X, Y), available(Agent), clear(Block)]' ValidConditions into the action template.
