@@ -159,19 +159,6 @@ few_shots:
 
           As the information regarding the available positions should be stated in the KB
 
-    ############################################################################
-    ###############################     4     ##################################
-    ############################################################################
-    4:
-      Q:
-        role: 'user'
-        content: |
-          Can you provide a full example?
-
-      A:
-        role: 'assistant'
-        content: |
-          Sure, here is an example in which 
 
  
 

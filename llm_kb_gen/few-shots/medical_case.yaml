@@ -9,7 +9,6 @@ few_shots:
         content: |
           Can you tell me about ultrasound chest examination and how it should be done?
 
-    
       A: 
         role: 'assistant'
         content: |

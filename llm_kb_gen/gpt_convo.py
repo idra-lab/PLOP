@@ -8,17 +8,13 @@ from openai import AzureOpenAI
 from retry import retry
 
 # =======================================================================#
-#                           OPENAI API KEY                              #
+#                            GLOBAL VALUES                               #
 # =======================================================================#
-openai.api_key = os.environ["OPENAI_API_KEY"]  #
+LLM_VERSION  = ""
+API_KEY_NAME = ""
+ENDPOINT     = ""
+API_VERSION  = ""
 # =======================================================================#
-
-
-# ===============================================#
-# Available GPT versions:                       #
-# =============================================================#
-llm_versions = ["LLMPlanning", "LLMPlanning2", "LLMPlanning35"]  #
-# =============================================================#
 
 
 # ===================================================================================================================#
@@ -78,9 +74,9 @@ def connect_openai(
 ):
     # UNITN-key
     client = AzureOpenAI(
-        api_key=os.environ["OPENAI_API_KEY"],
-        azure_endpoint="https://disi-logic-programming.openai.azure.com/",
-        api_version="2023-05-15",
+        api_key=os.environ[API_KEY_NAME],
+        azure_endpoint=ENDPOINT,
+        api_version=API_VERSION,
     )
     response = client.chat.completions.create(
         model=engine,
@@ -204,8 +200,10 @@ def num_tokens_from_string(string: str, encoding_name: str) -> int:
 # ===================================================================================================================#
 #                                               	MAIN FUNCTION                                               #
 # ===================================================================================================================#
-def main(llm_version, yaml_files):
-    llm_gpt = GPT_model(engine=llm_version)
+def main(yaml_files):
+    openai.api_key = os.environ[API_KEY_NAME]
+
+    llm_gpt = GPT_model(engine=LLM_VERSION)
     messages = []
     system_msg = ""
 
@@ -270,7 +268,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # Adding optional argument
-    parser.add_argument("-v", "--version", help="ChatGPT version")
+    parser.add_argument("-L", "--LLM", help="ChatGPT configuration file", default="./conf/gpt40-8k.yaml")
     parser.add_argument(
         "-y",
         "--yaml_files",
@@ -281,21 +279,29 @@ if __name__ == "__main__":
     # Read arguments from command line
     args = parser.parse_args()
 
-    if args.version in llm_versions:
-        llm_version = args.version
-    else:
-        if args.version == None:
-            llm_version = llm_versions[0]
-            print("The default version({}) has been selected".format(llm_version))
-        else:
-            print("Please choose an available version of GPT")
-            print("Available versions : ")
-            for v in llm_versions:
-                print("\t - " + v)
-            exit()
-        if args.yaml_files != None:
-            for file in args.yaml_files:
-                assert os.path.isfile(file), "File {} does not exist".format(file)
+    if args.yaml_files != None:
+        for file in args.yaml_files:
+            assert os.path.isfile(file), "File {} does not exist".format(file)
 
-    llm_version = "LLMPlanning35"
-    main(llm_version, args.yaml_files)
+    llm_conf_file = args.LLM
+    print("LLM configuration file: ", llm_conf_file)
+    if llm_conf_file.endswith(".yaml") and os.path.isfile(llm_conf_file):
+        with open(llm_conf_file) as file:
+            print("Opened")
+            llm_conf = yaml.load(file, Loader=yaml.FullLoader)
+
+            LLM_VERSION  = llm_conf["LLM_VERSION"]
+            API_KEY_NAME = llm_conf["API_KEY_NAME"]
+            ENDPOINT     = llm_conf["ENDPOINT"]
+            API_VERSION  = llm_conf["API_VERSION"]
+
+            print("LLM_VERSION: ", LLM_VERSION)
+            print("API_KEY_NAME: ", API_KEY_NAME)
+            print("ENDPOINT: ", ENDPOINT)
+            print("API_VERSION: ", API_VERSION)
+
+    else:
+        print("The selected file {} does not exist or is not a yaml file".format(llm_conf_file))
+        exit()
+
+    main(args.yaml_files)
