@@ -22,15 +22,13 @@
 %%% This code has been tested with SWI-Prolog (Multi-threaded, Version 5.2.13)
 %%% and appears to function as intended.
 
+
+:- discontiguous action/6.
+
 :- include('adts.pl').
 :- include('actions.pl').
 :- include('kb.pl').
 
-:- dynamic ontable/3.
-:- dynamic available/1.
-:- dynamic on/4.
-:- dynamic clear/1.
-:- discontiguous action/6.
 
 ground_g([]).
 ground_g([_H|T]) :-
