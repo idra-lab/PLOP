@@ -122,4 +122,3 @@ action(
 		add(buffer(B, X1, Y1)), add(moved(A, B, X, Y, X1, Y1))
 	]
 ).
-

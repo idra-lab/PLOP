@@ -1,41 +1,14 @@
-%%%%%%%%% Simple Prolog Planner %%%%%%%%
-%%%
-%%% This is one of the example programs from the textbook:
-%%%
-%%% Artificial Intelligence: 
-%%% Structures and strategies for complex problem solving
-%%%
-%%% by George F. Luger and William A. Stubblefield
-%%% 
-%%% Corrections by Christopher E. Davis (chris2d@cs.unm.edu)
-%%%
-%%% These programs are copyrighted by Benjamin/Cummings Publishers.
-%%%
-%%% We offer them for use, free of charge, for educational purposes only.
-%%%
-%%% Disclaimer: These programs are provided with no warranty whatsoever as to
-%%% their correctness, reliability, or any other property.  We have written 
-%%% them for specific educational purposes, and have made no effort
-%%% to produce commercial quality computer programs.  Please do not expect 
-%%% more of them then we have intended.
-%%%
-%%% This code has been tested with SWI-Prolog (Multi-threaded, Version 5.2.13)
-%%% and appears to function as intended.
-
 :- include('adts.pl').
 :- include('actions.pl').
 :- include('kb.pl').
 
-:- dynamic ontable/3.
-:- dynamic available/1.
-:- dynamic on/4.
-:- dynamic clear/1.
 :- discontiguous action/6.
 
 ground_g([]).
 ground_g([_H|T]) :-
 	% assertz(H),
 	ground_g(T).
+
 
 achiever([HP|_TP], [add(HP)|_TE], _).
 achiever([_HP|TP], [], E) :-
@@ -74,7 +47,6 @@ plan(State, Goal, _, Actions, Times, _MaxDepth, Actions, Times) :-
 	write('actions are'), nl,
 	%reverse_print_stack(Actions),
 	reverse_print_actions_times(Actions, Times)
-	%true
 	.
 
 plan(State, Goal, Been_list, Actions, Times, MaxDepth, RetActions, RetTimes) :- 	

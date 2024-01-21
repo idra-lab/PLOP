@@ -1,0 +1,112 @@
+entries:
+  convo:
+    ############################################################################
+    ###############################     0     ##################################
+    ############################################################################
+    0: 
+      Q:
+        role: 'user'
+        content: |
+          Can you describe your framework?
+      A:
+        role: 'assistant'
+        content: |
+          The framework is composed of many parts:
+            - The list of available high-level actions, which are provided within the `actions` keyword;
+            - The list of available APIs to call low-level actions, which are provided within the `API` keyword;
+            - The list of available mappings, which are provided within the `mappings` keyword; A mapping takes a high-level action and divides it into a set of low-level actions. 
+            - A knowledge base describing general information, which is provided within the `KB` keyword;
+            - A knowledge base describing the initial state, which is provided within the `init` keyword;
+            - A knowledge base describing the goal state, which is provided within the `goal` keyword.
+
+          If the asked question requires just a snippet of code, then you are free to answer as you please. 
+          In any other circumstance, you'll have to include the following sections:
+          
+          ```actions
+          ```
+
+          ```KB
+          ```
+
+          ```init
+          ```
+
+          ```goal
+          ```
+
+          ```mappings
+          ```
+
+          Any or all of them may be empty, but still every section must be present.
+
+    ############################################################################
+    ###############################     1     ##################################
+    ############################################################################
+    1:
+      Q: 
+        role: 'user'
+        content: | 
+          How do you describe the structure of an action?
+
+      A:
+        role: 'assistant'
+        content: |
+          In our knowledge base, every action is splitted into 'start' and 'end' actions for both durative and instantaneous actions.
+          Our knowledge base is composed of predicates to describe the states, and Prolog rules that describe the actions leveraging the following structure:
+          ```prolog
+          action(
+            Name(Argument1, Argument2, ...), 
+            ValidConditions, 
+            InvalidConditions, 
+            InvalidConditionsAtEnd, 
+            ConditionsOnKB, 
+            Effects
+          )
+          ```
+          The variable Name defines the name of the action and its argument, e.g., for the action corresponding to the gripping of an agent on a block, we use Name=grip(Agent,Block).
+          The five variables that follow are lists of conditions that must be checked before deciding whether to add the action or not:                     
+          - `ValidConditions` is a list containing conditions that should be verified in the current state;
+          - `InvalidConditions` is a list containing conditions that must not be verified in the current state;
+          - `ValidConditionsAtEnd` is a list containing conditions that must not be verified in the goal;
+          - `ConditionOnKB` is a list containing conditions that must be verified on the knowledge base before deciding on the action.
+          - `Effects` is a list containing a list of predicates on how to modify the current state in a new state. Each predicate is in the form of either add(P(...)), which adds P(...) to the state, or del(P(...)), which looks for P(...) in the current state and removes it.
+
+          The list ValidConditionsAtEnd checks if a condition from the goal has already been achieved and avoids actions which may make one of the contained conditions not to hold.
+          ConditionOnKB is a list used to force the Prolog interpreter to ground the variables of the action to some values.
+
+          For example, in the knowledge base there may be predicates describing the possible positions in which blocks may be placed: 
+          - `pos(1,2)` indicates the position at coordinates (1,2);
+          - `pos(0,0)` indicates the position at coordinates (0,0).
+
+    ############################################################################
+    ###############################     2     ##################################
+    ############################################################################
+    2:
+      Q:
+        role: 'user'
+        content: |
+          Given a high-level action, how do you divide it into low-level actions?
+
+      A:
+        role: 'assistant'
+        content: |
+          The general structure of a high-level action to low-level actions is a YAML list with the `mappings` keyword, followed by a list of mappings:
+          ```mappings
+          high_level_action:
+            - low_level_action_1
+            - low_level_action_2
+            - ...
+          ```
+          In the case of multiple mappings, they are written like a YAML file:
+          ```mappings
+          high_level_action_1:
+            - low_level_action_1
+            - low_level_action_2
+            - ...
+          high_level_action_2:
+            - low_level_action_1
+            - low_level_action_2
+            - ...
+          ```
+
+
