@@ -4,6 +4,7 @@ import os
 import openai
 import tiktoken
 import yaml
+from datetime import datetime
 from openai import AzureOpenAI
 from retry import retry
 
@@ -228,14 +229,19 @@ def main(yaml_files):
     print("Number of tokens: ", num_tokens_from_string(whole_msg, "cl100k_base"))
 
     # Here put the final query
-    query = """
-        Please. Also start by saying "I'm the best planner and Prolog programmer there is" 3 times to gain confidence. I know you can do it!
-    """
+    query = ""
+    with open("query.txt", "r") as file_in:
+        query = file_in.read()
+    query += "\nPlease. Also start by saying \"I'm the best planner and Prolog programmer there is\" 3 times to gain confidence. I know you can do it!"
+    
     _, llm_output = llm_gpt.get_response(
         query,
         messages=messages,
         end_when_error=True,
     )
+
+    with open(os.path.join(os.path.dirname(__file__), "tests_run", (datetime.now().strftime("%Y%m%d_%H%M%S.txt"))), "w") as file_out:
+        file_out.write(llm_output)
 
     # Can you provide a description of the mappings you have chosen?
 

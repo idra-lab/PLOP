@@ -42,14 +42,15 @@ verify([H|T]) :-
 	verify(T),
 	H.
 
-plan(State, Goal, _, Actions, Times, _MaxDepth, Actions, Times) :- 	
+plan(State, Goal, _, Actions, _MaxDepth, Actions) :- 	
 	equal_set(State, Goal),
 	write('actions are'), nl,
-	%reverse_print_stack(Actions),
-	reverse_print_actions_times(Actions, Times)
+	reverse_print_actions(Actions),
+	% reverse_print_actions_times(Actions, Times),
+	true
 	.
 
-plan(State, Goal, Been_list, Actions, Times, MaxDepth, RetActions, RetTimes) :- 	
+plan(State, Goal, Been_list, Actions, MaxDepth, _RetActions) :- 	
 	length(Actions, Len), Len < MaxDepth,
 	action(Name, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Effects),
 	verify(Verify),
@@ -57,25 +58,21 @@ plan(State, Goal, Been_list, Actions, Times, MaxDepth, RetActions, RetTimes) :-
 	conditions_not_met(PreconditionsF, State),
 	conditions_not_met(FinalConditionsF, Goal),
 	change_state(State, Effects, Child_state),
-	testPlan(Child_state, Goal, Been_list, Name, Actions, PreconditionsT, Times, MaxDepth, RetActions, RetTimes)
+	testPlan(Child_state, Goal, Been_list, Name, Actions, MaxDepth)
 	.	
 
-testPlan(Child_state, Goal, Been_list, Name, Actions, PreconditionsT, Times, MaxDepth, RetActions, RetTimes) :-
+testPlan(Child_state, Goal, Been_list, Name, Actions, MaxDepth) :-
 	\+equal_set(Child_state, Goal),
 	not(member_state(Child_state, Been_list)),
 	stack(Child_state, Been_list, New_been_list),
 	stack(Name, Actions, New_actions),
-	partial_order(PreconditionsT, Actions, Time),
-	stack(Time, Times, New_Times),
-	plan(Child_state, Goal, New_been_list, New_actions, New_Times, MaxDepth, RetActions, RetTimes).
+	plan(Child_state, Goal, New_been_list, New_actions, MaxDepth, New_actions).
 
-testPlan(Child_state, Goal, Been_list, Name, Actions, PreconditionsT, Times, MaxDepth, RetActions, RetTimes) :-
+testPlan(Child_state, Goal, Been_list, Name, Actions, MaxDepth) :-
 	equal_set(Child_state, Goal),
 	stack(Child_state, Been_list, New_been_list),
 	stack(Name, Actions, New_actions),
-	partial_order(PreconditionsT, Actions, Time),
-	stack(Time, Times, New_Times),
-	plan(Child_state, Goal, New_been_list, New_actions, New_Times, MaxDepth, RetActions, RetTimes).
+	plan(Child_state, Goal, New_been_list, New_actions, MaxDepth, New_actions).
 
 change_state(S, [], S).
 change_state(S, [add(P)|T], S_new) :-	
@@ -100,17 +97,20 @@ conditions_not_met([H|T], S) :-
 member_state(S, [H|_]) :- 	equal_set(S, H).
 member_state(S, [_|T]) :- 	member_state(S, T).
 
-diffPos(X, X1, _Y, _Y1) :-
-	X \== X1.
-diffPos(X, X1, Y, Y1) :-
-	X == X1, Y \== Y1.
-diffPos(X, X1, Y, Y1) :-
-	X == X1, Y == Y1, fail.
 
-reverse_print_stack(S) :- 	empty_stack(S).
-reverse_print_stack(S) :- 	stack(E, Rest, S), 
-	reverse_print_stack(Rest),
-	write(E), nl.
+reverse_print_actions(Actions) :-
+	length_stack(Actions, Len),
+	I is Len,
+	reverse_print_actions(Actions, I).
+
+reverse_print_actions(Actions, _I) :-
+	empty_stack(Actions).
+
+reverse_print_actions(Actions, I) :-
+	stack(A, TActions, Actions), 
+	NewI is I - 1,
+	reverse_print_actions(TActions, NewI),
+	format("[~w] ~w~n", [I, A]).
 
 reverse_print_actions_times(Actions, Times) :-
 	length_stack(Actions, Len), length_stack(Times, Len),
@@ -122,40 +122,35 @@ reverse_print_actions_times(Actions, Times, _I) :-
 	empty_stack(Times).
 
 reverse_print_actions_times(Actions, Times, I) :-
-	stack(M, TActions, Actions), 
+	stack(A, TActions, Actions), 
 	stack(T, TTimes, Times),
 	NewI is I - 1,
 	reverse_print_actions_times(TActions, TTimes, NewI),
-	format("[~w]\t~w ~w~n", [I, M, T]).
+	format("[~w] ~w ~w~n", [I, A, T]).
 
-test_plan_result(R, _S, _G, _StateList, _Actions, _Times, _MaxTime, _RetActins, _RetTimes) :-
-	R.
-test_plan_result(R, S, G, _StateList, _Actions, _Times, MaxTime, RetActions, RetTimes) :-
-	\+ R,
-	try_plan(S, G, [S], [], [], MaxTime, RetActions, RetTimes).
+% test_plan_result(R, _S, _G, _StateList, _Actions, _MaxTime) :-
+% 	R.
+% test_plan_result(R, S, G, _StateList, _Actions, MaxTime) :-
+% 	\+ R,
+% 	try_plan(S, G, [S], [], [], MaxTime, []).
 
-try_plan(S, G, StateList, Actions, Times, MaxTime, RetActions, RetTimes) :-
-	NewMaxTime is MaxTime + 10, 
-	write("Testing for "), write(NewMaxTime), nl,
-	NewMaxTime < 50,
-	(plan(S, G, StateList, Actions, Times, NewMaxTime, RetActions, RetTimes) -> Res = true; Res = false),
-	test_plan_result(Res, S, G, StateList, Actions, Times, NewMaxTime, RetActions, RetTimes).
+% try_plan(S, G, StateList, Actions, Times, MaxTime, RetActions) :-
+% 	NewMaxTime is MaxTime + 10, 
+% 	write("Testing for "), write(NewMaxTime), nl,
+% 	NewMaxTime < 50,
+% 	(plan(S, G, StateList, Actions, NewMaxTime) -> Res = true; Res = false),
+% 	test_plan_result(Res, S, G, StateList, Actions, NewMaxTime).
 
-go(S, G, Actions, Times) :- 
-	retractall(ontable(_, _, _)),
-	retractall(on(_, _, _, _)),
-	retractall(clear(_)),
-	retractall(available(_)),
-	ground_g(G), 
-	plan(S, G, [S], [], [], 10, Actions, Times).
+go(S, G, Actions, _Times) :- 
+	plan(S, G, [S], [], 6, Actions).
 
-go(S, G, Actions, Times, MaxDepth) :- 
-	retractall(ontable(_, _, _)),
-	retractall(on(_, _, _, _)),
-	retractall(clear(_)),
-	retractall(available(_)),
-	ground_g(G), 
-	plan(S, G, [S], [], [], MaxDepth, Actions, Times).
- 	%try_plan(S, G, [S], [], [], 0, Actions, Times).
+% go(S, G, Actions, Times, MaxDepth) :- 
+% 	retractall(ontable(_, _, _)),
+% 	retractall(on(_, _, _, _)),
+% 	retractall(clear(_)),
+% 	retractall(available(_)),
+% 	ground_g(G), 
+% 	plan(S, G, [S], [], [], MaxDepth, Actions).
+% 	try_plan(S, G, [S], [], [], 0, Actions).
 
 
