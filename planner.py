@@ -1,8 +1,8 @@
 from sys import exit
 
-from Planner.Prolog import prolog as PrologLib
-from Planner.STN import SimpTempNet
-from Planner.BT import BehaviourTree
+from python_interface.Prolog import prolog as PrologLib
+from python_interface.STN import SimpTempNet
+from python_interface.BT import BehaviourTree
 
 def main():
     Actions, Times = PrologLib.execTest("testScan")

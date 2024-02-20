@@ -156,7 +156,7 @@ entries:
             [at(Robot_id, Xi, Yi, Zi), available(Robot_id)],
             [moving_base(_, _, _, _, Xf, Yf, Zf)],
             [at(Robot_id, Xi, Yi, Zi)],
-            [wheeled(Robot_id), pos(Xi, Yi, Zi), pos(Xf, Yf, Zf))],
+            [wheeled(Robot_id), pos(Xi, Yi, Zi), pos(Xf, Yf, Zf)],
             [
               del(at(Robot_id, Xi, Yi, Zi)), del(available(Robot_id)),
               add(moving_base(Robot_id, Xi, Yi, Zi, Xf, Yf, Zf))

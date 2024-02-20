@@ -18,3 +18,5 @@ lib/
 
 *.png
 *.html
+
+test_ll/

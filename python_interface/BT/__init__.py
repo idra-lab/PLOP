@@ -1,6 +1,6 @@
 from . import BTNode
-from Planner.STN import SimpTempNet
-from Planner.BT.BTNode import *
+from python_interface.STN import SimpTempNet
+from python_interface.BT.BTNode import *
 import networkx as nx
 import matplotlib.pyplot as plt
 
