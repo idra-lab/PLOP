@@ -22,7 +22,10 @@ pos(coffee_dispenser).
 pos(milk_dispenser).
 pos(cup_dispender).
 pos(sink).
+
 wheeled(barista).
 arm(barista).
+
 object(paper_cup).
 object(china_cup).
+object(coffee_chamber).

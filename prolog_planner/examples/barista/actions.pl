@@ -109,7 +109,7 @@ ll_action(move_arm_end(Rob, X, Y, Z),
     [],
     [],
     [],
-    [del(moving_arm(Rob, X, Y, Z))]
+    [del(moving_arm(Rob, X, Y, Z)), add(available(Rob))]
 ).
 ll_action(grip_start(Rob, Obj),
     [available(Rob)],
@@ -180,4 +180,18 @@ ll_action(wait_end(Time),
     [],
     [],
     [del(waiting(Time))]
+).
+ll_action(queue_order_start(),
+    [],
+    [queueing_order],
+    [],
+    [],
+    [add(queueing_order)]
+).
+ll_action(queue_order_start(),
+    [queueing_order],
+    [],
+    [],
+    [],
+    [del(queueing_order)]
 ).
