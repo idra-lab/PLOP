@@ -3,6 +3,8 @@
 :- ensure_loaded('tests.pl').
 :- ensure_loaded('utility/utility.pl').
 
+:- use_module(library(ugraphs)).
+
 max_actions(50).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -12,30 +14,31 @@ max_actions(50).
 % TODO Given an action a_i and an action a_j, a_i is an achiever of a_j also if 
 % a_i removes a predicate that blocks a_j from being executed.
 
-partial_hl_order(_PT, [], [], 0).
+partial_hl_order(_Action, _PT, [], Graph, Graph).
 
-partial_hl_order(PT, [AH|AT], [I|Times], I) :-
+partial_hl_order(Action, PT, [AH|AT], Graph, RetGraph) :-
   action(AH, _, _, _, _, E),
-  achiever(PT, E, []),
-  NewI is I-1,
-  partial_hl_order(PT, AT, Times, NewI).
+  achiever(PT, AH),
+  add_edges(Graph, [Action-AH], NewGraph),
+  partial_hl_order(Action, PT, AT, NewGraph, RetGraph).
 
-partial_hl_order(PT, [AH|AT], Times, I) :-
-  action(AH, _, _, _, _, E),
-  \+achiever(PT, E, []),
-  NewI is I-1,
-  partial_hl_order(PT, AT, Times, NewI).
+partial_hl_order(Action, PT, [AH|AT], Graph, RetGraph) :-
+  \+achiever(PT, AH),
+  partial_hl_order(Action, PT, AT, Graph, RetGraph).
 
-partial_hl_order(PT, Actions, Times) :-
-  length(Actions, NActions),
-  N is NActions,
-  partial_hl_order(PT, Actions, Times, N).
+  
+partial_hl_plan(_Init, [], _Actions, Graph, Graph).
+partial_hl_plan(Init, [Action|TOActions], UsedActions, Graph, RetGraph) :-
+  add_vertices(Graph, [Action], NewGraph),
+  action(Action, PT, _, _, _, _),
+  partial_hl_order(Action, PT, UsedActions, NewGraph, NewNewGraph),
+  append(UsedActions, [Action], NewUsedActions),
+  partial_hl_plan(Init, TOActions, NewUsedActions, NewNewGraph, RetGraph),
+  true.
 
-% The actions must be passed in reverse order
-% partial_hl_plan([HAction|TAction], Times) :-
-%   action(HAction, PT, _, _, _, _),
-%   partial_hl_order(PT, TA, Time).
-
+partial_hl_plan(Init, Actions, RetGraph):-
+  vertices_edges_to_ugraph([], [], Graph),
+  partial_hl_plan(Init, Actions, [], Graph, RetGraph).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                              TOTAL HL ORDER                                %%
@@ -103,7 +106,8 @@ test_hl_po_no_trace :-
 	hl_init(Init),
 	hl_goal(Goal),
   total_hl_plan(Init, Goal, Actions),
-	partial_hl_plan(Init, Goal, Actions, PartialOrder).
+	partial_hl_plan(Init, Actions, Graph),
+  format('Partial order plan is ~w~n', [Graph]).
 
 test_hl_po_trace :- 
   leash(-all), 
