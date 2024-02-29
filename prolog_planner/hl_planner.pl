@@ -1,6 +1,4 @@
-:- ensure_loaded('actions.pl').
-:- ensure_loaded('kb.pl').
-:- ensure_loaded('tests.pl').
+:- ensure_loaded('includes.pl').
 :- ensure_loaded('utility/utility.pl').
 
 :- use_module(library(ugraphs)).
@@ -16,29 +14,28 @@ max_actions(50).
 
 partial_hl_order(_Action, _PT, [], Graph, Graph).
 
-partial_hl_order(Action, PT, [AH|AT], Graph, RetGraph) :-
-  action(AH, _, _, _, _, E),
-  achiever(PT, AH),
-  add_edges(Graph, [Action-AH], NewGraph),
-  partial_hl_order(Action, PT, AT, NewGraph, RetGraph).
+partial_hl_order(Action, PT, [HA|TA], Graph, RetGraph) :-
+  achiever(PT, HA),
+  add_edges(Graph, [Action-HA], NewGraph),
+  partial_hl_order(Action, PT, TA, NewGraph, RetGraph).
 
-partial_hl_order(Action, PT, [AH|AT], Graph, RetGraph) :-
-  \+achiever(PT, AH),
-  partial_hl_order(Action, PT, AT, Graph, RetGraph).
+partial_hl_order(Action, PT, [HA|TA], Graph, RetGraph) :-
+  \+achiever(PT, HA),
+  partial_hl_order(Action, PT, TA, Graph, RetGraph).
 
   
-partial_hl_plan(_Init, [], _Actions, Graph, Graph).
-partial_hl_plan(Init, [Action|TOActions], UsedActions, Graph, RetGraph) :-
+partial_hl_plan([], _Actions, Graph, Graph).
+partial_hl_plan([Action|TOActions], UsedActions, Graph, RetGraph) :-
   add_vertices(Graph, [Action], NewGraph),
   action(Action, PT, _, _, _, _),
   partial_hl_order(Action, PT, UsedActions, NewGraph, NewNewGraph),
   append(UsedActions, [Action], NewUsedActions),
-  partial_hl_plan(Init, TOActions, NewUsedActions, NewNewGraph, RetGraph),
+  partial_hl_plan(TOActions, NewUsedActions, NewNewGraph, RetGraph),
   true.
 
-partial_hl_plan(Init, Actions, RetGraph):-
+partial_hl_plan(Actions, RetGraph):-
   vertices_edges_to_ugraph([], [], Graph),
-  partial_hl_plan(Init, Actions, [], Graph, RetGraph).
+  partial_hl_plan(Actions, [], Graph, RetGraph).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                              TOTAL HL ORDER                                %%

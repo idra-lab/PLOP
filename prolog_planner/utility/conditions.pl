@@ -49,10 +49,13 @@ achiever(PreT, [HEff|TEff], UsedEff):-
     append(UsedEff, [HEff], NewUsedEff),
     achiever(PreT, TEff, NewUsedEff).
 
-% This wrapper function is used to call the achiever function with the correct
+% This wrapper functoins are used to call the achiever function with the correct
 % arguments and check whether the action is a high-level or a low-level one.
 achiever(PreT, Action):-
     action(Action, _PreconditionsT, _PreconditionsF, _FinalConditionsF, _Verify, Effects),
+    achiever(PreT, Effects, []).
+achiever(PreT, Action):-
+    ll_action(Action, _PreconditionsT, _PreconditionsF, _FinalConditionsF, _Verify, Effects),
     achiever(PreT, Effects, []).
 
 % These functions are used to return a list of achievers of a certain function. 

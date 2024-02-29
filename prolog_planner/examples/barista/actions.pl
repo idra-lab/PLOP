@@ -169,13 +169,13 @@ ll_action(activate_register_end(),
 ).
 ll_action(wait_start(Time),
     [],
-    [waiting(_)],
+    [waiting(Time)],
     [],
     [],
     [add(waiting(Time))]
 ).
 ll_action(wait_end(Time),
-    [waiting(_)],
+    [waiting(Time)],
     [],
     [],
     [],
@@ -188,7 +188,7 @@ ll_action(queue_order_start(),
     [],
     [add(queueing_order)]
 ).
-ll_action(queue_order_start(),
+ll_action(queue_order_end(),
     [queueing_order],
     [],
     [],
