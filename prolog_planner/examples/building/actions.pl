@@ -25,7 +25,7 @@ action(place_arch_start(A, Pos1, Pos2, Arch),
   [av(A), pillar(Pos1, _), pillar(Pos2, _), free(Arch)],
   [placing_arch(_, Pos1, Pos2, _), placed_arch(Pos1, Pos2, _)],
   [placed_arch(Pos1, Pos2, Arch)],
-  [arch(Arch), agent(A)],
+  [arch(Arch), agent(A), pos(Pos1,_,_,_), pos(Pos2,_,_,_), Pos1\=Pos2],
   [
     del(av(A)), del(free(Arch)),
     add(placing_arch(A, Pos1, Pos2, Arch))
@@ -33,8 +33,7 @@ action(place_arch_start(A, Pos1, Pos2, Arch),
 ).
 action(place_arch_end(A, Pos1, Pos2, Arch),
   [placing_arch(A, Pos1, Pos2, Arch)],
-  [arch(_, Pos1, Pos2)
-  ],
+  [arch(_, Pos1, Pos2)],
   [],
   [],
   [
@@ -64,7 +63,7 @@ action(move_block_end(A, Block, From, To),
   [],
   [
     del(moving_block(A, Block, From, To)),
-    add(at(From, Block))
+    add(at(To, Block))
   ]
 ).
 action(move_arch_start(A, Arch, From, To, Pos1, Pos2),
@@ -72,9 +71,10 @@ action(move_arch_start(A, Arch, From, To, Pos1, Pos2),
   [at(To, _)],
   [at(To, Arch)],
   [
-    pos(Pos1, X1, Y1, Z1), pos(Pos2, X2, Y2, Z2),
+    pos(Pos1, X1, Y1, Z1),pos(Pos2, X2, Y2, Z2),
     Xf is (X1+X2)/2.0, Yf is (Y1+Y2)/2.0, Zf is (Z1+Z2)/2.0,
-    \+pos(_, Xf, Yf, Zf) -> assertz(pos(To, Xf, Yf, Zf))
+    format('X ~w Y ~w Z ~w~n', [Xf, Yf, Zf]),
+    \+pos(_, Xf, Yf, Zf) -> assertz(pos(To, Xf, Yf, Zf)) ; true
   ],
   [
     del(at(From, Arch)),
