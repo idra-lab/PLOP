@@ -72,7 +72,7 @@ ll_action(move_arch_start(A, Arch, From, To, Pos1, Pos2),
   [at(To, Arch)],
   [
     % pos(Pos1, X1, Y1, Z1),pos(Pos2, X2, Y2, Z2),
-    % Xf is (X1+X2)/2.0, Yf is (Y1+Y2)/2.0, Zf is (Z1+Z2)/2.0,
+    % Xf is (X1+X2)/2.0, Yf is (Y1+Y2)/2.0, Zf is Z1,
     % format('X ~w Y ~w Z ~w~n', [Xf, Yf, Zf]),
     % \+pos(_, Xf, Yf, Zf) -> assertz(pos(To, Xf, Yf, Zf)) ; true
   ],

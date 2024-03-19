@@ -1,8 +1,7 @@
 mapping(build_pillar_start(A, Pos, Block),
   [
     move_block_start(A, Block, From, Pos),
-    move_block_end(A, Block, From, Pos)
-  ]
+    move_block_end(A, Block, From, Pos)]
 ).
 mapping(place_arch_start(A, Pos1, Pos2, Arch),
   [

@@ -9,6 +9,7 @@ block(block1).
 block(block2).
 
 agent(a1).
+agent(a2).
 
 arch(arch1).
 
@@ -19,6 +20,15 @@ pos(d, 5, 5, 0).
 pos(e, 9, 9, 0).
 pos(f, 1.5, 1.5, 0).
 
+posi(_, X, Y, Z) :- 
+  pos(_, X1, Y1, Z1), 
+  pos(_, X2, Y2, _),
+  X is (X1 + X2)/2, 
+  Y is (Y1 + Y2)/2,
+  Z is Z1.
+
 arm(a1, 10, 10, 10).
+arm(a2, 20, 20, 20).
 
 gripper(a1).
+gripper(a2).

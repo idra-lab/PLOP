@@ -1,6 +1,16 @@
 :- ensure_loaded('utility/utility.pl').
 :- ensure_loaded('includes.pl').
 
+add_achievers_end(_PrevActionName, [], LastAchievers, LastAchievers).
+add_achievers_end(PrevActionName, [[_ID-HAction]|_TActions], LastAchievers, LastAchievers) :-
+  functor(HAction, ActionName, _),
+  sub_string(ActionName, _, _, _, PrevActionName).
+add_achievers_end(PrevActionName, [[ID-HAction]|TActions], LastAchievers, RetLastAchievers) :-
+  functor(HAction, ActionName, _),
+  \+sub_string(ActionName, _, _, _, PrevActionName),
+  append([ID], LastAchievers, TempLastAchievers),
+  add_achievers_end(PrevActionName, TActions, TempLastAchievers, RetLastAchievers).
+
 % This function applies the mappings of an action. It also checks that the ll action is applicable and changes the state accordingly 
 apply_map([], _IDHLAction, State, Been_list, Plan, LastAchievers, State, Been_list, Plan, LastAchievers, _).
 apply_map([HAction|TActions], IDHLAction, State, Been_list, Plan, LastAchievers, RetState, RetBeen_list, RetPlan, RetLastAchievers, Pre) :-
@@ -13,7 +23,13 @@ apply_map([HAction|TActions], IDHLAction, State, Been_list, Plan, LastAchievers,
 
   % Find last achievers
   last_achievers_ids(PreconditionsT, Plan, Achievers),
-  append([IDHLAction], Achievers, TempLastAchievers),
+  (
+    functor(HAction, ActionNameFull, _), sub_string(ActionNameFull, Value, _, _, '_end'), sub_string(ActionNameFull, _, Value, _, ActionName) 
+    -> (format('Adding achievers for ~w ~w ~w ~w~n', [HAction, ActionNameFull, ActionName, Value]),
+        add_achievers_end(ActionName, Plan, Achievers, TempLastAchievers))
+    ;  append([IDHLAction], Achievers, TempLastAchievers)
+  ),
+
   append([Length-HAction-TempLastAchievers], LastAchievers, NewLastAchievers),
 
   stack([Length-HAction], Plan, NewPlan),
@@ -54,8 +70,9 @@ apply_map([HAction|TActions], IDHLAction, State, Been_list, Plan, LastAchievers,
         apply_map(TActions, IDHLAction, NewState, Been_list, NewPlan, NewLastAchievers, RetState, RetBeen_list, RetPlan, RetLastAchievers, Pre)
       )
     )
-    % add_achievers_end()
-  ).
+  ),
+  true
+  .
 
 is_applicable(State, PreconditionsT, PreconditionsF, FinalConditionsF, Verify) :-
   verify(Verify),
@@ -65,7 +82,6 @@ is_applicable(State, PreconditionsT, PreconditionsF, FinalConditionsF, Verify) :
 
 plan(State, Goal, _Been_list, Plan, LastAchievers, _MaxDepth, Plan, LastAchievers) :-
   equal_set(State, Goal).
-
 plan(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPlan, FinalLastAchievers) :-
   % trace(verify),trace(conditions_met),trace(conditions_not_met),trace(change_state),trace(is_applicable),trace(stack),trace(mapping),trace(apply_map),% trace,
   \+equal_set(State, Goal),
@@ -85,7 +101,13 @@ plan(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPlan, FinalLast
 
   % Find last achievers
   last_achievers_ids(PreconditionsT, Plan, Achievers),
-  append([Length-Name-Achievers], LastAchievers, NewLastAchievers),
+  (
+    functor(Name, ActionNameFull, _), sub_string(ActionNameFull, Value, _, _, '_end'), sub_string(ActionNameFull, _, Value, _, ActionName) 
+    -> (format('Adding achievers for ~w ~w ~w ~w~n', [Name, ActionNameFull, ActionName, Value]),
+        add_achievers_end(ActionName, Plan, Achievers, TempLastAchievers))
+    ;  append([], Achievers, TempLastAchievers)
+  ),
+  append([Length-Name-TempLastAchievers], LastAchievers, NewLastAchievers),
 
   % Change state and add action to plan
   stack(NewState, Been_list, NewBeen_list),
