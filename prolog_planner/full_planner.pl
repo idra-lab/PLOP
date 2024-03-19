@@ -2,8 +2,8 @@
 :- ensure_loaded('includes.pl').
 
 % This function applies the mappings of an action. It also checks that the ll action is applicable and changes the state accordingly 
-apply_map([], State, Been_list, Plan, LastAchievers, State, Been_list, Plan, LastAchievers, _).
-apply_map([HAction|TActions], State, Been_list, Plan, LastAchievers, RetState, RetBeen_list, RetPlan, RetLastAchievers, Pre) :-
+apply_map([], _IDHLAction, State, Been_list, Plan, LastAchievers, State, Been_list, Plan, LastAchievers, _).
+apply_map([HAction|TActions], IDHLAction, State, Been_list, Plan, LastAchievers, RetState, RetBeen_list, RetPlan, RetLastAchievers, Pre) :-
   format('~wAdding map ~w ~w\n', [Pre, HAction, State]),
   ll_action(HAction, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Effects),
   format('~wfound action ~w ~w ~w ~w ~w ~w ~n', [Pre, HAction, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Effects]),
@@ -13,7 +13,8 @@ apply_map([HAction|TActions], State, Been_list, Plan, LastAchievers, RetState, R
 
   % Find last achievers
   last_achievers_ids(PreconditionsT, Plan, Achievers),
-  append([Length-HAction-Achievers], LastAchievers, NewLastAchievers),
+  append([IDHLAction], Achievers, TempLastAchievers),
+  append([Length-HAction-TempLastAchievers], LastAchievers, NewLastAchievers),
 
   stack([Length-HAction], Plan, NewPlan),
   % Change state.
@@ -31,11 +32,11 @@ apply_map([HAction|TActions], State, Been_list, Plan, LastAchievers, RetState, R
         ->(
           format('~w1 Found mapping for action ~w ~w\n', [Pre, HAction, Mappings]), 
           append(Mappings, TActions, NewActionList),
-          apply_map(NewActionList, NewState, NewBeen_list, NewPlan, NewLastAchievers, RetState, RetBeen_list, RetPlan, RetLastAchievers, NewPre)
+          apply_map(NewActionList, Length, NewState, NewBeen_list, NewPlan, NewLastAchievers, RetState, RetBeen_list, RetPlan, RetLastAchievers, NewPre)
         )
         ; (
           format('~w1 No mappings for action ~w\n', [Pre, HAction]),
-          apply_map(TActions, NewState, NewBeen_list, NewPlan, NewLastAchievers, RetState, RetBeen_list, RetPlan, RetLastAchievers, Pre)
+          apply_map(TActions, IDHLAction, NewState, NewBeen_list, NewPlan, NewLastAchievers, RetState, RetBeen_list, RetPlan, RetLastAchievers, Pre)
         )
       )
     )
@@ -46,13 +47,14 @@ apply_map([HAction|TActions], State, Been_list, Plan, LastAchievers, RetState, R
       ->(
         format('~w2 Found mapping for action ~w ~w\n', [Pre, HAction, Mappings]),
         append(Mappings, TActions, NewActionList),
-        apply_map(NewActionList, NewState, Been_list, NewPlan, NewLastAchievers, RetState, RetBeen_list, RetPlan, RetLastAchievers, NewPre)
+        apply_map(NewActionList, Length, NewState, Been_list, NewPlan, NewLastAchievers, RetState, RetBeen_list, RetPlan, RetLastAchievers, NewPre)
       )
       ; (
         format('~w2 No mappings for action ~w\n', [Pre, HAction]),
-        apply_map(TActions, NewState, Been_list, NewPlan, NewLastAchievers, RetState, RetBeen_list, RetPlan, RetLastAchievers, Pre)
+        apply_map(TActions, IDHLAction, NewState, Been_list, NewPlan, NewLastAchievers, RetState, RetBeen_list, RetPlan, RetLastAchievers, Pre)
       )
     )
+    % add_achievers_end()
   ).
 
 is_applicable(State, PreconditionsT, PreconditionsF, FinalConditionsF, Verify) :-
@@ -95,7 +97,7 @@ plan(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPlan, FinalLast
     mapping(Name, Mappings) 
     ->  (
         format('Applying mappings for action ~w\n', [Name]),
-        apply_map(Mappings, NewState, NewBeen_list, NewPlan, NewLastAchievers, RetState, RetBeen_list, RetPlan, RetLastAchievers, '\t'),
+        apply_map(Mappings, Length, NewState, NewBeen_list, NewPlan, NewLastAchievers, RetState, RetBeen_list, RetPlan, RetLastAchievers, '\t'),
         plan(RetState, Goal, RetBeen_list, RetPlan, RetLastAchievers, MaxDepth, FinalPlan, FinalLastAchievers)
     )
     % Continue planning
