@@ -1,14 +1,17 @@
-testCase(Actions, Time) :-
-    go(
-        [
-            available(r1), at(r1, 1, 1), at(box1, 1, 2), at(box2, 1, 3),
-            at(box3, 2, 1), at(box4, 2, 2), at(box5, 2, 3), at(box6, 3, 1), 
-            at(architrave, 3, 2)
-        ],
-        [
-            available(r1), at(r1, 1, 1), pillar(point(a)), pillar(point(b)), 
-            placed_architrave
-        ],
-        Actions,
-        Time
-    ).
+hl_init([
+  % HL
+  av(a1), free(block1), free(block2), free(arch1),
+  % INT
+  at(c, block1), at(d, block2), at(e, arch1),
+  % LL
+  arm_at(a1, 0,0,0)
+]).
+
+hl_goal([
+  % HL
+  av(a1), pillar(a, block1), pillar(b, block2), arch(a, b, arch1),
+  % INT
+  at(a, block1), at(b, block2), at(f, arch1),
+  % LL 
+  arm_at(a1, 0,0,0)
+]).

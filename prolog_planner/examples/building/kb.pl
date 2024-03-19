@@ -1,43 +1,23 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%                             HL Knowledge Base                              %%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-:-discontiguous point/1.
+:-dynamic block/1.
+:-dynamic agent/1.
+:-dynamic arch/1.
+:-dynamic pos/4.
+:-dynamic arm/4.
+:-dynamic gripper/1.
 
-point(a).
-point(b).
-point(c).
+block(block1).
+block(block2).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%                             LL Knowledge Base                              %%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+agent(a1).
 
-:-discontiguous block/4.
-:-discontiguous arm/1.
-:-discontiguous point/2.
-:-discontiguous wheeled/1.
+arch(arch1).
 
-% Define the points on the grid
-point(1,1).
-point(1,2).
-point(1,3).
-point(2,1).
-point(2,2).
-point(2,3).
-point(3,1).
-point(3,2).
-point(3,3).
+pos(a, 1, 1, 0).
+pos(b, 2, 2, 0).
+pos(c, 3, 4, 0).
+pos(d, 5, 5, 0).
+pos(e, 9, 9, 0).
 
-% Define the blocks and their initial positions
-block(block1, 1, 1, 0).
-block(block2, 2, 2, 0).
-block(block3, 3, 3, 0).
-block(block4, 4, 4, 0).
-block(block5, 5, 5, 0).
-block(block6, 6, 6, 0).
-block(architrave, 7, 7, 0).
+arm(a1, 10, 10, 10).
 
-% Define the robotic arm
-arm(r1).
-
-% Define the wheeled robots
-wheeled(r1).
+gripper(a1).

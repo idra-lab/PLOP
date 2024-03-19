@@ -17,8 +17,7 @@ conditions_not_met([H|T], S) :-
 verify([]).
 verify([H|T]) :-
 	H,
-	verify(T),
-	H.
+	verify(T).
 
 % The function achiever states if an action is an achiever for another actions' 
 % preconditions. The arguments are:

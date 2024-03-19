@@ -36,29 +36,16 @@ total_ll_plan(Plan, NewT):-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                             PARTIAL LL ORDER                               %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
-add_end_action_edges(_Action, [], Graph, Graph).
-add_end_action_edges(Action, [HUsedActions|TUsedActions], Graph, RetGraph):-
-  add_edges(Graph, [HUsedActions-Action], NewLLGraph),
-  add_end_action_edges(Action, TUsedActions, NewLLGraph, RetGraph).
 
+my_add_edges(Graph, Edge, NewGraph) :-
+  format('Adding edge ~w~n', [Edge]),
+  add_edges(Graph, Edge, NewGraph).
 
-
-
-
-
-% add_hl_neighbours(LLGraph, _, [], LLGraph).
-% add_hl_neighbours(LLGraph, Action, [HNeighbour|TNeighbours], RetGraph):-
-%   add_edges(LLGraph, [Action-HNeighbour], NewLLGraph),
-%   add_hl_neighbours(NewLLGraph, Action TNeighbours, RetGraph).
-
-% add_hl_neighbours(HLGraph, Action, LLGraph, RetGraph):-
-%   neighbours(HLGraph, Action, Neighbours),
-%   add_hl_neighbours(LLGraph, Action, Neighbours, RetGraph).
-
-
-
-
+add_end_action_edges(_Action, _LastStartHLAction, [], Graph, Graph).
+add_end_action_edges(_Action, LastStartHLAction, [LastStartHLAction|_T], Graph, Graph).
+add_end_action_edges(Action, LastStartHLAction, [HUsedActions|TUsedActions], Graph, RetGraph):-
+  my_add_edges(Graph, [Action-HUsedActions], NewLLGraph),
+  add_end_action_edges(Action, LastStartHLAction, TUsedActions, NewLLGraph, RetGraph).
 
 
 % If it is a HL action, then for sure it's in the graph
@@ -68,7 +55,7 @@ partial_ll_order(_Action, _PT, [], Graph, Graph) :-
 partial_ll_order(Action, PT, [HA|TA], Graph, RetGraph):-
   achiever(PT, HA),
   format('Action ~w achiever of ~w~n', [HA, Action]),
-  add_edges(Graph, [Action-HA], NewGraph),
+  my_add_edges(Graph, [Action-HA], NewGraph),
   partial_ll_order(Action, PT, TA, NewGraph, RetGraph).
 
 partial_ll_order(Action, PT, [HA|TA], Graph, RetGraph):-
@@ -79,65 +66,69 @@ partial_ll_order(Action, PT, [HA|TA], Graph, RetGraph):-
 
 
 
-
-
-
 % When all the actions have been checked, then we have finished and we have the graph
 partial_ll_plan([], _, _LastStartHLAction, LLGraph, LLGraph, _I):-
-  format('Finished partial_ll_plan correctly~n',).
-% partial_ll_plan(Action, UsedActions, LastStartHLAction, LLGraph, RetGraph, 40).% :- trace.
-partial_ll_plan(_, _, _LastStartHLAction, LLGraph, LLGraph, 22).
+  format('Finished partial_ll_plan correctly~n').
+% partial_ll_plan(_, _, _LastStartHLAction, LLGraph, LLGraph, 25).
 
 % If the action is a low-level action, then we need to add it to the graph, then
 % add an edge from the last high-level action, and then check its achievers.
-partial_ll_plan([Action|TOActions], UsedActions, LastStartHLAction, LLGraph, RetGraph, I) :-
+partial_ll_plan([Action|TOActions], UsedActions, LastStartHLAction, LLGraph, RetGraph, HL_I, LL_I) :-
+  format('Testing action ~w as ll~n', [Action]),
+  trace,
   ll_action(Action, PT, _, _, _, _),
   format('~n~w Checking achievers for ll action ~w ~w~n', [I, Action, PT]),
-  add_vertices(LLGraph, [Action], NewLLGraph),
-  add_edges(NewLLGraph, [LastStartHLAction-Action], NewNewLLGraph),
-  format('Added edge ~w ~w getting ~w ~n', [LastStartHLAction, Action, NewNewLLGraph]),
-  partial_ll_order(Action, PT, UsedActions, NewNewLLGraph, NewNewNewLLGraph),
+  add_vertices(LLGraph, [tta(Action, HL_I, LL_I)], NewLLGraph),
+  my_add_edges(NewLLGraph, [tta(Action, HL_I, LL_I)-LastStartHLAction], NewNewLLGraph),
+  format('Added edge ~w ~w getting ~w ~n', [tta(Action, I), LastStartHLAction, NewNewLLGraph]),
+  partial_ll_order(tta(Action, HL_I, LL_), PT, UsedActions, NewNewLLGraph, NewNewNewLLGraph),
   format('Completed partial order ~n'),
-  append(UsedActions, [Action], NewUsedActions),
+  append(UsedActions, [tta(Action, HL_I, LL_I)], NewUsedActions),
   format('Added actions to used ones ~n'),
-  NewI is I+1,
-  partial_ll_plan(TOActions, NewUsedActions, LastStartHLAction, NewNewNewLLGraph, RetGraph, NewI).
+  NewLL_I is LL_I+1,
+  partial_ll_plan(TOActions, NewUsedActions, LastStartHLAction, NewNewNewLLGraph, RetGraph, HL_I, NewLL_I).
 
 % When the action is a high-level action AND it is a start action, then we need
 % to add it to the graph and check its achievers. Also we shall store the action
 % since all the low-level actions that follow will depend on it until the next
 % high-level end action is found.
-partial_ll_plan([Action|TOActions], UsedActions, _LastStartHLAction, LLGraph, RetGraph, I) :-
+partial_ll_plan([Action|TOActions], UsedActions, _LastStartHLAction, HLGraph, LLGraph, RetGraph, HL_I, LL_I) :-
+  format('Testing action ~w as hl start~n', [Action]),
   action(Action, PT, _, _, _, _),
   functor(Action, ActionName, _),
   sub_string(ActionName, _, _, _, '_start'),
   format('~n~w Checking achievers for hl start action ~w ~w~n', [I, Action, PT]),
-  add_vertices(LLGraph, [Action], NewLLGraph),
-  append(UsedActions, [Action], NewUsedActions),
-  NewI is I+1,
-  partial_ll_plan(TOActions, NewUsedActions, Action, NewLLGraph, RetGraph, NewI).
+  add_vertices(LLGraph, [tta(Action, HL_I, LL_I)], NewLLGraph),
+  % add_HL_dependencies(NewLLGraph, Action, I, NewNewLLGraph),
+  append(UsedActions, [tta(Action, HL_I, LL_I)], NewUsedActions),
+  NewHL_I is HL_I+1,
+  partial_ll_plan(TOActions, NewUsedActions, tta(Action, I), NewLLGraph, RetGraph, NewHL_I, LL_I).
 
 % When the action is a high-level action AND it is an end action, then we need 
 % to add it to the graph, add a dependency to all the low-level action between 
 % this action and the previous start action and check its achievers.
-partial_ll_plan([Action|TOActions], UsedActions, LastStartHLAction, LLGraph, RetGraph, I) :-
+partial_ll_plan([Action|TOActions], UsedActions, LastStartHLAction, HLGraph, LLGraph, RetGraph, HL_I, LL_I) :-
+  format('Testing action ~w as hl end~n', [Action]),
   action(Action, PT, _, _, _, _),
   functor(Action, ActionName, _),
   sub_string(ActionName, _, _, _, '_end'),
   format('~n~w checking achievers for hl end action ~w ~w~n', [I, Action, PT]),
-  add_vertices(LLGraph, [Action], NewLLGraph),
+  add_vertices(LLGraph, [tta(Action, HL_I, LL_I)], NewLLGraph),
   reverse(UsedActions, ReversedUsedActions),
-  add_end_action_edges(Action, ReversedUsedActions, NewLLGraph, NewNewLLGraph),
-  append(UsedActions, [Action], NewUsedActions),
-  NewI is I+1,
-  partial_ll_plan(TOActions, NewUsedActions, LastStartHLAction, NewNewLLGraph, RetGraph, NewI).
+  format('Reversed used actions ~w~n', [ReversedUsedActions]),
+  add_end_action_edges(tta(Action, HL_I, LL_I), LastStartHLAction, ReversedUsedActions, NewLLGraph, NewNewLLGraph),
+  add_HL_dependencies(HLGraph, NewNewLLGraph, tta(Action, HL_I, LL_I), NewNewNewLLGraph),
+  append(UsedActions, [tta(Action, HL_I, LL_I)], NewUsedActions),
+  NewHL_I is HL_I+1,
+  format('Still missing ~w~n', [TOActions]),
+  partial_ll_plan(TOActions, NewUsedActions, LastStartHLAction, NewNewLLGraph, RetGraph, NewHL_I, LL_I).
 
 % Wrapper function
 partial_ll_plan(LLActions, HLGraph, LLGraph) :-
+  write('Starting partial_ll_plan'), nl,
   vertices_edges_to_ugraph([], [], Graph),
-  partial_ll_plan(LLActions, [], _, Graph, TmpGraph, 0),
-  ugraph_union(HLGraph, TmpGraph, LLGraph),
-  format('TmpGraph ~w~n', [TmpGraph]),
+  partial_ll_plan(LLActions, [], _, HLGraph, Graph, TmpGraph, 0),
+  my_ugraph_union(HLGraph, TmpGraph, LLGraph),
   true.
 
 

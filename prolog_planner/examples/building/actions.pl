@@ -1,105 +1,153 @@
-action(build_pillar_start(Robot_id, Point),
-    [available(Robot_id)],
-    [pillar(point(Point))],
-    [],
-    [arm(Robot_id), point(Point)],
-    [
-        del(available(Robot_id)), 
-        add(building_pillar(Robot_id, Point))
-    ]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                     HL                                     %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+action(build_pillar_start(A, Pos, Block1),
+  [av(A), free(Block1)],
+  [pillar(Pos, _), pillaring(_, Pos, _)],
+  [pillar(Pos, Block1)],
+  [block(Block1), agent(A), pos(Pos,_,_,_)],
+  [
+  del(av(A)), del(free(Block1)),
+  add(pillaring(A, Pos, Block1))
+  ]
 ).
-action(build_pillar_end(Robot_id, Point),
-    [building_pillar(Robot_id, Point)],
-    [],
-    [],
-    [arm(Robot_id), point(Point)],
-    [
-        del(building_pillar(Robot_id, Point)),
-        add(available(Robot_id)), add(pillar(point(Point)))
-    ]
-).
-
-action(place_architrave_start(Robot_id),
-    [available(Robot_id), pillar(point(Point1)), pillar(point(Point2))],
-    [],
-    [],
-    [arm(Robot_id), point(Point1), point(Point2)],
-    [
-        del(available(Robot_id)),
-        add(placing_architrave)
-    ]
-).
-action(place_architrave_end(Robot_id),
-    [placing_architrave],
-    [],
-    [],
-    [arm(Robot_id)],
-    [
-        del(placing_architrave),
-        add(available(Robot_id)), add(placed_architrave)
-    ]
-).
-
-% Move robot to position
-ll_action(move_base_start(Robot_id, Xi, Yi, Xf, Yf),
-  [available(Robot_id), at(Robot_id, Xi, Yi)],
+action(build_pillar_end(A, Pos, Block1),
+  [pillaring(A, Pos, Block1)],
+  [pillar(Pos, _)],
   [],
   [],
-  [wheeled(Robot_id), point(Xi, Yi), point(Xf, Yf)],
-  [del(available(Robot_id)), add(moving(Robot_id, Xf, Yf))]
+  [
+    del(pillaring(A, Pos, Block1)),
+    add(av(A)), add(pillar(Pos, Block1))
+  ]
 ).
-ll_action(move_base_end(Robot_id, Xi, Yi, Xf, Yf),
-  [moving(Robot_id, Xf, Yf)],
+action(place_arch_start(A, Pos1, Pos2, Arch),
+  [av(A), pillar(Pos1, _), pillar(Pos2, _), free(Arch)],
+  [placing_arch(_, Pos1, Pos2, _), placed_arch(Pos1, Pos2, _)],
+  [placed_arch(Pos1, Pos2, Arch)],
+  [arch(Arch), agent(A)],
+  [
+    del(av(A)), del(free(Arch)),
+    add(placing_arch(A, Pos1, Pos2, Arch))
+  ]
+).
+action(place_arch_end(A, Pos1, Pos2, Arch),
+  [placing_arch(A, Pos1, Pos2, Arch)],
+  [arch(_, Pos1, Pos2)
+  ],
   [],
   [],
-  [],
-  [del(moving(Robot_id, Xf, Yf)), add(available(Robot_id)), add(at(Robot_id, Xf, Yf))]
+  [
+    del(placing_arch(A, Pos1, Pos2, Arch)),
+    add(arch(Pos1, Pos2, Arch)), add(av(A))
+  ]
 ).
 
-% Move arm to position
-ll_action(move_arm_start(Robot_id, Xi, Yi, Block),
-  [available(Robot_id), at(Robot_id, Xi, Yi)],
-  [moving(Robot_id)],
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                    INT                                     %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+action(move_block_start(A, Block, From, To),
+  [pillaring(A, To, Block), at(From, Block)],
+  [at(To, _)],
+  [at(To, Block)],
   [],
-  [arm(Robot_id), point(Xi, Yi), block(Block, Xf, Yf, Zf)],
-  [del(available(Robot_id)), add(moving(Robot_id, Xf, Yf, Zf))]
+  [
+    del(at(From, Block)),
+    add(moving_block(A, Block, From, To))
+  ]
 ).
-ll_action(move_arm_end(Robot_id, Xi, Yi, Xf, Yf, Zf),
-  [moving(Robot_id, Xf, Yf)],
+action(move_block_end(A, Block, From, To),
+  [moving_block(A, Block, From, To)],
+  [at(To, _)],
   [],
   [],
-  [arm(Robot_id), point(Xi, Yi), point(Xf, Yf)],
-  [del(moving(Robot_id, Xf, Yf)), add(available(Robot_id)), add(at(Robot_id, Xf, Yf))]
+  [
+    del(moving_block(A, Block, From, To)),
+    add(at(From, Block))
+  ]
+).
+action(move_arch_start(A, Arch, From, To, Pos1, Pos2),
+  [placing_arch(A, Pos1, Pos2, Arch), at(From, Arch)],
+  [at(To, _)],
+  [at(To, Arch)],
+  [
+    pos(Pos1, X1, Y1, Z1), pos(Pos2, X2, Y2, Z2),
+    Xf is (X1+X2)/2.0, Yf is (Y1+Y2)/2.0, Zf is (Z1+Z2)/2.0,
+    \+pos(_, Xf, Yf, Zf) -> assertz(pos(To, Xf, Yf, Zf))
+  ],
+  [
+    del(at(From, Arch)),
+    add(moving_arch(A, Arch, From, To))
+  ]
+).
+action(move_arch_end(A, Arch, From, To, _Pos1, _Pos2),
+  [moving_arch(A, Arch, From, To)],
+  [at(To, _)],
+  [],
+  [],
+  [
+    del(moving_arch(A, Arch, From, To)),
+    add(at(To, Arch))
+  ]
 ).
 
-% Grip action
-ll_action(grip_start(Robot_id, Block),
-  [available(Robot_id)],
-  [holding(Robot_id, _)],
-  [],
-  [arm(Robot_id), block(Block)],
-  [del(available(Robot_id)), add(gripping(Robot_id, Block))]
-).
-ll_action(grip_end(Robot_id, Block),
-  [gripping(Robot_id, Block)],
-  [],
-  [],
-  [arm(Robot_id)],
-  [del(gripping(Robot_id, Block)), add(holding(Robot_id, Block))]
-).
 
-% Release action
-ll_action(release_start(Robot_id),
-  [holding(Robot_id, _)],
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                     LL                                     %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+action(move_arm_start(A, To),
   [],
+  [moving_arm(A, _), gripping(A, _), releasing(A)],
   [],
-  [arm(Robot_id)],
-  [del(holding(Robot_id, _)), add(releasing(Robot_id))]
+  [arm(A, X1, Y1, Z1), pos(To, X2, Y2, Z2), retract(arm(A, X1, Y1, Z1))],
+  [
+    add(moving_arm(A, X2, Y2, Z2))
+  ]
 ).
-ll_action(release_end(Robot_id),
-  [releasing(Robot_id)],
+action(move_arm_end(A, To),
+  [moving_arm(A, X, Y, Z)],
   [],
   [],
-  [arm(Robot_id)],
-  [del(releasing(Robot_id)), add(available(Robot_id))]
+  [assertz(arm(A, X, Y, Z))],
+  [
+    del(moving_arm(A, X, Y, Z))
+  ]
+).
+action(grip_start(A, B),
+  [],
+  [moving_arm(A, _), gripping(A, _), releasing(A)],
+  [],
+  [gripper(A)],
+  [
+    add(gripping(A, B))
+  ]
+).
+action(grip_end(A, B),
+  [gripping(A, B)],
+  [],
+  [],
+  [gripper(A)],
+  [
+    del(gripping(A, B))
+  ]
+).
+action(release_start(A),
+  [],
+  [moving_arm(A, _), gripping(A, _), releasing(A)],
+  [],
+  [gripper(A)],
+  [
+    add(releasing(A))
+  ]
+).
+action(release_end(A),
+  [releasing(A)],
+  [],
+  [],
+  [gripper(A)],
+  [
+    del(releasing(A))
+  ]
 ).

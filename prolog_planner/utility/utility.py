@@ -1,128 +1,64 @@
-import networkx as nx
-from matplotlib import pyplot as plt
+from Graph.Graph import Graph
 import re
 
-import pydot
-from networkx.drawing.nx_pydot import graphviz_layout
-
+ugraph = "[grip_end(r1)-[grip_start(r1),build_pillar_start(r1,a),build_pillar_start(r1,b),place_architrave_start(r1,a,b)],grip_start(r1)-[release_end(r1),build_pillar_end(r1,a),build_pillar_end(r1,b),build_pillar_start(r1,a),build_pillar_start(r1,b),place_architrave_start(r1,a,b),move_arm_end(r1,1,1,0),move_arm_end(r1,1,2,0),move_arm_end(r1,2,1,0),move_arm_end(r1,2,2,0),move_arm_end(r1,3,3,0),move_arm_end(r1,3,3,1),move_arm_end(r1,5,5,0),move_arm_end(r1,5,5,1),move_arm_end(r1,9,9,0)],release_end(r1)-[release_start(r1),build_pillar_start(r1,a),build_pillar_start(r1,b),place_architrave_start(r1,a,b)],release_start(r1)-[grip_end(r1),release_end(r1),build_pillar_end(r1,a),build_pillar_end(r1,b),build_pillar_start(r1,a),build_pillar_start(r1,b),place_architrave_start(r1,a,b),move_arm_end(r1,1,1,0),move_arm_end(r1,1,2,0),move_arm_end(r1,2,1,0),move_arm_end(r1,2,2,0),move_arm_end(r1,3,3,0),move_arm_end(r1,3,3,1),move_arm_end(r1,4,4,0),move_arm_end(r1,5,5,0),move_arm_end(r1,5,5,1),move_arm_end(r1,9,9,0)],build_pillar_end(r1,a)-[grip_end(r1),grip_start(r1),release_end(r1),release_start(r1),build_pillar_start(r1,a),move_arm_end(r1,1,1,0),move_arm_end(r1,1,2,0),move_arm_end(r1,5,5,0),move_arm_end(r1,5,5,1),move_arm_start(r1,1,1,0),move_arm_start(r1,1,2,0),move_arm_start(r1,5,5,0),move_arm_start(r1,5,5,1)],build_pillar_end(r1,b)-[grip_end(r1),grip_start(r1),release_end(r1),release_start(r1),build_pillar_start(r1,b),move_arm_end(r1,2,1,0),move_arm_end(r1,2,2,0),move_arm_end(r1,3,3,0),move_arm_end(r1,3,3,1),move_arm_start(r1,2,1,0),move_arm_start(r1,2,2,0),move_arm_start(r1,3,3,0),move_arm_start(r1,3,3,1)],build_pillar_start(r1,a)-[],build_pillar_start(r1,b)-[build_pillar_end(r1,a)],place_architrave_end(r1,a,b)-[grip_end(r1),grip_start(r1),release_end(r1),release_start(r1),place_architrave_start(r1,a,b),move_arm_end(r1,4,4,0),move_arm_end(r1,9,9,0),move_arm_start(r1,4,4,0),move_arm_start(r1,9,9,0)],place_architrave_start(r1,a,b)-[build_pillar_end(r1,a),build_pillar_end(r1,b)],move_arm_end(r1,1,1,0)-[build_pillar_start(r1,a),move_arm_start(r1,1,1,0)],move_arm_end(r1,1,2,0)-[build_pillar_start(r1,a),move_arm_start(r1,1,2,0)],move_arm_end(r1,2,1,0)-[build_pillar_start(r1,b),move_arm_start(r1,2,1,0)],move_arm_end(r1,2,2,0)-[build_pillar_start(r1,b),move_arm_start(r1,2,2,0)],move_arm_end(r1,3,3,0)-[build_pillar_start(r1,b),move_arm_start(r1,3,3,0)],move_arm_end(r1,3,3,1)-[build_pillar_start(r1,b),move_arm_start(r1,3,3,1)],move_arm_end(r1,4,4,0)-[place_architrave_start(r1,a,b),move_arm_start(r1,4,4,0)],move_arm_end(r1,5,5,0)-[build_pillar_start(r1,a),move_arm_start(r1,5,5,0)],move_arm_end(r1,5,5,1)-[build_pillar_start(r1,a),move_arm_start(r1,5,5,1)],move_arm_end(r1,9,9,0)-[place_architrave_start(r1,a,b),move_arm_start(r1,9,9,0)],move_arm_start(r1,1,1,0)-[build_pillar_start(r1,a)],move_arm_start(r1,1,2,0)-[release_end(r1),build_pillar_start(r1,a),move_arm_end(r1,1,1,0),move_arm_end(r1,5,5,0)],move_arm_start(r1,2,1,0)-[release_end(r1),build_pillar_end(r1,a),build_pillar_start(r1,b),move_arm_end(r1,1,1,0),move_arm_end(r1,1,2,0),move_arm_end(r1,5,5,0),move_arm_end(r1,5,5,1)],move_arm_start(r1,2,2,0)-[release_end(r1),build_pillar_end(r1,a),build_pillar_start(r1,b),move_arm_end(r1,1,1,0),move_arm_end(r1,1,2,0),move_arm_end(r1,2,1,0),move_arm_end(r1,3,3,0),move_arm_end(r1,5,5,0),move_arm_end(r1,5,5,1)],move_arm_start(r1,3,3,0)-[release_end(r1),build_pillar_end(r1,a),build_pillar_start(r1,b),move_arm_end(r1,1,1,0),move_arm_end(r1,1,2,0),move_arm_end(r1,2,1,0),move_arm_end(r1,5,5,0),move_arm_end(r1,5,5,1)],move_arm_start(r1,3,3,1)-[release_end(r1),build_pillar_end(r1,a),build_pillar_start(r1,b),move_arm_end(r1,1,1,0),move_arm_end(r1,1,2,0),move_arm_end(r1,2,1,0),move_arm_end(r1,2,2,0),move_arm_end(r1,3,3,0),move_arm_end(r1,5,5,0),move_arm_end(r1,5,5,1)],move_arm_start(r1,4,4,0)-[release_end(r1),build_pillar_end(r1,a),build_pillar_end(r1,b),place_architrave_start(r1,a,b),move_arm_end(r1,1,1,0),move_arm_end(r1,1,2,0),move_arm_end(r1,2,1,0),move_arm_end(r1,2,2,0),move_arm_end(r1,3,3,0),move_arm_end(r1,3,3,1),move_arm_end(r1,5,5,0),move_arm_end(r1,5,5,1),move_arm_end(r1,9,9,0)],move_arm_start(r1,5,5,0)-[build_pillar_start(r1,a),move_arm_end(r1,1,1,0)],move_arm_start(r1,5,5,1)-[release_end(r1),build_pillar_start(r1,a),move_arm_end(r1,1,1,0),move_arm_end(r1,1,2,0),move_arm_end(r1,5,5,0)],move_arm_start(r1,9,9,0)-[release_end(r1),build_pillar_end(r1,a),build_pillar_end(r1,b),place_architrave_start(r1,a,b),move_arm_end(r1,1,1,0),move_arm_end(r1,1,2,0),move_arm_end(r1,2,1,0),move_arm_end(r1,2,2,0),move_arm_end(r1,3,3,0),move_arm_end(r1,3,3,1),move_arm_end(r1,5,5,0),move_arm_end(r1,5,5,1)]]"
 
 ugraph = """
 [
-    activate_register_end()-[activate_register_start(),make_coffee_end(jack,espresso,to_go),payment_end(jack,espresso,to_go)],
-    activate_register_start()-[make_coffee_end(jack,espresso,to_go),payment_end(jack,espresso,to_go)],
-    queue_order_end()-[queue_order_start(),make_coffee_end(jack,espresso,to_go),order_end(jack,espresso,to_go),payment_end(jack,espresso,to_go)],
-    queue_order_start()-[make_coffee_end(jack,espresso,to_go),order_end(jack,espresso,to_go),payment_end(jack,espresso,to_go)],
-    make_coffee_end(jack,espresso,to_go)-[make_coffee_start(jack,espresso,to_go)],
-    make_coffee_start(jack,espresso,to_go)-[make_coffee_end(jack,espresso,to_go),move_base_end(_2270,_2506,cup_dispender),move_base_start(_2270,_2506,cup_dispender),payment_end(jack,espresso,to_go),move_arm_end(_2270,4.75,-1,5)],
-    move_base_end(_2270,_2272,service_area)-[make_coffee_end(jack,espresso,to_go),move_base_start(_2270,_2272,service_area),order_end(jack,espresso,to_go),payment_end(jack,espresso,to_go)],
-    move_base_end(_2270,_2330,register)-[make_coffee_end(jack,espresso,to_go),move_base_start(_2270,_2330,register),payment_end(jack,espresso,to_go)],
-    move_base_end(_2270,_2506,cup_dispender)-[make_coffee_end(jack,espresso,to_go),move_base_start(_2270,_2506,cup_dispender)],
-    move_base_end(_2270,_2782,coffee_machine)-[move_base_start(_2270,_2782,coffee_machine)],
-    move_base_start(_2270,_2272,service_area)-[make_coffee_end(jack,espresso,to_go),order_end(jack,espresso,to_go),payment_end(jack,espresso,to_go)],
-    move_base_start(_2270,_2330,register)-[make_coffee_end(jack,espresso,to_go),move_base_end(_2270,_2272,service_area),payment_end(jack,espresso,to_go)],
-    move_base_start(_2270,_2506,cup_dispender)-[make_coffee_end(jack,espresso,to_go),move_base_end(_2270,_2272,service_area),move_base_end(_2270,_2330,register)],
-    move_base_start(_2270,_2782,coffee_machine)-[move_base_end(_2270,_2272,service_area),move_base_end(_2270,_2330,register),move_base_end(_2270,_2506,cup_dispender),move_arm_end(_2270,4.75,-1,5)],
-    order_end(jack,espresso,to_go)-[make_coffee_end(jack,espresso,to_go),order_start(jack,espresso,to_go),payment_end(jack,espresso,to_go)],
-    order_start(jack,espresso,to_go)-[queue_order_end(),queue_order_start(),make_coffee_end(jack,espresso,to_go),move_base_end(_2270,_2272,service_area),move_base_start(_2270,_2272,service_area),order_end(jack,espresso,to_go),payment_end(jack,espresso,to_go)],
-    payment_end(jack,espresso,to_go)-[make_coffee_end(jack,espresso,to_go),payment_start(jack,espresso,to_go)],
-    payment_start(jack,espresso,to_go)-[activate_register_end(),activate_register_start(),make_coffee_end(jack,espresso,to_go),move_base_end(_2270,_2330,register),move_base_start(_2270,_2330,register),order_end(jack,espresso,to_go),payment_end(jack,espresso,to_go)],
-    serve_end(jack,espresso,to_go)-[serve_start(jack,espresso,to_go)],
-    serve_start(jack,espresso,to_go)-[make_coffee_end(jack,espresso,to_go),move_base_end(_2270,_2782,coffee_machine),move_base_start(_2270,_2782,coffee_machine),move_arm_start(_2270,3,1,5)],
-    move_arm_end(_2270,4.75,-1,5)-[make_coffee_end(jack,espresso,to_go)],
-    move_arm_start(_2270,3,1,5)-[move_base_end(_2270,_2272,service_area),move_base_end(_2270,_2330,register),move_base_end(_2270,_2506,cup_dispender),move_base_end(_2270,_2782,coffee_machine),move_arm_end(_2270,4.75,-1,5)]
+    tta(grip_end(r1),4)-[tta(build_pillar_start(r1,a),0)],
+    tta(grip_end(r1),12)-[tta(build_pillar_start(r1,a),0)],
+    tta(grip_end(r1),22)-[tta(build_pillar_start(r1,b),18)],
+    tta(grip_end(r1),30)-[tta(build_pillar_start(r1,b),18)],
+    tta(grip_end(r1),40)-[tta(place_architrave_start(r1,a,b),36)],
+    tta(grip_start(r1),3)-[tta(build_pillar_start(r1,a),0)],
+    tta(grip_start(r1),11)-[tta(build_pillar_start(r1,a),0)],
+    tta(grip_start(r1),21)-[tta(build_pillar_start(r1,b),18)],
+    tta(grip_start(r1),29)-[tta(build_pillar_start(r1,b),18)],
+    tta(grip_start(r1),39)-[tta(place_architrave_start(r1,a,b),36)],
+    tta(release_end(r1),8)-[tta(build_pillar_start(r1,a),0)],
+    tta(release_end(r1),16)-[tta(build_pillar_start(r1,a),0)],
+    tta(release_end(r1),26)-[tta(build_pillar_start(r1,b),18)],
+    tta(release_end(r1),34)-[tta(build_pillar_start(r1,b),18)],
+    tta(release_end(r1),44)-[tta(place_architrave_start(r1,a,b),36)],
+    tta(release_start(r1),7)-[tta(build_pillar_start(r1,a),0)],
+    tta(release_start(r1),15)-[tta(build_pillar_start(r1,a),0)],
+    tta(release_start(r1),25)-[tta(build_pillar_start(r1,b),18)],
+    tta(release_start(r1),33)-[tta(build_pillar_start(r1,b),18)],
+    tta(release_start(r1),43)-[tta(place_architrave_start(r1,a,b),36)],
+    tta(build_pillar_end(r1,a),17)-[tta(grip_end(r1),4),tta(grip_end(r1),12),tta(grip_start(r1),3),tta(grip_start(r1),11),tta(release_end(r1),8),tta(release_end(r1),16),tta(release_start(r1),7),tta(release_start(r1),15),tta(move_arm_end(r1,1,1,0),2),tta(move_arm_end(r1,1,2,0),10),tta(move_arm_end(r1,5,5,0),6),tta(move_arm_end(r1,5,5,1),14),tta(move_arm_start(r1,1,1,0),1),tta(move_arm_start(r1,1,2,0),9),tta(move_arm_start(r1,5,5,0),5),tta(move_arm_start(r1,5,5,1),13)],
+    tta(build_pillar_end(r1,b),35)-[tta(grip_end(r1),22),tta(grip_end(r1),30),tta(grip_start(r1),21),tta(grip_start(r1),29),tta(release_end(r1),26),tta(release_end(r1),34),tta(release_start(r1),25),tta(release_start(r1),33),tta(move_arm_end(r1,2,1,0),20),tta(move_arm_end(r1,2,2,0),28),tta(move_arm_end(r1,3,3,0),24),tta(move_arm_end(r1,3,3,1),32),tta(move_arm_start(r1,2,1,0),19),tta(move_arm_start(r1,2,2,0),27),tta(move_arm_start(r1,3,3,0),23),tta(move_arm_start(r1,3,3,1),31)],
+    tta(build_pillar_start(r1,a),0)-[],
+    tta(build_pillar_start(r1,b),18)-[],
+    tta(place_architrave_end(r1,a,b),45)-[tta(grip_end(r1),40),tta(grip_start(r1),39),tta(release_end(r1),44),tta(release_start(r1),43),tta(move_arm_end(r1,4,4,0),42),tta(move_arm_end(r1,9,9,0),38),tta(move_arm_start(r1,4,4,0),41),tta(move_arm_start(r1,9,9,0),37)],
+    tta(place_architrave_start(r1,a,b),36)-[],
+    tta(move_arm_end(r1,1,1,0),2)-[tta(build_pillar_start(r1,a),0)],
+    tta(move_arm_end(r1,1,2,0),10)-[tta(build_pillar_start(r1,a),0)],
+    tta(move_arm_end(r1,2,1,0),20)-[tta(build_pillar_start(r1,b),18)],
+    tta(move_arm_end(r1,2,2,0),28)-[tta(build_pillar_start(r1,b),18)],
+    tta(move_arm_end(r1,3,3,0),24)-[tta(build_pillar_start(r1,b),18)],
+    tta(move_arm_end(r1,3,3,1),32)-[tta(build_pillar_start(r1,b),18)],
+    tta(move_arm_end(r1,4,4,0),42)-[tta(place_architrave_start(r1,a,b),36)],
+    tta(move_arm_end(r1,5,5,0),6)-[tta(build_pillar_start(r1,a),0)],
+    tta(move_arm_end(r1,5,5,1),14)-[tta(build_pillar_start(r1,a),0)],
+    tta(move_arm_end(r1,9,9,0),38)-[tta(place_architrave_start(r1,a,b),36)],
+    tta(move_arm_start(r1,1,1,0),1)-[tta(build_pillar_start(r1,a),0)],
+    tta(move_arm_start(r1,1,2,0),9)-[tta(build_pillar_start(r1,a),0)],
+    tta(move_arm_start(r1,2,1,0),19)-[tta(build_pillar_start(r1,b),18)],
+    tta(move_arm_start(r1,2,2,0),27)-[tta(build_pillar_start(r1,b),18)],
+    tta(move_arm_start(r1,3,3,0),23)-[tta(build_pillar_start(r1,b),18)],
+    tta(move_arm_start(r1,3,3,1),31)-[tta(build_pillar_start(r1,b),18)],
+    tta(move_arm_start(r1,4,4,0),41)-[tta(place_architrave_start(r1,a,b),36)],
+    tta(move_arm_start(r1,5,5,0),5)-[tta(build_pillar_start(r1,a),0)],
+    tta(move_arm_start(r1,5,5,1),13)-[tta(build_pillar_start(r1,a),0)],
+    tta(move_arm_start(r1,9,9,0),37)-[tta(place_architrave_start(r1,a,b),36)]
 ]
 """
 
-# ugraph = "[activate_register_end()-[activate_register_start(),make_coffee_end(jack,espresso,to_go),payment_end(jack,espresso,to_go)],activate_register_start()-[make_coffee_end(jack,espresso,to_go),payment_end(jack,espresso,to_go)],queue_order_end()-[queue_order_start(),make_coffee_end(jack,espresso,to_go),order_end(jack,espresso,to_go),payment_end(jack,espresso,to_go)],queue_order_start()-[make_coffee_end(jack,espresso,to_go),order_end(jack,espresso,to_go),payment_end(jack,espresso,to_go)],make_coffee_end(jack,espresso,to_go)-[],make_coffee_start(jack,espresso,to_go)-[make_coffee_end(jack,espresso,to_go),move_base_end(_2270,_2506,cup_dispender),move_base_start(_2270,_2506,cup_dispender),move_arm_end(_2270,4.75,-1,5)],move_base_end(_2270,_2272,service_area)-[make_coffee_end(jack,espresso,to_go),move_base_start(_2270,_2272,service_area),order_end(jack,espresso,to_go),payment_end(jack,espresso,to_go)],move_base_end(_2270,_2330,register)-[make_coffee_end(jack,espresso,to_go),move_base_start(_2270,_2330,register),payment_end(jack,espresso,to_go)],move_base_end(_2270,_2506,cup_dispender)-[make_coffee_end(jack,espresso,to_go),move_base_start(_2270,_2506,cup_dispender)],move_base_end(_2270,_2782,coffee_machine)-[move_base_start(_2270,_2782,coffee_machine)],move_base_start(_2270,_2272,service_area)-[make_coffee_end(jack,espresso,to_go),order_end(jack,espresso,to_go),payment_end(jack,espresso,to_go)],move_base_start(_2270,_2330,register)-[make_coffee_end(jack,espresso,to_go),move_base_end(_2270,_2272,service_area),payment_end(jack,espresso,to_go)],move_base_start(_2270,_2506,cup_dispender)-[make_coffee_end(jack,espresso,to_go),move_base_end(_2270,_2272,service_area),move_base_end(_2270,_2330,register)],move_base_start(_2270,_2782,coffee_machine)-[move_base_end(_2270,_2272,service_area),move_base_end(_2270,_2330,register),move_base_end(_2270,_2506,cup_dispender),move_arm_end(_2270,4.75,-1,5)],order_end(jack,espresso,to_go)-[make_coffee_end(jack,espresso,to_go),payment_end(jack,espresso,to_go)],order_start(jack,espresso,to_go)-[queue_order_end(),queue_order_start(),make_coffee_end(jack,espresso,to_go),move_base_end(_2270,_2272,service_area),move_base_start(_2270,_2272,service_area),order_end(jack,espresso,to_go),payment_end(jack,espresso,to_go)],payment_end(jack,espresso,to_go)-[make_coffee_end(jack,espresso,to_go)],payment_start(jack,espresso,to_go)-[activate_register_end(),activate_register_start(),make_coffee_end(jack,espresso,to_go),move_base_end(_2270,_2330,register),move_base_start(_2270,_2330,register),payment_end(jack,espresso,to_go)],serve_start(jack,espresso,to_go)-[move_base_end(_2270,_2782,coffee_machine),move_base_start(_2270,_2782,coffee_machine),move_arm_start(_2270,3,1,5)],move_arm_end(_2270,4.75,-1,5)-[make_coffee_end(jack,espresso,to_go)],move_arm_start(_2270,3,1,5)-[move_base_end(_2270,_2272,service_area),move_base_end(_2270,_2330,register),move_base_end(_2270,_2506,cup_dispender),move_base_end(_2270,_2782,coffee_machine),move_arm_end(_2270,4.75,-1,5)]]"
-
-
-def drawBokeh(Graph):
-    from bokeh.plotting import figure, show, output_file
-    from bokeh.models import ColumnDataSource, HTMLLabelSet
-    min_node_size = 70000  # Minimum node size
-    max_node_size = 10000  # Maximum node size
-
-    # Create a Bokeh plot
-    plot = figure(
-        width=1600, height=1200
-    )
-
-    # Create a layout using from_networkx
-    layout = nx.nx_agraph.graphviz_layout(Graph, prog="dot")  # You can use other layout algorithms as well
-    # layout = nx.spring_layout(G)
-
-    # Extract edge endpoints
-    edge_start = [edge[0] for edge in Graph.edges]
-    edge_end = [edge[1] for edge in Graph.edges]
-
-    # Extract node attributes
-    Xs = []
-    Ys = []
-    node_labels = []
-    label_lengths = []
-    node_sizes = []
-
-    for node_id in range(len(Graph.nodes)):
-        node = list(Graph.nodes)[node_id]
-        pos = list(layout.values())[node_id]
-        Xs.append(pos[0])
-        Ys.append(pos[1])
-        node_labels.append(node)#Graph.nodes[node].get('label', ''))
-        label_lengths.append(len(node_labels[-1]))
-
-    for labelLen in label_lengths:
-        node_sizes.append((labelLen / max_node_size) * min_node_size)
-
-    # Create a data source for nodes
-    node_source = ColumnDataSource(data=dict(
-        x=Xs,
-        y=Ys,
-        labels=node_labels,
-        sizes=node_sizes,
-    ))
-
-    # Create a data source for edges
-    edge_source = ColumnDataSource(data=dict(
-        xs=[[layout[start][0], layout[end][0]] for start, end in zip(edge_start, edge_end)],
-        ys=[[layout[start][1], layout[end][1]] for start, end in zip(edge_start, edge_end)]
-    ))
-
-    # Customize node rendering with dynamically calculated sizes
-    nodes = plot.ellipse('x', 'y', width='sizes', height=7, source=node_source, color='white')
-
-    # Display 'label' attribute inside the nodes using LabelSet
-    labels = HTMLLabelSet(x='x', y='y', text='labels', source=node_source, level='glyph',
-                            text_align='center', text_baseline='middle', text_color='black')
-
-    # Customize edge rendering
-    edges = plot.multi_line('xs', 'ys', source=edge_source, line_color='#AAAAAA', line_width=1)
-
-    # Add tooltips to display 'title' attributes for nodes
-    # hover = HoverTool()
-    # hover.tooltips = [("Label", "@labels")]
-
-    # Remove tooltips for edges
-    edges.hover_glyph = None
-    edges.nonselection_glyph = None
-
-    # plot.add_tools(hover)
-
-    # Hide Bokeh axes and grid
-    plot.axis.visible = False
-    plot.grid.visible = False
-
-    # Add nodes, labels, and edge to the same renderers list to ensure proper layering
-    plot.renderers.extend([nodes, labels, edges])
-
-    # Show the plot
-    output_file(filename="planner.html")
-    show(plot)
-
 def draw_graph(graph_str:str) -> None:
     """
-    Takes a ugraph from Prolog and draws it using networkx
+    Takes a ugraph from Prolog and draws it 
     """
-    graph = nx.DiGraph()
+    graph = Graph()
     nodes_edges = graph_str.split('],')
     for node_edges in nodes_edges:
         node_edges = node_edges.strip()
@@ -136,14 +72,13 @@ def draw_graph(graph_str:str) -> None:
             edges = "".join(edges.strip('[]').split()).replace("]","")
             
             graph.add_nodes_from([node])
-            for item in re.finditer(r"(?P<action>[_a-zA-Z0-9]+\([_a-zA-Z0-9,]*\))", edges):
-                action = item.groupdict()['action']
-                print(action)
+            for item in re.finditer(r"(?P<tta>tta\((?P<action>[a-zA-Z_]+\([a-zA-Z0-9,_]*\)),(?P<time>[0-9]+)\))", edges):
+                action = item.groupdict()['tta']
+                # print(action)
                 graph.add_edge(node, action)
-    # pos = graphviz_layout(graph, prog="dot")
-    # nx.draw(graph, pos=pos, with_labels=True)
-    # plt.show()
-    drawBokeh(graph)
+                print("adding edge ", node, action)
+    graph.draw(mode="pyvis", title="ll_po_plan_red.html", rm_redundant=False)
+    graph.draw(mode="pyvis", title="ll_po_plan.html", rm_redundant=True)
 
 
 if __name__ == '__main__':

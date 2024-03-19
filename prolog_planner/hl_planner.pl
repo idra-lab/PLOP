@@ -69,7 +69,7 @@ total_hl_order(State, Goal, Been_list, Actions, MaxDepth, RetActions) :-
 
 total_hl_plan(Init, Goal, Actions) :-
 	\+equal_set(Init, Goal),
-	total_hl_order(Init, Goal, [Init], [], 20, Actions).
+	total_hl_order(Init, Goal, [Init], [], 10, Actions).
 total_hl_plan(_Init, _Goal, []).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

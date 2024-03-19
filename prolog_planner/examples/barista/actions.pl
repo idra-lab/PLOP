@@ -140,7 +140,7 @@ ll_action(release_end(Rob, Obj),
     [del(gripped(Rob, Obj)), add(available(Rob))]
 ).
 ll_action(activate_machine_start(),
-    [],
+    [at(_, coffe_machine)],
     [active_machine],
     [],
     [],
@@ -154,7 +154,7 @@ ll_action(activate_machine_end(),
     [del(active_machine)]
 ).
 ll_action(activate_register_start(),
-    [],
+    [at(_, register)],
     [active_register],
     [],
     [],
@@ -182,7 +182,7 @@ ll_action(wait_end(Time),
     [del(waiting(Time))]
 ).
 ll_action(queue_order_start(),
-    [],
+    [at(_, service_area)],
     [queueing_order],
     [],
     [],
