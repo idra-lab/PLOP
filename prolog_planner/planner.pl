@@ -6,6 +6,19 @@ plan :-
   hl_init(Init),
   hl_goal(Goal),
   format('Planning from: ~w to: ~w~n', [Init, Goal]),
+  plan(Init, Goal, HLActions, LastAchievers),
+  write('HL total-order plan: '), nl,
+  reverse(HLActions, HLActionsReversed),
+  print_list(HLActionsReversed),
+  write('Last achievers: '), nl,
+  reverse(LastAchievers, LastAchieversReversed),
+  print_list(LastAchieversReversed),
+  true.
+
+plan_old :- 
+  hl_init(Init),
+  hl_goal(Goal),
+  format('Planning from: ~w to: ~w~n', [Init, Goal]),
   plan(Init, Goal, HLActions),
   write('HL total-order plan: '), nl,
   reverse(HLActions, HLActionsReversed),

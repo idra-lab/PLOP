@@ -46,7 +46,7 @@ action(place_arch_end(A, Pos1, Pos2, Arch),
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                                    INT                                     %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-action(move_block_start(A, Block, From, To),
+ll_action(move_block_start(A, Block, From, To),
   [pillaring(A, To, Block), at(From, Block)],
   [at(To, _)],
   [at(To, Block)],
@@ -56,7 +56,7 @@ action(move_block_start(A, Block, From, To),
     add(moving_block(A, Block, From, To))
   ]
 ).
-action(move_block_end(A, Block, From, To),
+ll_action(move_block_end(A, Block, From, To),
   [moving_block(A, Block, From, To)],
   [at(To, _)],
   [],
@@ -66,22 +66,22 @@ action(move_block_end(A, Block, From, To),
     add(at(To, Block))
   ]
 ).
-action(move_arch_start(A, Arch, From, To, Pos1, Pos2),
+ll_action(move_arch_start(A, Arch, From, To, Pos1, Pos2),
   [placing_arch(A, Pos1, Pos2, Arch), at(From, Arch)],
   [at(To, _)],
   [at(To, Arch)],
   [
-    pos(Pos1, X1, Y1, Z1),pos(Pos2, X2, Y2, Z2),
-    Xf is (X1+X2)/2.0, Yf is (Y1+Y2)/2.0, Zf is (Z1+Z2)/2.0,
-    format('X ~w Y ~w Z ~w~n', [Xf, Yf, Zf]),
-    \+pos(_, Xf, Yf, Zf) -> assertz(pos(To, Xf, Yf, Zf)) ; true
+    % pos(Pos1, X1, Y1, Z1),pos(Pos2, X2, Y2, Z2),
+    % Xf is (X1+X2)/2.0, Yf is (Y1+Y2)/2.0, Zf is (Z1+Z2)/2.0,
+    % format('X ~w Y ~w Z ~w~n', [Xf, Yf, Zf]),
+    % \+pos(_, Xf, Yf, Zf) -> assertz(pos(To, Xf, Yf, Zf)) ; true
   ],
   [
     del(at(From, Arch)),
     add(moving_arch(A, Arch, From, To))
   ]
 ).
-action(move_arch_end(A, Arch, From, To, _Pos1, _Pos2),
+ll_action(move_arch_end(A, Arch, From, To, _Pos1, _Pos2),
   [moving_arch(A, Arch, From, To)],
   [at(To, _)],
   [],
@@ -97,7 +97,7 @@ action(move_arch_end(A, Arch, From, To, _Pos1, _Pos2),
 %%                                     LL                                     %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-action(move_arm_start(A, To),
+ll_action(move_arm_start(A, To),
   [],
   [moving_arm(A, _), gripping(A, _), releasing(A)],
   [],
@@ -106,7 +106,7 @@ action(move_arm_start(A, To),
     add(moving_arm(A, X2, Y2, Z2))
   ]
 ).
-action(move_arm_end(A, To),
+ll_action(move_arm_end(A, To),
   [moving_arm(A, X, Y, Z)],
   [],
   [],
@@ -115,7 +115,7 @@ action(move_arm_end(A, To),
     del(moving_arm(A, X, Y, Z))
   ]
 ).
-action(grip_start(A, B),
+ll_action(grip_start(A, B),
   [],
   [moving_arm(A, _), gripping(A, _), releasing(A)],
   [],
@@ -124,7 +124,7 @@ action(grip_start(A, B),
     add(gripping(A, B))
   ]
 ).
-action(grip_end(A, B),
+ll_action(grip_end(A, B),
   [gripping(A, B)],
   [],
   [],
@@ -133,7 +133,7 @@ action(grip_end(A, B),
     del(gripping(A, B))
   ]
 ).
-action(release_start(A),
+ll_action(release_start(A),
   [],
   [moving_arm(A, _), gripping(A, _), releasing(A)],
   [],
@@ -142,7 +142,7 @@ action(release_start(A),
     add(releasing(A))
   ]
 ).
-action(release_end(A),
+ll_action(release_end(A),
   [releasing(A)],
   [],
   [],

@@ -6,8 +6,8 @@ mapping(build_pillar_start(A, Pos, Block),
 ).
 mapping(place_arch_start(A, Pos1, Pos2, Arch),
   [
-    move_arch_start(A, Arch, From, To, Pos1, Pos2),
-    move_arch_end(A, Arch, From, To, Pos1, Pos2)
+    move_arch_start(A, Arch, From, f, Pos1, Pos2),
+    move_arch_end(A, Arch, From, f, Pos1, Pos2)
   ]
 ).
 mapping(move_block_start(A, Block, From, To),
@@ -22,7 +22,7 @@ mapping(move_block_start(A, Block, From, To),
     release_end(A)
   ]
 ).
-mapping(move_arch_start(A, Arch, From, To),
+mapping(move_arch_start(A, Arch, From, To, Pos1, Pos2),
   [
     move_arm_start(A, From),
     move_arm_end(A, From),

@@ -66,3 +66,13 @@ last_achievers(PreconditionsT, [HA|TA], [HA|LastAchievers]):-
 last_achievers(PreconditionsT, [HA|TA], LastAchievers):-
     \+achiever(PreconditionsT, HA),
     last_achievers(PreconditionsT, TA, LastAchievers).
+
+% These functions are used to return a the ids of the achievers of a certain function. 
+last_achievers_ids(_PreconditionsT, [], []).
+last_achievers_ids(PreconditionsT, [[ID-HA]|TA], [ID|LastAchievers]):-
+    achiever(PreconditionsT, HA),
+    last_achievers_ids(PreconditionsT, TA, LastAchievers).
+
+last_achievers_ids(PreconditionsT, [[_ID-HA]|TA], LastAchievers):-
+    \+achiever(PreconditionsT, HA),
+    last_achievers_ids(PreconditionsT, TA, LastAchievers).
