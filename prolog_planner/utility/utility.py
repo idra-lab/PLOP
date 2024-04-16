@@ -80,7 +80,56 @@ def draw_graph(graph_str:str) -> None:
     graph.draw(mode="pyvis", title="ll_po_plan_red.html", rm_redundant=False)
     graph.draw(mode="pyvis", title="ll_po_plan.html", rm_redundant=True)
 
+def draw_other():
+    achievers=[
+        [],
+        [0],
+        [1],
+        [2],
+        [2, 3],
+        [2, 4],
+        [2, 5],
+        [2, 4, 6],
+        [2, 3, 7],
+        [2, 4, 6, 8],
+        [2, 9],
+        [2, 3, 4, 5, 6, 7, 8, 9, 10],
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+        [0, 12],
+        [13],
+        [4, 6, 8, 10, 14],
+        [3, 7, 14, 15],
+        [4, 6, 8, 10, 14, 16],
+        [5, 14, 17],
+        [4, 6, 8, 10, 14, 16, 18],
+        [3, 7, 14, 15, 19],
+        [4, 6, 8, 10, 14, 16, 18, 20],
+        [9, 14, 21],
+        [14, 15, 16, 17, 18, 19, 20, 21, 22],
+        [13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+        [12, 24],
+        [25],
+        [4, 6, 8, 10, 16, 18, 20, 22, 26],
+        [3, 7, 15, 19, 26, 27],
+        [4, 6, 8, 10, 16, 18, 20, 22, 26, 28],
+        [5, 17, 26, 29],
+        [4, 6, 8, 10, 16, 18, 20, 22, 26, 28, 30],
+        [3, 7, 15, 19, 26, 27, 31],
+        [4, 6, 8, 10, 16, 18, 20, 22, 26, 28, 30, 32],
+        [9, 21, 26, 33],
+        [26, 27, 28, 29, 30, 31, 32, 33, 34],
+        [25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35],
+        [1, 12, 13, 24, 25, 36]
+    ]
+    edges=[]
+    for i in range(len(achievers)):
+        for e in achievers[i]:
+            edges.append((i,e))
+    graph = Graph(edges)
+    graph.add_node("0")
+    graph.draw(mode="pyvis", title="test2.html", rm_redundant=False)
 
 if __name__ == '__main__':
-    draw_graph(ugraph)
+    # draw_graph(ugraph)
+    draw_other()
 

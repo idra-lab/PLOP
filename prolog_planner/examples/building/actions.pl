@@ -101,23 +101,23 @@ ll_action(move_arm_start(A, To),
   [],
   [moving_arm(A, _), gripping(A, _), releasing(A)],
   [],
-  [arm(A, X1, Y1, Z1), pos(To, X2, Y2, Z2), retract(arm(A, X1, Y1, Z1))],
+  [arm(A, X1, Y1, Z1), pos(To, _X2, _Y2, _Z2)],
   [
-    add(moving_arm(A, X2, Y2, Z2))
+    add(moving_arm(A, To))
   ]
 ).
 ll_action(move_arm_end(A, To),
-  [moving_arm(A, X, Y, Z)],
+  [moving_arm(A, To)],
   [],
   [],
   [assertz(arm(A, X, Y, Z))],
   [
-    del(moving_arm(A, X, Y, Z))
+    del(moving_arm(A, To))
   ]
 ).
 ll_action(grip_start(A, B),
   [],
-  [moving_arm(A, _), gripping(A, _), releasing(A)],
+  [moving_arm(A, _), gripping(A, _), releasing(A), gripped(A)],
   [],
   [gripper(A)],
   [
@@ -130,15 +130,17 @@ ll_action(grip_end(A, B),
   [],
   [gripper(A)],
   [
-    del(gripping(A, B))
+    del(gripping(A, B)),
+    add(gripped(A))
   ]
 ).
 ll_action(release_start(A),
-  [],
+  [gripped(A)],
   [moving_arm(A, _), gripping(A, _), releasing(A)],
   [],
   [gripper(A)],
   [
+    del(gripped(A)),
     add(releasing(A))
   ]
 ).

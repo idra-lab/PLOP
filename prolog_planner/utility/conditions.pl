@@ -40,39 +40,65 @@ verify([H|T]) :-
 % TODO: an action a_i is an achiever of an action a_j also if it removes a 
 % predicate that would otherwise prevent a_j from being executed. 
 
-achiever([], _, _) :- false.
-achiever([HPreT|_TPreT], [add(HPreT)|_TEff], _).
-achiever([_HPreT|TPreT], [], Eff):-
-    achiever(TPreT, Eff, []).
-achiever(PreT, [HEff|TEff], UsedEff):-
-    append(UsedEff, [HEff], NewUsedEff),
-    achiever(PreT, TEff, NewUsedEff).
+% When we don't find an achiever
+achiever([], [], _, _) :- false.
 
-% This wrapper functoins are used to call the achiever function with the correct
+% When we find an achiever
+achiever([HPreT|_TPreT], _PreF, [add(HPreT)|_TEff], _UsedEff) :- !.
+achiever(_PreT, [HPreF|_TPreF], [del(HPreF)|_TEff], _UsedEff) :- !.
+
+% When we have finished the effects and must restart the recursion on another precondition
+achiever([_HPreT|TPreT], PreF, [], Eff):-
+    achiever(TPreT, PreF, Eff, []).
+achiever([], [_HPref|TPreF], [], Eff):-
+    achiever([], TPreF, Eff, []).
+
+% Normal execution going through the effects
+achiever(PreT, PreF, [HEff|TEff], UsedEff):-
+    append(UsedEff, [HEff], NewUsedEff),
+    achiever(PreT, PreF, TEff, NewUsedEff).
+achiever([], PreF, [HEff|TEff], UsedEff):-
+    append(UsedEff, [HEff], NewUsedEff),
+    achiever([], PreF, TEff, NewUsedEff).
+
+% This wrapper functions are used to call the achiever function with the correct
 % arguments and check whether the action is a high-level or a low-level one.
-achiever(PreT, Action):-
-    action(Action, _PreconditionsT, _PreconditionsF, _FinalConditionsF, _Verify, Effects),
-    achiever(PreT, Effects, []).
-achiever(PreT, Action):-
-    ll_action(Action, _PreconditionsT, _PreconditionsF, _FinalConditionsF, _Verify, Effects),
-    achiever(PreT, Effects, []).
+achiever(PreT, PreF, Action):-
+    action(Action, _PreT, _PreF, _FinalConditionsF, _Verify, Effects),
+    achiever(PreT, PreF, Effects, []),
+    format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF]).
+achiever(PreT, PreF, Action):-
+    ll_action(Action, _PreT, _PreF, _FinalConditionsF, _Verify, Effects),
+    achiever(PreT, PreF, Effects, []),
+    format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF]).
+achiever(PreT, PreF, Action):-
+    action(Action, _PreT, _PreF, _FinalConditionsF, _Verify, Effects),
+    \+achiever(PreT, PreF, Effects, []),
+    format('Action ~w ~w is not an achiever ~w ~w~n', [Action, Effects, PreT, PreF]), false.
+achiever(PreT, PreF, Action):-
+    ll_action(Action, _PreT, _PreF, _FinalConditionsF, _Verify, Effects),
+    \+achiever(PreT, PreF, Effects, []),
+    format('Action ~w ~w is not an achiever ~w ~w~n', [Action, Effects, PreT, PreF]), false.
 
 % These functions are used to return a list of achievers of a certain function. 
-last_achievers(_PreconditionsT, [], []).
-last_achievers(PreconditionsT, [HA|TA], [HA|LastAchievers]):-
-    achiever(PreconditionsT, HA),
-    last_achievers(PreconditionsT, TA, LastAchievers).
-
-last_achievers(PreconditionsT, [HA|TA], LastAchievers):-
-    \+achiever(PreconditionsT, HA),
-    last_achievers(PreconditionsT, TA, LastAchievers).
+last_achievers(_PreT, _PreF, [], []).
+last_achievers(PreT, PreF, [HA|TA], [HA|LastAchievers]):-
+    achiever(PreT, PreF, HA),
+    last_achievers(PreT, PreF, TA, LastAchievers).
+last_achievers(PreT, PreF, [HA|TA], LastAchievers):-
+    \+achiever(PreT, PreF, HA),
+    last_achievers(PreT, PreF, TA, LastAchievers).
 
 % These functions are used to return a the ids of the achievers of a certain function. 
-last_achievers_ids(_PreconditionsT, [], []).
-last_achievers_ids(PreconditionsT, [[ID-HA]|TA], [ID|LastAchievers]):-
-    achiever(PreconditionsT, HA),
-    last_achievers_ids(PreconditionsT, TA, LastAchievers).
+last_achievers_ids(_PreT, _PreF, [], []).
+last_achievers_ids(PreT, PreF, [[ID-HA]|TA], [ID|LastAchievers]):-
+    achiever(PreT, PreF, HA),
+    last_achievers_ids(PreT, PreF, TA, LastAchievers).
+last_achievers_ids(PreT, PreF, [[_ID-HA]|TA], LastAchievers):-
+    \+achiever(PreT, PreF, HA),
+    last_achievers_ids(PreT, PreF, TA, LastAchievers).
 
-last_achievers_ids(PreconditionsT, [[_ID-HA]|TA], LastAchievers):-
-    \+achiever(PreconditionsT, HA),
-    last_achievers_ids(PreconditionsT, TA, LastAchievers).
+
+
+
+

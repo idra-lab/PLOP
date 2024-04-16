@@ -22,7 +22,7 @@ apply_map([HAction|TActions], IDHLAction, State, Been_list, Plan, LastAchievers,
   length(Plan, Length),
 
   % Find last achievers
-  last_achievers_ids(PreconditionsT, Plan, Achievers),
+  last_achievers_ids(PreconditionsT, PreconditionsF, Plan, Achievers),
   (
     functor(HAction, ActionNameFull, _), sub_string(ActionNameFull, Value, _, _, '_end'), sub_string(ActionNameFull, _, Value, _, ActionName) 
     -> (format('Adding achievers for ~w ~w ~w ~w~n', [HAction, ActionNameFull, ActionName, Value]),
@@ -100,7 +100,8 @@ plan(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPlan, FinalLast
   ),
 
   % Find last achievers
-  last_achievers_ids(PreconditionsT, Plan, Achievers),
+  last_achievers_ids(PreconditionsT, PreconditionsF, Plan, Achievers),
+  format('Last achievers: ~w\n', [Achievers]),
   (
     functor(Name, ActionNameFull, _), sub_string(ActionNameFull, Value, _, _, '_end'), sub_string(ActionNameFull, _, Value, _, ActionName) 
     -> (format('Adding achievers for ~w ~w ~w ~w~n', [Name, ActionNameFull, ActionName, Value]),
@@ -133,4 +134,34 @@ plan(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPlan, FinalLast
 
 plan(Init, Goal, Plan, LastAchievers) :-
   \+equal_set(Init, Goal),
-  plan(Init, Goal, [], [], [], 50, Plan, LastAchievers).
+  plan(Init, Goal, [], [], [], 50, Plan, TmpAchievers),
+  clean_achievers(TmpAchievers, LastAchievers).
+
+move_to_set([], R, R).
+move_to_set([H|T], Temp, Ret) :-
+  member(H, Temp),
+  move_to_set(T, Temp, Ret).
+move_to_set([H|T], Temp, Ret) :-
+  \+member(H, Temp),
+  append([H], Temp, NewTemp),
+  move_to_set(T, NewTemp, Ret).
+
+move_to_set(Ach, Ret) :-
+  move_to_set(Ach, [], TmpRet),
+  reverse(TmpRet, Ret).
+
+clean_achievers([], LastAchievers, LastAchievers).
+clean_achievers([ID-Action-Achievers|TActions], TempLastAchievers, RetLastAchievers) :-
+  move_to_set(Achievers, NewAchievers),
+  format('Cleaned achievers for ~w ~w ~w from ~w\n', [ID, Action, NewAchievers, Achievers]),
+  append([ID-Action-NewAchievers], TempLastAchievers, NewLastAchievers),
+  clean_achievers(TActions, NewLastAchievers, RetLastAchievers).
+
+clean_achievers(LastAchievers, RetLastAchievers) :-
+  clean_achievers(LastAchievers, [], TmpLastAchievers),
+  reverse(TmpLastAchievers, [], RetLastAchievers).
+
+reverse([], Ret, Ret).
+reverse([H|T], Temp, Ret) :-
+  append([H], Temp, NewTemp),
+  reverse(T, NewTemp, Ret).
