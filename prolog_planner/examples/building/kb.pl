@@ -32,3 +32,10 @@ arm(a2, 20, 20, 20).
 
 gripper(a1).
 gripper(a2).
+
+new_agent(a1, a2, a3).
+new_agent(a2, a3, a7).
+resources(new_agent(_, _, _)).
+
+resources :- resources(X), X, functor(X, Y, _), write(X), write(' '), write(Y), nl.
+resources(agent(_)).

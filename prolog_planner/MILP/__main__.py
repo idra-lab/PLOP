@@ -32,7 +32,7 @@ adj_matrix = [
 ]
 
 resources = {
-    'A' : 2, 
+    'A' : 1, 
     'B' : 1
 }
 

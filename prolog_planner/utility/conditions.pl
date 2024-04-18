@@ -44,8 +44,8 @@ verify([H|T]) :-
 achiever([], [], _, _) :- false.
 
 % When we find an achiever
-achiever([HPreT|_TPreT], _PreF, [add(HPreT)|_TEff], _UsedEff) :- !.
-achiever(_PreT, [HPreF|_TPreF], [del(HPreF)|_TEff], _UsedEff) :- !.
+achiever([HPreT|_TPreT], _PreF, [add(HPreT)|_TEff], _UsedEff) :- \+ (resources(X), X =.. [_|Args], member(HPreT, Args)), !.
+achiever(_PreT, [HPreF|_TPreF], [del(HPreF)|_TEff], _UsedEff) :- \+ (resources(X), X =.. [_|Args], member(HPreF, Args)), !.
 
 % When we have finished the effects and must restart the recursion on another precondition
 achiever([_HPreT|TPreT], PreF, [], Eff):-

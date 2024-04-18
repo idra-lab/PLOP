@@ -11,6 +11,33 @@ add_achievers_end(PrevActionName, [[ID-HAction]|TActions], LastAchievers, RetLas
   append([ID], LastAchievers, TempLastAchievers),
   add_achievers_end(PrevActionName, TActions, TempLastAchievers, RetLastAchievers).
 
+add_no_mapping_achievers(Lenght-HAction, Plan, IDHLAction, TempLastAchievers, RetLastAchievers) :-
+  \+mapping(HAction, _),
+  format('No mapping for action ~w adding prev resource constraints ~w ~w~n~w\n', [HAction, Lenght, IDHLAction, Plan]),
+  % leash(-all), trace,
+  % (
+    % add_no_mapping_achievers_wrapped(Lenght-HAction, Plan, IDHLAction, TempLastAchievers, RetLastAchievers);
+    add_no_mapping_achievers_wrapped(Lenght-HAction, Plan, IDHLAction, TempLastAchievers, RetLastAchievers).
+
+add_no_mapping_achievers(_Lenght-HAction, _Plan, _IDHLAction, TempLastAchievers, TempLastAchievers) :-
+  mapping(HAction, _),
+  format('Mapping for action ~w, not adding prev resource constraints\n', [HAction]).
+
+add_no_mapping_achievers_wrapped1(_PrevID-_PrevAction, [], _IDHLAction, RetAchievers, RetAchievers).
+add_no_mapping_achievers_wrapped1(This, [H|T], IDHLAction, TmpAchievers, RetAchievers) :-
+  format('TESTTEST achievers for ~w ~w ~w ~w ~w ~w~n', [This, H, T, IDHLAction, TmpAchievers, RetAchievers]),
+  add_no_mapping_achievers_wrapped1(This, T, IDHLAction, TmpAchievers, RetAchievers).
+
+add_no_mapping_achievers_wrapped(_PrevID-_PrevAction, [[IDHLAction-_]|_], IDHLAction, RetAchievers, RetAchievers) :-
+  format('New mappings ~w~n', [RetAchievers]).
+add_no_mapping_achievers_wrapped(ID-Action, [[PrevID-PrevAction]|T], IDHLAction, TmpAchievers, RetAchievers) :-
+  format('Adding achievers for ~w ~w ~w ~w~n', [ID, Action, PrevID, PrevAction]),
+  append([PrevID], TmpAchievers, NewTmpAchievers),
+  format('Added achievers for ~w ~w ~w ~w~n', [ID, Action, PrevID, PrevAction]),
+  (
+    add_no_mapping_achievers_wrapped(ID-Action, T, IDHLAction, NewTmpAchievers, RetAchievers);
+    add_no_mapping_achievers_wrapped(ID-Action, T, IDHLAction, NewTmpAchievers, RetAchievers)).
+
 % This function applies the mappings of an action. It also checks that the ll action is applicable and changes the state accordingly 
 apply_map([], _IDHLAction, State, Been_list, Plan, LastAchievers, State, Been_list, Plan, LastAchievers, _).
 apply_map([HAction|TActions], IDHLAction, State, Been_list, Plan, LastAchievers, RetState, RetBeen_list, RetPlan, RetLastAchievers, Pre) :-
@@ -29,8 +56,9 @@ apply_map([HAction|TActions], IDHLAction, State, Been_list, Plan, LastAchievers,
         add_achievers_end(ActionName, Plan, Achievers, TempLastAchievers))
     ;  append([IDHLAction], Achievers, TempLastAchievers)
   ),
+  add_no_mapping_achievers(Length-HAction, Plan, IDHLAction, TempLastAchievers, TempTempLastAchievers),
 
-  append([Length-HAction-TempLastAchievers], LastAchievers, NewLastAchievers),
+  append([Length-HAction-TempTempLastAchievers], LastAchievers, NewLastAchievers),
 
   stack([Length-HAction], Plan, NewPlan),
   % Change state.
