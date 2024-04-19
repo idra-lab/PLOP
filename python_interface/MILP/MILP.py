@@ -1,12 +1,10 @@
 import collections
 from ortools.sat.python import cp_model
 
-from utility.Graph import Graph
+from utility.Graph.Graph import Graph
 
 class MILPSolver(cp_model.CpSolver): 
     def __init__(self, tta_actions, actions, adj_matrix, resources):
-
-
         super().__init__()
         self.status = cp_model.UNKNOWN
 
@@ -14,6 +12,29 @@ class MILPSolver(cp_model.CpSolver):
         self.actions = actions
         self.adj_matrix = adj_matrix
         self.resources = resources
+
+        print("Creating MILP model")
+        print(self.tta_actions)
+        print(self.actions)
+        for row in self.adj_matrix:
+            print(row)
+        print(self.resources)
+
+        # Create dependency graph
+        edges = []
+        for i in range(len(self.adj_matrix)):
+            for j in range(len(self.adj_matrix[i])):
+                if self.adj_matrix[i][j] == 1:
+                    edges.append(
+                        (
+                            "{}_{}".format(str(i), self.actions[i]),
+                            "{}_{}".format(str(j), self.actions[j]),
+                        )
+                    )
+
+        self.graph = Graph(edges)
+        
+        self.__verify__()
 
         # Create model
         self.model = cp_model.CpModel()
@@ -47,33 +68,56 @@ class MILPSolver(cp_model.CpSolver):
         Verify the consistency of the adjacency matrix and actions list.
 
         Raises:
-            Exception: If the length of the adjacency matrix does not match the length of the actions list,
-                        or if the length of the adjacency matrix does not match the length of the actions list multiplied by 2.
+            Exception: - If the length of the adjacency matrix does not match the length of the actions list,
+                       - If the length of the adjacency matrix does not match the length of the ttas list multiplied by 2.
+                       - If a snap actions was not found in the ttas.
+                       - If a snap action is found in more than one tta.
         """        
-        if len(self.adj_matrix) != len(self.actions) or len(self.adj_matrix[0]) != len(self.actions):
-            raise Exception("Error: Adjacency matrix and actions list length mismatch")
+        assert len(self.adj_matrix) == len(self.actions) and len(self.adj_matrix[0]) == len(self.actions), \
+            "Error: Adjacency matrix and actions list length mismatch"
         
-        if 2*len(self.actions) != len(self.tta_actions):
-            raise Exception("Error: Actions and TTAs length mismatch")
+        assert len(self.actions) == 2*len(self.tta_actions), "Error: Actions and TTAs length mismatch"
+
+        for snap_action in self.actions:
+            snap_id = snap_action.split("_")[0]
+            counter = 0
+            for tta_action, value in self.tta_actions.items():
+                if  value['s'].split('_')[0] == snap_id or \
+                    value['e'].split('_')[0] == snap_id:
+                    counter += 1
+            if counter < 1:
+                raise Exception(f"Error: Snap action {snap_action} not found in TTAs, {self.tta_actions}")
+            elif counter > 1:
+                raise Exception(f"Error: Snap action {snap_action} found in more than one TTA, {self.tta_actions}")
         
 
-    # TODO This is not working since the import is wrong, but for God sake I 
-    # cannot make this work and I sincerely do not understand how Python modules
-    # should be imported reliably.
+        for node in self.graph.nodes:
+            if self.graph.find_cycle(node):
+                raise Exception("Error: Graph has at least one cycle")
+
     def draw_graph_from_matrix(self, title, rm_redundant=False, open_browser=False):
-        edges = []
-        for i in range(len(self.adj_matrix)):
-            for j in range(len(self.adj_matrix[i])):
-                if self.adj_matrix[i][j] == 1:
-                    edges.append(
-                        (
-                            "{}_{}".format(str(i), self.actions[i]),
-                            "{}_{}".format(str(j), self.actions[j]),
-                        )
-                    )
+        self.graph.draw(title=title, rm_redundant=rm_redundant, open_browser=open_browser)
 
-        graph = Graph(edges)
-        graph.draw(title=title, rm_redundant=False, open_browser=False)
+
+    def __tta_from_snap_action(self, action : str) -> str:
+        """
+        Get the TTA from a snap action.
+
+        Since at the beginning we verify the consistency of the data, this method should always return a valid TTA.
+
+        Args:
+            action (str): The snap action.
+
+        Returns:
+            str: The TTA.
+        """
+        snap_id = action.split("_")[0]
+        for tta_action, value in self.tta_actions.items():
+            if  value['s'].split('_')[0] == snap_id or \
+                value['e'].split('_')[0] == snap_id:
+                return tta_action
+        
+        return ""
 
 
      ######   #######  ##    ##  ######  ######## ########     ###    #### ##    ## ########  ######  
@@ -89,34 +133,37 @@ class MILPSolver(cp_model.CpSolver):
         
         # Snap actions can start after all the previous snap actions have started
         for idr in range(len(self.adj_matrix)):
+            if idr == 6:
+                break
             for idc in range(len(self.adj_matrix[idr])):
                 if self.adj_matrix[idr][idc] == 1:
-                    tta_id1 = self.actions[idr].split("_")[0]
-                    tta_id2 = self.actions[idc].split("_")[0]
+                    tta_id1 = self.__tta_from_snap_action(self.actions[idr].split("_")[0])
+                    tta_id2 = self.__tta_from_snap_action(self.actions[idc].split("_")[0])
                     # print(f"Checking {idr},{tta_id1} -> {idc},{tta_id2}")
+                    print(f"Adding constraint that {self.actions[idc]} starts after {self.actions[idr]}")
         
                     if "_s" in self.actions[idc]:
                         if "_s" in self.actions[idr]:
                             self.model.Add(self.all_tta[tta_id2].start >= self.all_tta[tta_id1].start)
-                            print("Adding constraint that {}_s starts after {}_s".format(tta_id2, tta_id1))
+                            # print(f"Adding constraint that {tta_id2}_s starts after {tta_id1}_s")
                         elif "_e" in self.actions[idr]:
                             self.model.Add(self.all_tta[tta_id2].start >= self.all_tta[tta_id1].end)
-                            print("Adding constraint that {}_s starts after {}_e".format(tta_id2, tta_id1))
+                            # print(f"Adding constraint that {tta_id2}_s starts after {tta_id1}_e")
                         else:
                             raise Exception(f"Invalid action {idr} {self.actions[idr]}, no _s or _e in {self.actions[idr]}")
                     
                     elif "_e" in self.actions[idc]:
                         if "_s" in self.actions[idr]:
                             self.model.Add(self.all_tta[tta_id2].end >= self.all_tta[tta_id1].start)
-                            print("Adding constraint that {}_e starts after {}_s".format(tta_id2, tta_id1))
+                            # print(f"Adding constraint that {tta_id2}_e starts after {tta_id1}_s")
                         elif "_e" in self.actions[idr]:
                             self.model.Add(self.all_tta[tta_id2].end >= self.all_tta[tta_id1].end)
-                            print("Adding constraint that {}_e starts after {}_e".format(tta_id2, tta_id1))
+                            # print(f"Adding constraint that {tta_id2}_e starts after {tta_id1}_e")
                         else:
                             raise Exception(f"Invalid action {idr} {self.actions[idr]}")
                     
-                    else:
-                        raise Exception(f"Invalid action {idc} {self.actions[idc]}, no _s or _e in {self.actions[idc]}")
+                    # else:
+                    #     raise Exception(f"Invalid action {idc} {self.actions[idc]}, no _s or _e in {self.actions[idc]}")
                     
         # The last task must end at the end
         for tta in self.all_tta.keys():
@@ -124,8 +171,8 @@ class MILPSolver(cp_model.CpSolver):
                 self.model.add(self.all_tta[tta].end <= self.all_tta['0'].end)
         
         # The number of tasks using a resource must be less than the resource capacity
-        for res in self.all_resources.keys():
-            self.model.AddCumulative(self.all_resources[res], [1 for n_tta in self.all_resources[res]], self.resources[res])
+        # for res in self.all_resources.keys():
+        #     self.model.AddCumulative(self.all_resources[res], [1 for n_tta in self.all_resources[res]], self.resources[res])
 
     def solve(self) -> None:
         """

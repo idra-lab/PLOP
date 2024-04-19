@@ -66,19 +66,23 @@ achiever([], PreF, [HEff|TEff], UsedEff):-
 achiever(PreT, PreF, Action):-
     action(Action, _PreT, _PreF, _FinalConditionsF, _Verify, Effects),
     achiever(PreT, PreF, Effects, []),
-    format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF]).
+    % format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
+    true.
 achiever(PreT, PreF, Action):-
     ll_action(Action, _PreT, _PreF, _FinalConditionsF, _Verify, Effects),
     achiever(PreT, PreF, Effects, []),
-    format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF]).
+    % format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
+    true.
 achiever(PreT, PreF, Action):-
     action(Action, _PreT, _PreF, _FinalConditionsF, _Verify, Effects),
     \+achiever(PreT, PreF, Effects, []),
-    format('Action ~w ~w is not an achiever ~w ~w~n', [Action, Effects, PreT, PreF]), false.
+    % format('Action ~w ~w is not an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
+    false.
 achiever(PreT, PreF, Action):-
     ll_action(Action, _PreT, _PreF, _FinalConditionsF, _Verify, Effects),
     \+achiever(PreT, PreF, Effects, []),
-    format('Action ~w ~w is not an achiever ~w ~w~n', [Action, Effects, PreT, PreF]), false.
+    % format('Action ~w ~w is not an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
+    false.
 
 % These functions are used to return a list of achievers of a certain function. 
 last_achievers(_PreT, _PreF, [], []).

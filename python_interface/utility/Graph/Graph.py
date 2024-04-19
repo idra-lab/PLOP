@@ -72,10 +72,27 @@ class Graph(nx.DiGraph):
             if not nx.has_path(ret, node1, node2):
                 ret.add_edge(node1, node2)
         return ret
+    
+    def find_cycle(self, node) -> bool:
+        """
+        Find a cycle in the graph starting from a node
+
+        Args:
+            node (int): The node to start the search from
+
+        Returns:
+            bool: True if a cycle is found, False otherwise
+        """
+        try:
+            nx.find_cycle(self, node)
+        except nx.exception.NetworkXNoCycle:
+            return False
+        return True
 
     def __str__(self) -> str:
         """
-        @return Returns a string representation of the graph as a ugraph
+        Returns:
+            a string representation of the graph as a ugraph
         """
         ret = ""
         for node_id, node in enumerate(self.nodes):

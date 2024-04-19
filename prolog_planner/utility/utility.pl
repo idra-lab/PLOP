@@ -1,4 +1,6 @@
+:- ensure_loaded('actions.pl').
 :- ensure_loaded('conditions.pl').
+:- ensure_loaded('resources.pl').
 :- ensure_loaded('state.pl').
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
