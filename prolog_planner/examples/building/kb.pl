@@ -5,6 +5,8 @@
 :-dynamic arm/4.
 :-dynamic gripper/1.
 
+:- discontiguous resources/1.
+
 block(block1).
 block(block2).
 
@@ -39,3 +41,5 @@ resources(new_agent(_, _, _)).
 
 resources :- resources(X), X, functor(X, Y, _), write(X), write(' '), write(Y), nl.
 resources(agent(_)).
+resources(arm(_, _, _, _)).
+resources(gripper(_)).
