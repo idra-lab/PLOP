@@ -20,6 +20,8 @@ def main():
     data_dict["adj_matrix"][12][25] = 1
     data_dict["adj_matrix"][24][25] = 1
 
+    # data_dict["resources"]['agent'] = 1
+
     milp_solver = MILPSolver(
         data_dict["tt_actions"],
         data_dict["actions"],
@@ -28,7 +30,7 @@ def main():
     )
 
     milp_solver.solve()
-    milp_solver.draw_graph_from_matrix("MILP.html", open_browser=True)
+    milp_solver.draw_graph_from_matrix("MILP.html", open_browser=False)
 
     # stn = SimpTempNet(Actions, Times)
 

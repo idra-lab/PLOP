@@ -27,8 +27,8 @@ class MILPSolver(cp_model.CpSolver):
                 if self.adj_matrix[i][j] == 1:
                     edges.append(
                         (
-                            "{}_{}".format(str(i), self.actions[i]),
-                            "{}_{}".format(str(j), self.actions[j]),
+                            (self.actions[i]),
+                            (self.actions[j]),
                         )
                     )
 
@@ -72,6 +72,7 @@ class MILPSolver(cp_model.CpSolver):
                        - If the length of the adjacency matrix does not match the length of the ttas list multiplied by 2.
                        - If a snap actions was not found in the ttas.
                        - If a snap action is found in more than one tta.
+                       - All nodes must have a path to the final node.
         """        
         assert len(self.adj_matrix) == len(self.actions) and len(self.adj_matrix[0]) == len(self.actions), \
             "Error: Adjacency matrix and actions list length mismatch"
@@ -89,11 +90,17 @@ class MILPSolver(cp_model.CpSolver):
                 raise Exception(f"Error: Snap action {snap_action} not found in TTAs, {self.tta_actions}")
             elif counter > 1:
                 raise Exception(f"Error: Snap action {snap_action} found in more than one TTA, {self.tta_actions}")
-        
 
         for node in self.graph.nodes:
             if self.graph.find_cycle(node):
                 raise Exception("Error: Graph has at least one cycle")
+        
+        import networkx as nx
+        for node in self.graph.nodes:
+            if node == self.tta_actions['0']['e']:
+                continue
+            assert nx.has_path(self.graph, node, self.tta_actions['0']['e']), f"Error: No path from {node} to final node"
+
 
     def draw_graph_from_matrix(self, title, rm_redundant=False, open_browser=False):
         self.graph.draw(title=title, rm_redundant=rm_redundant, open_browser=open_browser)
@@ -133,8 +140,6 @@ class MILPSolver(cp_model.CpSolver):
         
         # Snap actions can start after all the previous snap actions have started
         for idr in range(len(self.adj_matrix)):
-            if idr == 6:
-                break
             for idc in range(len(self.adj_matrix[idr])):
                 if self.adj_matrix[idr][idc] == 1:
                     tta_id1 = self.__tta_from_snap_action(self.actions[idr].split("_")[0])
@@ -171,8 +176,8 @@ class MILPSolver(cp_model.CpSolver):
                 self.model.add(self.all_tta[tta].end <= self.all_tta['0'].end)
         
         # The number of tasks using a resource must be less than the resource capacity
-        # for res in self.all_resources.keys():
-        #     self.model.AddCumulative(self.all_resources[res], [1 for n_tta in self.all_resources[res]], self.resources[res])
+        for res in self.all_resources.keys():
+            self.model.AddCumulative(self.all_resources[res], [1 for n_tta in self.all_resources[res]], self.resources[res])
 
     def solve(self) -> None:
         """
@@ -221,3 +226,36 @@ class MILPSolver(cp_model.CpSolver):
             # Finally print the solution found.
             print(f"Optimal Schedule Length: {self.objective_value}")
             print(output)
+
+            output = ""
+
+            for tta in self.all_tta.keys():
+                start = self.Value(self.all_tta[tta].start)
+                end = self.Value(self.all_tta[tta].end)
+                duration = self.Value(self.all_tta[tta].interval.size_expr())
+                output += f"{self.tta_actions[tta]['s']}({start}) -> {self.tta_actions[tta]['e']}({end}), {duration}]\n"
+
+            print(output)
+
+            self.draw_intervals()
+
+    def draw_intervals(self):
+        """
+        Given the solution of the MILP problem, this method draws the intervals of the tasks using matplotlib.
+        """
+
+        import matplotlib.pyplot as plt
+
+        for tta in self.all_tta.keys():
+            start = self.Value(self.all_tta[tta].start)
+            end = self.Value(self.all_tta[tta].end)
+            duration = self.Value(self.all_tta[tta].interval.size_expr())
+
+            plt.plot([start, end], [float(tta), float(tta)], 'k-')
+            plt.plot([start, start], [float(tta)-0.1, float(tta)+0.1], 'k-')
+            plt.plot([end, end], [float(tta)-0.1, float(tta)+0.1], 'k-')
+
+            plt.text(start, float(tta)+0.2, self.tta_actions[tta]['s'], ha='center')
+            plt.text(end, float(tta)+0.2, self.tta_actions[tta]['e'], ha='center')
+
+        plt.show()

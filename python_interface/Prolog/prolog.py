@@ -69,7 +69,7 @@ def extract_tt_actions(tt_actions, res_x_action) -> dict:
             "s": f"{start_id}_{start_action}",
             "e": f"{end_id}_{end_action}",
             "l": 10 if tt_action_id != "0" else 0,
-            "u": 10 if tt_action_id != "0" else int(1e12),
+            "u": 1000 if tt_action_id != "0" else int(1e12),
             "R": res_x_action_dict[tt_action_id] if tt_action_id in res_x_action_dict else []
         }
 

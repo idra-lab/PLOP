@@ -40,12 +40,46 @@ verify([H|T]) :-
 % TODO: an action a_i is an achiever of an action a_j also if it removes a 
 % predicate that would otherwise prevent a_j from being executed. 
 
+% True if at least of the condition arguments is in the resource arguments, false otherwise
+check_args([], _, _) :- fail.
+check_args([H|_T], Args, H) :-
+    member(H, Args).
+
+check_args([H|T], Args, Res) :-
+    member(H, Args), 
+    check_args(T, Args, Res).
+
+% True if at least one of the predicates used in the preconditions is in the resources, false otherwise
+% TODO this is agnostic w.r.t. the type of the arguments: pillar(a1, block1) where a1 is a position instead of an agent, would still be considered true
+in_resources(_, [], _) :- fail.
+in_resources(CondArgs, [HResource|TResources], Res) :-
+    HResource,
+    HResource =.. [_|ResourceArgs], 
+    check_args(CondArgs, ResourceArgs, Res).
+
+in_resources(CondArgs, [HResource|TResources], Res) :-
+    HResource, !,
+    HResource =.. [_|ResourceArgs], 
+    \+check_args(CondArgs, ResourceArgs, _),
+    in_resources(CondArgs, TResources, Res).
+
+in_resources(HPreT, Res) :-
+    findall(X, resources(X), Resources),
+    HPreT =.. [_|CondArgs],
+    in_resources(CondArgs, Resources, Res).
+
 % When we don't find an achiever
 achiever([], [], _, _) :- false.
 
 % When we find an achiever
-achiever([HPreT|_TPreT], _PreF, [add(HPreT)|_TEff], _UsedEff) :- \+ (resources(X), X =.. [_|Args], member(HPreT, Args)), !.
-achiever(_PreT, [HPreF|_TPreF], [del(HPreF)|_TEff], _UsedEff) :- \+ (resources(X), X =.. [_|Args], member(HPreF, Args)), !.
+achiever([HPreT|_TPreT], _PreF, [add(HPreT)|_TEff], _UsedEff) :- 
+    \+in_resources(HPreT, X), 
+    format('HPreT: ~w is not in resources ~w~n', [HPreT, X]),
+    true.
+achiever(_PreT, [HPreF|_TPreF], [del(HPreF)|_TEff], _UsedEff) :- 
+    \+in_resources(HPreF, X),
+    format('HPreF: ~w is not in resources ~w~n', [HPreF, X]),
+    true.
 
 % When we have finished the effects and must restart the recursion on another precondition
 achiever([_HPreT|TPreT], PreF, [], Eff):-
@@ -66,22 +100,22 @@ achiever([], PreF, [HEff|TEff], UsedEff):-
 achiever(PreT, PreF, Action):-
     action(Action, _PreT, _PreF, _FinalConditionsF, _Verify, Effects),
     achiever(PreT, PreF, Effects, []),
-    % format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
+    format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
     true.
 achiever(PreT, PreF, Action):-
     ll_action(Action, _PreT, _PreF, _FinalConditionsF, _Verify, Effects),
     achiever(PreT, PreF, Effects, []),
-    % format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
+    format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
     true.
 achiever(PreT, PreF, Action):-
     action(Action, _PreT, _PreF, _FinalConditionsF, _Verify, Effects),
     \+achiever(PreT, PreF, Effects, []),
-    % format('Action ~w ~w is not an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
+    format('Action ~w ~w is not an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
     false.
 achiever(PreT, PreF, Action):-
     ll_action(Action, _PreT, _PreF, _FinalConditionsF, _Verify, Effects),
     \+achiever(PreT, PreF, Effects, []),
-    % format('Action ~w ~w is not an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
+    format('Action ~w ~w is not an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
     false.
 
 % These functions are used to return a list of achievers of a certain function. 
