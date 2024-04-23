@@ -1,5 +1,10 @@
+matplotlib
+pygraphviz
 matplotlib==3.5.1
 bokeh
-networkx
 pyswip
-pygraphviz
+networkx
+pillow>=7.1.0
+scipy
+ortools
+pyvis
