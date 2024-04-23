@@ -15,7 +15,7 @@ plan(Actions, AdjMatrix, TTActionList, Resources, ActionXResources) :-
   
   extract_adj_matrix_actions(LastAchievers, AdjMatrix, Actions),
   % format('Adjacency matrix:~n'),
-  % print_list(AdjMatrix),
+  print_list(AdjMatrix),
   % format('Actions:~n'),
   % print_list(Actions),
   nl,nl,nl,

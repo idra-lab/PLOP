@@ -46,27 +46,34 @@ check_args([H|_T], Args, H) :-
     member(H, Args).
 
 check_args([H|T], Args, Res) :-
-    member(H, Args), 
+    \+member(H, Args), 
     check_args(T, Args, Res).
 
 % True if at least one of the predicates used in the preconditions is in the resources, false otherwise
 % TODO this is agnostic w.r.t. the type of the arguments: pillar(a1, block1) where a1 is a position instead of an agent, would still be considered true
-in_resources(_, [], _) :- fail.
-in_resources(CondArgs, [HResource|TResources], Res) :-
+in_resources_cond(_, [], _) :- fail.
+in_resources_cond(CondArgs, [HResource|TResources], Res) :-
     HResource,
     HResource =.. [_|ResourceArgs], 
     check_args(CondArgs, ResourceArgs, Res).
 
-in_resources(CondArgs, [HResource|TResources], Res) :-
+in_resources_cond(CondArgs, [HResource|TResources], Res) :-
     HResource, !,
     HResource =.. [_|ResourceArgs], 
     \+check_args(CondArgs, ResourceArgs, _),
-    in_resources(CondArgs, TResources, Res).
+    in_resources_cond(CondArgs, TResources, Res).
 
-in_resources(HPreT, Res) :-
+in_resources(Pre, Res) :-
     findall(X, resources(X), Resources),
-    HPreT =.. [_|CondArgs],
-    in_resources(CondArgs, Resources, Res).
+    in_resources(Pre, Resources, Res).
+
+in_resources([HPre|TPre], Resources, Res) :-
+    HPre =.. [_|CondArgs],
+    in_resources_cond(CondArgs, Resources, Res).
+in_resources([HPre|TPre], Resources, Res) :-
+    HPre =.. [_|CondArgs],
+    \+in_resources_cond(CondArgs, Resources, Res),
+    in_resources(TPre, Resources, Res).
 
 % When we don't find an achiever
 achiever([], [], _, _) :- false.
