@@ -16,8 +16,12 @@ class MILPSolver(cp_model.CpSolver):
         print("Creating MILP model")
         print(self.tta_actions)
         print(self.actions)
-        for row in self.adj_matrix:
-            print(row)
+        for row_id in range(len(self.adj_matrix)):
+            #print row_id occupying as many spaces as math.log(len(self.adj_matrix), 10) + 1
+            print(f"{row_id:>{len(str(len(self.adj_matrix)))}}", end=" ")
+            for col_id in range(len(self.adj_matrix[row_id])):
+                print(f"{self.adj_matrix[row_id][col_id]:>{len(str(len(self.adj_matrix)))}}", end=" ")
+            print()
         print(self.resources)
 
         # Create dependency graph

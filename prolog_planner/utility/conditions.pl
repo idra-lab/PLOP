@@ -37,9 +37,6 @@ verify([H|T]) :-
 % all the precondition are checked, the list is empty, then it returns false 
 % (first function).
 
-% TODO: an action a_i is an achiever of an action a_j also if it removes a 
-% predicate that would otherwise prevent a_j from being executed. 
-
 % True if at least of the condition arguments is in the resource arguments, false otherwise
 check_args([], _, _) :- fail.
 check_args([H|_T], Args, H) :-
@@ -80,18 +77,22 @@ achiever([], [], _, _) :- false.
 
 % When we find an achiever
 achiever([HPreT|_TPreT], _PreF, [add(HPreT)|_TEff], _UsedEff) :- 
-    \+in_resources(HPreT, X), 
-    format('HPreT: ~w is not in resources ~w~n', [HPreT, X]),
+    \+in_resources([HPreT], _), 
+    format('HPreT: ~w is not in resources~n', [HPreT]),
     true.
 achiever(_PreT, [HPreF|_TPreF], [del(HPreF)|_TEff], _UsedEff) :- 
-    \+in_resources(HPreF, X),
-    format('HPreF: ~w is not in resources ~w~n', [HPreF, X]),
+    \+in_resources([HPreF], _),
+    format('HPreF: ~w is not in resources~n', [HPreF]),
     true.
 
 % When we have finished the effects and must restart the recursion on another precondition
 achiever([_HPreT|TPreT], PreF, [], Eff):-
+    TPreT = [NewH|_T],
+    format('\tChecking next true precondition ~w~n', [NewH]),
     achiever(TPreT, PreF, Eff, []).
 achiever([], [_HPref|TPreF], [], Eff):-
+    TPreF = [NewH|_T],
+    format('\tChecking next false precondition ~w~n', [NewH]),
     achiever([], TPreF, Eff, []).
 
 % Normal execution going through the effects
@@ -106,24 +107,29 @@ achiever([], PreF, [HEff|TEff], UsedEff):-
 % arguments and check whether the action is a high-level or a low-level one.
 achiever(PreT, PreF, Action):-
     action(Action, _PreT, _PreF, _FinalConditionsF, _Verify, Effects),
-    achiever(PreT, PreF, Effects, []),
-    format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
+    (
+        achiever(PreT, PreF, Effects, []),
+        ->(
+            format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF])
+        );(
+            format('Action ~w ~w is not an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
+            fail
+        )
+    ),
     true.
 achiever(PreT, PreF, Action):-
+    mapping(Action, _),
     ll_action(Action, _PreT, _PreF, _FinalConditionsF, _Verify, Effects),
-    achiever(PreT, PreF, Effects, []),
-    format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
+    (
+        achiever(PreT, PreF, Effects, []),
+        ->(
+            format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF])
+        );(
+            format('Action ~w ~w is not an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
+            fail
+        )
+    ),
     true.
-achiever(PreT, PreF, Action):-
-    action(Action, _PreT, _PreF, _FinalConditionsF, _Verify, Effects),
-    \+achiever(PreT, PreF, Effects, []),
-    format('Action ~w ~w is not an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
-    false.
-achiever(PreT, PreF, Action):-
-    ll_action(Action, _PreT, _PreF, _FinalConditionsF, _Verify, Effects),
-    \+achiever(PreT, PreF, Effects, []),
-    format('Action ~w ~w is not an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
-    false.
 
 % These functions are used to return a list of achievers of a certain function. 
 last_achievers(_PreT, _PreF, [], []).
@@ -135,15 +141,18 @@ last_achievers(PreT, PreF, [HA|TA], LastAchievers):-
     last_achievers(PreT, PreF, TA, LastAchievers).
 
 % These functions are used to return a the ids of the achievers of a certain function. 
-last_achievers_ids(_PreT, _PreF, [], []).
-last_achievers_ids(PreT, PreF, [[ID-HA]|TA], [ID|LastAchievers]):-
-    achiever(PreT, PreF, HA),
-    last_achievers_ids(PreT, PreF, TA, LastAchievers).
-last_achievers_ids(PreT, PreF, [[_ID-HA]|TA], LastAchievers):-
-    \+achiever(PreT, PreF, HA),
-    last_achievers_ids(PreT, PreF, TA, LastAchievers).
+% Apparently, this code is better than having two functions, one if the action is achiever and one if it is not. TODO fix above function with same if-then-else
+last_achievers_ids(_PreT, _PreF, [], RetAchievers, RetAchievers).
+last_achievers_ids(PreT, PreF, [[ID-HA]|TA], Achievers, RetAchievers):-
+    (
+        achiever(PreT, PreF, HA) 
+        ->(
+            append(Achievers, [ID], NewAchievers)
+        );(
+            NewAchievers = Achievers
+        )
+    ),
+    last_achievers_ids(PreT, PreF, TA, NewAchievers, RetAchievers).
 
-
-
-
-
+last_achievers_ids(PreT, PreF, Plan, RetAchievers):-
+    last_achievers_ids(PreT, PreF, Plan, [], RetAchievers).
