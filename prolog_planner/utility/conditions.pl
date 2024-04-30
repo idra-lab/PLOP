@@ -48,42 +48,68 @@ check_args([H|T], Args, Res) :-
 
 % True if at least one of the predicates used in the preconditions is in the resources, false otherwise
 % TODO this is agnostic w.r.t. the type of the arguments: pillar(a1, block1) where a1 is a position instead of an agent, would still be considered true
-in_resources_cond(_, [], _) :- fail.
-in_resources_cond(CondArgs, [HResource|TResources], Res) :-
-    HResource,
-    HResource =.. [_|ResourceArgs], 
-    check_args(CondArgs, ResourceArgs, Res).
+% in_resources_cond(_, [], _) :- fail.
+% in_resources_cond(CondArgs, [HResource|TResources], Res) :-
+%     HResource,
+%     HResource =.. [_|ResourceArgs], 
+%     format('Checking ~w in ~w with arguments ~w~n', [CondArgs, HResource, ResourceArgs]),
+%     check_args(CondArgs, ResourceArgs, Res),
+%     HResource.
 
-in_resources_cond(CondArgs, [HResource|TResources], Res) :-
-    HResource, !,
-    HResource =.. [_|ResourceArgs], 
-    \+check_args(CondArgs, ResourceArgs, _),
-    in_resources_cond(CondArgs, TResources, Res).
+% in_resources_cond(CondArgs, [HResource|TResources], Res) :-
+%     HResource, !,
+%     HResource =.. [_|ResourceArgs], 
+%     format('Checking ~w in ~w with arguments ~w~n', [CondArgs, HResource, ResourceArgs]),
+%     \+check_args(CondArgs, ResourceArgs, _),
+%     in_resources_cond(CondArgs, TResources, Res).
+
+% in_resources(Pre, Res) :-
+%     findall(X, resources(X), Resources),
+%     format('Resources: ~w~n', [Resources]),
+%     in_resources(Pre, Resources, Res).
+
+% in_resources([HPre|TPre], Resources, Res) :-
+%     HPre =.. [_|CondArgs],
+%     in_resources_cond(CondArgs, Resources, Res),
+%     format('in_resources(~w, ~w) found resource ~w~n', [CondArgs, Resources, Res]).
+% in_resources([HPre|TPre], Resources, Res) :-
+%     HPre =.. [_|CondArgs],
+%     \+in_resources_cond(CondArgs, Resources, _),
+%     in_resources(TPre, Resources, Res),
+%     format('in_resources(~w, ~w) did not found~n', [CondArgs, Resources]).
+
+findall_resources([], RetResources, RetResources).
+
+findall_resources([HResource|TResources], TmpResources, RetResources) :-
+    HResource,
+    (
+        \+member(HResource, TmpResources)
+        ->(
+            append(TmpResources, [HResource], NewTmpResources),
+            findall_resources([HResource|TResources], NewTmpResources, RetResources)
+        );(
+            findall_resources([HResource|TResources], NewTmpResources, RetResources)
+        )
+    ),
+    findall_resources(TResources, NewTmpResources, RetResources).
+
+
+findall_resources(Resources) :-
+    findall(X, resources(X), TmpResources),
+    findall_resources(TmpResources, [], Resources).
 
 in_resources(Pre, Res) :-
-    findall(X, resources(X), Resources),
+    findall_resources(Resources),
+    format('Resources: ~w~n', [Resources]),
+    true.
     in_resources(Pre, Resources, Res).
 
-in_resources([HPre|TPre], Resources, Res) :-
-    HPre =.. [_|CondArgs],
-    in_resources_cond(CondArgs, Resources, Res).
-in_resources([HPre|TPre], Resources, Res) :-
-    HPre =.. [_|CondArgs],
-    \+in_resources_cond(CondArgs, Resources, Res),
-    in_resources(TPre, Resources, Res).
+% Save the listing of 'agent' predicate into a variable
+% redirect_output(listing(agent), ListingOutput).
+
 
 % When we don't find an achiever
 achiever([], [], _, _) :- false.
-
-% When we find an achiever
-achiever([HPreT|_TPreT], _PreF, [add(HPreT)|_TEff], _UsedEff) :- 
-    \+in_resources([HPreT], _), 
-    format('HPreT: ~w is not in resources~n', [HPreT]),
-    true.
-achiever(_PreT, [HPreF|_TPreF], [del(HPreF)|_TEff], _UsedEff) :- 
-    \+in_resources([HPreF], _),
-    format('HPreF: ~w is not in resources~n', [HPreF]),
-    true.
 
 % When we have finished the effects and must restart the recursion on another precondition
 achiever([_HPreT|TPreT], PreF, [], Eff):-
@@ -94,6 +120,16 @@ achiever([], [_HPref|TPreF], [], Eff):-
     TPreF = [NewH|_T],
     format('\tChecking next false precondition ~w~n', [NewH]),
     achiever([], TPreF, Eff, []).
+
+% When we find an achiever
+achiever([HPreT|_TPreT], _PreF, [add(HPreT)|_TEff], _UsedEff) :- 
+    \+in_resources([HPreT], _), 
+    % format('HPreT: ~w is not in resources~n', [HPreT]),
+    true.
+achiever(_PreT, [HPreF|_TPreF], [del(HPreF)|_TEff], _UsedEff) :- 
+    \+in_resources([HPreF], _),
+    % format('HPreF: ~w is not in resources~n', [HPreF]),
+    true.
 
 % Normal execution going through the effects
 achiever(PreT, PreF, [HEff|TEff], UsedEff):-
@@ -108,7 +144,7 @@ achiever([], PreF, [HEff|TEff], UsedEff):-
 achiever(PreT, PreF, Action):-
     action(Action, _PreT, _PreF, _FinalConditionsF, _Verify, Effects),
     (
-        achiever(PreT, PreF, Effects, []),
+        achiever(PreT, PreF, Effects, [])
         ->(
             format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF])
         );(
@@ -121,7 +157,7 @@ achiever(PreT, PreF, Action):-
     mapping(Action, _),
     ll_action(Action, _PreT, _PreF, _FinalConditionsF, _Verify, Effects),
     (
-        achiever(PreT, PreF, Effects, []),
+        achiever(PreT, PreF, Effects, [])
         ->(
             format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF])
         );(

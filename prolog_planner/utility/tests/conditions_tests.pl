@@ -1,9 +1,23 @@
 :-ensure_loaded('../conditions.pl').
 :-ensure_loaded('../../includes.pl').
-agent(a1).
-agent(a2).
 
-resources(agent(_)).
+% agent(a1).
+% agent(a2).
+
+% arm(a1, 10, 10, 10).
+% arm(a2, 20, 20, 20).
+
+% gripper(a1).
+% gripper(a2).
+
+% new_agent(a1, a2, a3).
+% new_agent(a2, a3, a7).
+
+% resources :- resources(X), X, functor(X, Y, _), write(X), write(' '), write(Y), nl.
+% resources(new_agent(_, _, _)).
+% resources(agent(_)).
+% resources(arm(_, _, _, _)).
+% resources(gripper(_)).
 
 test_check_args :-
   check_args([a1], [a1,a2], R),
@@ -46,3 +60,12 @@ test_achievers_3 :-
     build_pillar_end(a1, b, block2)
   ),
   true.
+
+test_achievers_5 :-
+  last_achievers_ids(
+    [av(a1),pillar(a,block1),pillar(b,block2),free(arch1)],
+    [],
+    [[1-build_pillar_end(a1, a, block1)], [2-build_pillar_end(a1, b, block2)]],
+    A
+  ),
+  format('A ~w~n', [A]).
