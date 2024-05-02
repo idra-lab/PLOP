@@ -1,0 +1,3 @@
+-r llm_kb_gen/requirements.txt
+-r llm_ll_gen/requirements.txt
+-r python_interface/requirements.txt
