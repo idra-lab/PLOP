@@ -4,29 +4,100 @@
 
 :- ensure_loaded('adts.pl').
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% :brief: Checks if the conditions are met
+% :args:
+% - List of conditions
+% - Current state
+% :returns: true if all the conditions are met
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 conditions_met([], _S).
 conditions_met([H|T], S) :- 
 	member_set(H,S),
 	conditions_met(T, S).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% :brief: Checks if the conditions are not met
+% :args:
+% - List of conditions
+% - Current state
+% :returns: true if all the conditions are not met
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 conditions_not_met([], _).
 conditions_not_met([H|T], S) :- 
 	\+member_set(H, S),
 	conditions_not_met(T, S).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% :brief: Checks if the conditions can be grounded to the static KB
+% :args:
+% - List of conditions
+% :returns: true if all the conditions can be grounded
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 verify([]).
 verify([H|T]) :-
 	H,
 	verify(T).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% The function achiever states if an action is an achiever for another actions' 
-% preconditions. The arguments are:
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% :brief: Checks if the arguments of a preconditions are inside the verify
+% predicates
+% :returns: The first verify predicate that contains the arguments
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+check_args_verify(PreArgs, Ver, RetRes) :-
+    check_args_verify(PreArgs, Ver, [], RetRes),
+    format('Found ~w~n', [RetRes]).
+
+check_args_verify([], _, _, _) :- fail.
+check_args_verify([_HArgs|TArgs], [], UsedVer, RetRes) :- 
+    check_args_verify(TArgs, UsedVer, [], RetRes).
+check_args_verify([HArgs|_TArgs], [HVer|_TVer], _, HVer) :-
+    HVer =.. [_|VerifyArgs],
+    member(HArgs, VerifyArgs).
+check_args_verify([HArgs|TArgs], [HVer|TVer], TmpUsedVer, RetRes) :-
+    append(TmpUsedVer, [HVer], NewTmpUsedVer),
+    check_args_verify([HArgs|TArgs], TVer, NewTmpUsedVer, RetRes).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% :brief: Checks if the arguments of the preconditions are inside the resources.
+% :details: It does so by first checking if the arguments are inside the verify 
+% predicates and then by checking that the predicate returned by 
+% `check_args_verify` is inside the resources.
+% :returns: The first predicate it finds inside the resources
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+in_resources([], _, _) :- fail.
+in_resources([HPre|_TPre], Verify, RetRes) :-
+    HPre =.. [_|PreArgs],
+    format('Checking ~w in ~w~n', [PreArgs, Verify]),
+    check_args_verify(PreArgs, Verify, RetRes),
+    format('In Verify Result: ~w~n', [RetRes]),
+    findall(X, resources(X), Resources),
+    format('Resources: ~w~n', [Resources]),
+    member(RetRes, Resources),
+    format('Result: ~w~n', [RetRes]),
+    true.
+in_resources([_HPre|TPre], Verify, RetRes) :-
+    in_resources(TPre, Verify, RetRes).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% :brief: It checks if an action is an achiever for another action's 
+% preconditions. 
+% :args:
 % - List of PreconditionT
+% - List of PreconditionF
+% - List of Verify conditions
 % - List of Effects
 % - List of Achievers
-% It returns true if
-% - The add effects of the action add a preconditionT of the other action
-% Details:
+% :details:
 % The function recursively checks if the head of the preconditions is enabled 
 % by one of the effects of the action. By doing so, it recursively eliminate the 
 % head of the effects and stores it in the UsedEff list. If the head of the
@@ -36,115 +107,47 @@ verify([H|T]) :-
 % by resetting the effects from the used effects list (third function). If after
 % all the precondition are checked, the list is empty, then it returns false 
 % (first function).
-
-% True if at least of the condition arguments is in the resource arguments, false otherwise
-check_args([], _, _) :- fail.
-check_args([H|_T], Args, H) :-
-    member(H, Args).
-
-check_args([H|T], Args, Res) :-
-    \+member(H, Args), 
-    check_args(T, Args, Res).
-
-% True if at least one of the predicates used in the preconditions is in the resources, false otherwise
-% TODO this is agnostic w.r.t. the type of the arguments: pillar(a1, block1) where a1 is a position instead of an agent, would still be considered true
-% in_resources_cond(_, [], _) :- fail.
-% in_resources_cond(CondArgs, [HResource|TResources], Res) :-
-%     HResource,
-%     HResource =.. [_|ResourceArgs], 
-%     format('Checking ~w in ~w with arguments ~w~n', [CondArgs, HResource, ResourceArgs]),
-%     check_args(CondArgs, ResourceArgs, Res),
-%     HResource.
-
-% in_resources_cond(CondArgs, [HResource|TResources], Res) :-
-%     HResource, !,
-%     HResource =.. [_|ResourceArgs], 
-%     format('Checking ~w in ~w with arguments ~w~n', [CondArgs, HResource, ResourceArgs]),
-%     \+check_args(CondArgs, ResourceArgs, _),
-%     in_resources_cond(CondArgs, TResources, Res).
-
-% in_resources(Pre, Res) :-
-%     findall(X, resources(X), Resources),
-%     format('Resources: ~w~n', [Resources]),
-%     in_resources(Pre, Resources, Res).
-
-% in_resources([HPre|TPre], Resources, Res) :-
-%     HPre =.. [_|CondArgs],
-%     in_resources_cond(CondArgs, Resources, Res),
-%     format('in_resources(~w, ~w) found resource ~w~n', [CondArgs, Resources, Res]).
-% in_resources([HPre|TPre], Resources, Res) :-
-%     HPre =.. [_|CondArgs],
-%     \+in_resources_cond(CondArgs, Resources, _),
-%     in_resources(TPre, Resources, Res),
-%     format('in_resources(~w, ~w) did not found~n', [CondArgs, Resources]).
-
-findall_resources([], RetResources, RetResources).
-
-findall_resources([HResource|TResources], TmpResources, RetResources) :-
-    HResource,
-    (
-        \+member(HResource, TmpResources)
-        ->(
-            append(TmpResources, [HResource], NewTmpResources),
-            findall_resources([HResource|TResources], NewTmpResources, RetResources)
-        );(
-            findall_resources([HResource|TResources], NewTmpResources, RetResources)
-        )
-    ),
-    findall_resources(TResources, NewTmpResources, RetResources).
-
-
-findall_resources(Resources) :-
-    findall(X, resources(X), TmpResources),
-    findall_resources(TmpResources, [], Resources).
-
-in_resources(Pre, Res) :-
-    findall_resources(Resources),
-    format('Resources: ~w~n', [Resources]),
-    true.
-    in_resources(Pre, Resources, Res).
-
-% Save the listing of 'agent' predicate into a variable
-% redirect_output(listing(agent), ListingOutput).
-
-
+% :returns: true if
+% - The add effects of the action add a preconditionT of the other action, or 
+% - The del effects of the action delete a preconditionF of the other action
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % When we don't find an achiever
-achiever([], [], _, _) :- false.
+achiever([], [], _, _, _) :- false.
 
 % When we have finished the effects and must restart the recursion on another precondition
-achiever([_HPreT|TPreT], PreF, [], Eff):-
+achiever([_HPreT|TPreT], Verify, PreF, [], Eff):-
     TPreT = [NewH|_T],
     format('\tChecking next true precondition ~w~n', [NewH]),
-    achiever(TPreT, PreF, Eff, []).
-achiever([], [_HPref|TPreF], [], Eff):-
+    achiever(TPreT, PreF, Verify, Eff, []).
+achiever([], [_HPref|TPreF], Verify, [], Eff):-
     TPreF = [NewH|_T],
     format('\tChecking next false precondition ~w~n', [NewH]),
-    achiever([], TPreF, Eff, []).
+    achiever([], TPreF, Verify, Eff, []).
 
 % When we find an achiever
-achiever([HPreT|_TPreT], _PreF, [add(HPreT)|_TEff], _UsedEff) :- 
-    \+in_resources([HPreT], _), 
+achiever([HPreT|_TPreT], _PreF, Verify, [add(HPreT)|_TEff], _UsedEff) :- 
+    \+in_resources([HPreT], Verify, _), 
     % format('HPreT: ~w is not in resources~n', [HPreT]),
     true.
-achiever(_PreT, [HPreF|_TPreF], [del(HPreF)|_TEff], _UsedEff) :- 
-    \+in_resources([HPreF], _),
+achiever(_PreT, [HPreF|_TPreF], Verify, [del(HPreF)|_TEff], _UsedEff) :- 
+    \+in_resources([HPreF], Verify, _),
     % format('HPreF: ~w is not in resources~n', [HPreF]),
     true.
 
 % Normal execution going through the effects
-achiever(PreT, PreF, [HEff|TEff], UsedEff):-
+achiever(PreT, PreF, Verify, [HEff|TEff], UsedEff):-
     append(UsedEff, [HEff], NewUsedEff),
-    achiever(PreT, PreF, TEff, NewUsedEff).
-achiever([], PreF, [HEff|TEff], UsedEff):-
+    achiever(PreT, PreF, Verify, TEff, NewUsedEff).
+achiever([], PreF, Verify, [HEff|TEff], UsedEff):-
     append(UsedEff, [HEff], NewUsedEff),
-    achiever([], PreF, TEff, NewUsedEff).
+    achiever([], PreF, Verify, TEff, NewUsedEff).
 
 % This wrapper functions are used to call the achiever function with the correct
 % arguments and check whether the action is a high-level or a low-level one.
-achiever(PreT, PreF, Action):-
+achiever(PreT, PreF, Verify, Action):-
     action(Action, _PreT, _PreF, _FinalConditionsF, _Verify, Effects),
     (
-        achiever(PreT, PreF, Effects, [])
+        achiever(PreT, PreF, Verify, Effects, [])
         ->(
             format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF])
         );(
@@ -153,11 +156,11 @@ achiever(PreT, PreF, Action):-
         )
     ),
     true.
-achiever(PreT, PreF, Action):-
+achiever(PreT, PreF, Verify, Action):-
     mapping(Action, _),
     ll_action(Action, _PreT, _PreF, _FinalConditionsF, _Verify, Effects),
     (
-        achiever(PreT, PreF, Effects, [])
+        achiever(PreT, PreF, Verify, Effects, [])
         ->(
             format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF])
         );(
@@ -166,8 +169,11 @@ achiever(PreT, PreF, Action):-
         )
     ),
     true.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % These functions are used to return a list of achievers of a certain function. 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 last_achievers(_PreT, _PreF, [], []).
 last_achievers(PreT, PreF, [HA|TA], [HA|LastAchievers]):-
     achiever(PreT, PreF, HA),
@@ -175,20 +181,27 @@ last_achievers(PreT, PreF, [HA|TA], [HA|LastAchievers]):-
 last_achievers(PreT, PreF, [HA|TA], LastAchievers):-
     \+achiever(PreT, PreF, HA),
     last_achievers(PreT, PreF, TA, LastAchievers).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% These functions are used to return a the ids of the achievers of a certain function. 
-% Apparently, this code is better than having two functions, one if the action is achiever and one if it is not. TODO fix above function with same if-then-else
-last_achievers_ids(_PreT, _PreF, [], RetAchievers, RetAchievers).
-last_achievers_ids(PreT, PreF, [[ID-HA]|TA], Achievers, RetAchievers):-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% :brief: These functions are used to return a the ids of the achievers of a certain 
+% action. 
+% :note: Apparently, this code is better than having two functions, one if the
+% action is achiever and one if it is not. 
+% TODO fix last_achievers function with same if-then-else
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+last_achievers_ids(_PreT, _PreF, _Verify, [], RetAchievers, RetAchievers).
+last_achievers_ids(PreT, PreF, Verify, [[ID-HA]|TA], Achievers, RetAchievers):-
     (
-        achiever(PreT, PreF, HA) 
+        achiever(PreT, PreF, Verify, HA) 
         ->(
             append(Achievers, [ID], NewAchievers)
         );(
             NewAchievers = Achievers
         )
     ),
-    last_achievers_ids(PreT, PreF, TA, NewAchievers, RetAchievers).
+    last_achievers_ids(PreT, PreF, Verify, TA, NewAchievers, RetAchievers).
 
-last_achievers_ids(PreT, PreF, Plan, RetAchievers):-
-    last_achievers_ids(PreT, PreF, Plan, [], RetAchievers).
+last_achievers_ids(PreT, PreF, Verify, Plan, RetAchievers):-
+    last_achievers_ids(PreT, PreF, Verify, Plan, [], RetAchievers).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -19,28 +19,24 @@
 % resources(arm(_, _, _, _)).
 % resources(gripper(_)).
 
-test_check_args :-
-  check_args([a1], [a1,a2], R),
-  R = a1,
-  \+check_args([], [], _),
-  \+check_args([a1], [a2], _),
-  check_args([a1, a2], [a1, a3, a2], R1),
-  R1 = a1,
-  true.
+% test_check_args :-
+%   check_args([a1], [a1,a2], R),
+%   R = a1,
+%   \+check_args([], [], _),
+%   \+check_args([a1], [a2], _),
+%   check_args([a1, a2], [a1, a3, a2], R1),
+%   R1 = a1,
+%   true.
 
 test_in_resources :-
-  in_resources(av(a1), R),
-  R = a1,
-  \+in_resources([], _),
-  \+in_resources([av(a3)], _),
-  in_resources([av(a1), av(a2)], R1),
-  R1 = a1,
-  in_resources([av(a2), av(a1)], R2),
-  R2 = a2,
-  in_resources([tree(a2), av(a2)], R2),
-  in_resources([tree(a2)], _),
-  in_resources([av(a1),free(block2)], R3),
-  R3 = a1,
+  in_resources([av(a1)], [agent(a1)], agent(a1)),
+  \+in_resources([], [], _),
+  \+in_resources([av(a3)], [], _),
+  in_resources([av(a1), av(a2)], [agent(a1), agent(a2)], agent(a1)),
+  in_resources([av(a2), av(a1)], [agent(a1), agent(a2)], agent(a2)),
+  in_resources([tree(t2), av(a2)], [point(p2), agent(a2)], agent(a2)),
+  \+in_resources([tree(t2)], [tree(t2)], _),
+  in_resources([av(a1), free(block2)], [agent(a1)], agent(a1)),
   true.
 
 test_achievers_4 :-
@@ -69,3 +65,10 @@ test_achievers_5 :-
     A
   ),
   format('A ~w~n', [A]).
+
+
+test_check_args_verify :-
+  check_args_verify([a1], [agent(a1),agent(a2)], agent(a1)),
+  \+check_args_verify([b], [agent(a2)], _),
+  check_args_verify([b, a2], [block(b1), agent(a3), agent(a2)], agent(a2)),
+  true.

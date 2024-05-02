@@ -78,7 +78,7 @@ apply_map([HAction|TActions], IDHLAction, State, Been_list, Plan, LastAchievers,
 
   % Find last achievers
 
-  last_achievers_ids(PreconditionsT, PreconditionsF, Plan, Achievers),
+  last_achievers_ids(PreconditionsT, PreconditionsF, Verify, Plan, Achievers),
   (
     functor(HAction, ActionNameFull, _), sub_string(ActionNameFull, Value, _, _, '_end'), sub_string(ActionNameFull, _, Value, _, ActionName) 
     ->(
@@ -172,7 +172,7 @@ generate_plan(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPlan, 
   % ),
   % Find last achievers
   format('Finding last achievers for ~w ~w ~w ~w\n', [Name, PreconditionsT, PreconditionsF, Plan]),
-  last_achievers_ids(PreconditionsT, PreconditionsF, Plan, Achievers),
+  last_achievers_ids(PreconditionsT, PreconditionsF, Verify, Plan, Achievers),
   (
     functor(Name, ActionNameFull, _), sub_string(ActionNameFull, Value, _, _, '_end'), sub_string(ActionNameFull, _, Value, _, ActionName) 
     ->(
