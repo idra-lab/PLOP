@@ -11,7 +11,7 @@ block(block1).
 block(block2).
 
 agent(a1).
-agent(a2).
+% agent(a2).
 
 arch(arch1).
 

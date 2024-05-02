@@ -19,11 +19,6 @@ def main():
         if i != 36:
             data_dict["adj_matrix"][i][37] = 0
 
-    # data_dict["adj_matrix"][12][25] = 1
-    # data_dict["adj_matrix"][24][25] = 1
-
-    data_dict["resources"]["agent"] = 1
-
     milp_solver = MILPSolver(
         data_dict["tt_actions"],
         data_dict["actions"],

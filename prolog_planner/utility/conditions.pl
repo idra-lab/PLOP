@@ -51,8 +51,7 @@ verify([H|T]) :-
 % :returns: The first verify predicate that contains the arguments
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 check_args_verify(PreArgs, Ver, RetRes) :-
-    check_args_verify(PreArgs, Ver, [], RetRes),
-    format('Found ~w~n', [RetRes]).
+    check_args_verify(PreArgs, Ver, [], RetRes).
 
 check_args_verify([], _, _, _) :- fail.
 check_args_verify([_HArgs|TArgs], [], UsedVer, RetRes) :- 
@@ -76,13 +75,9 @@ check_args_verify([HArgs|TArgs], [HVer|TVer], TmpUsedVer, RetRes) :-
 in_resources([], _, _) :- fail.
 in_resources([HPre|_TPre], Verify, RetRes) :-
     HPre =.. [_|PreArgs],
-    format('Checking ~w in ~w~n', [PreArgs, Verify]),
     check_args_verify(PreArgs, Verify, RetRes),
-    format('In Verify Result: ~w~n', [RetRes]),
     findall(X, resources(X), Resources),
-    format('Resources: ~w~n', [Resources]),
     member(RetRes, Resources),
-    format('Result: ~w~n', [RetRes]),
     true.
 in_resources([_HPre|TPre], Verify, RetRes) :-
     in_resources(TPre, Verify, RetRes).
@@ -117,11 +112,9 @@ achiever([], [], _, _, _) :- false.
 % When we have finished the effects and must restart the recursion on another precondition
 achiever([_HPreT|TPreT], Verify, PreF, [], Eff):-
     TPreT = [NewH|_T],
-    format('\tChecking next true precondition ~w~n', [NewH]),
     achiever(TPreT, PreF, Verify, Eff, []).
 achiever([], [_HPref|TPreF], Verify, [], Eff):-
     TPreF = [NewH|_T],
-    format('\tChecking next false precondition ~w~n', [NewH]),
     achiever([], TPreF, Verify, Eff, []).
 
 % When we find an achiever
