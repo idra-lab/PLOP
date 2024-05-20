@@ -11,93 +11,122 @@
     <img src="https://img.shields.io/badge/Ubuntu-E95420?style=for-the-badge&logo=ubuntu&logoColor=white" target="_blank" />
 </a>
 
-
-
 <p align='center'>
     <h1 align="center">Probabilistic and Logic Oriented Planning (PLOP)</h1>
 </p>
-<!-- <p align='center'>
-    <img src='img/ur5sim.png'>
-</p> -->
 
 ----------
 
 - [Project Description](#project-description)
+- [Framework structure](#framework-structure)
 - [Project Structure](#project-structure)
+- [Clone the repo](#clone-the-repo)
 - [Requirements](#requirements)
-  - [LLM KB Generation](#llm-kb-generation)
-  - [PROLOG ONLY](#prolog-only)
-- [Installation](#installation)
-  - [LLM KB Generation](#llm-kb-generation-1)
-  - [PROLOG ONLY](#prolog-only-1)
+  - [Prolog](#prolog)
+  - [Python dependencies](#python-dependencies)
+  - [C++ / ROS2 dependencies](#c--ros2-dependencies)
+- [Compiling](#compiling)
 - [Running](#running)
-  - [LLM KB Generation](#llm-kb-generation-2)
-  - [PROLOG ONLY](#prolog-only-2)
-- [Known issues and future works](#known-issues-and-future-works)
-  - [Issues](#issues)
-  - [Future works](#future-works)
+  - [The whole framework](#the-whole-framework)
+  - [GPT Fine-Tuning](#gpt-fine-tuning)
+  - [LLM KB Generation](#llm-kb-generation)
+  - [Prolog](#prolog-1)
+- [References](#references)
+- [Known issues](#known-issues)
+- [Future works](#future-works)
 - [Contributors](#contributors)
 
-
 ## Project Description
-The goal of this project is to create a planner using Prolog
-logic inference and the probabilistic reasoning offered by
-Problog. 
+The goal of this project is to create a general multi-agent planning framework which emplys LLMs capabilities to populate a Prolog knowledge base. 
+
+## Framework structure
+![](data/img/f_structure.png)
 
 ## Project Structure
-![](img/p_structure.png)
+![](data/img/p_structure.png)
 
-The main folder is:
-- `prolog_project` it contains the ROS node (motion node and **planner** node)
-    - scripts: Contains the two node plus the utilities
-    - msg: Contains the `.msg` file for ROS communication
+Briefly, the main folders are:
+- `llm_kb_gen` includes the code to call the LLM to generate both the high-level and low-level KBs.
+- `prolog_planner` contains the code for planning using Prolog, both the total-order planning and the achievers and resource extraction.
+- `python_interface` includes the Python code to:
+  1. automatically call the Prolog planner,
+  2. set-up and solve the MILP problem,
+  3. generate the behaviour tree to be executed.
+- `behaviour_tree` contains the C++ and ROS2 code for behaviour tree construction and communications. It exploits [BehaviourTree.CPP](https://github.com/BehaviorTree/BehaviorTree.CPP).
+- `prolog_project` includes the ROS2 node (motion node and **planner** node)
+  - scripts: Contains the two node plus the utilities
+  - msg: Contains the `.msg` file for ROS communication
 
-`block_world.pl` is the prolog file, the core of this project.
+## Clone the repo
 
-`python_node_poc.py` is a simple proof of concept for the pyswip wrapper for prolog
+The repo uses external libraries for some modules, so one must either clone it with all the submodules:
+
+```
+$ git clone --recurse-submodules git@github.com:idra-lab/PLOP.git
+```
+
+or initialize the submodules at a later time:
+
+```
+$ git clone git@github.com:idra-lab/PLOP.git
+$ git submodule update --init --recursive --remote 
+```
 
 ## Requirements
 
-For installing the requirements I suggest to follow the
-[Installation](#installation) section.
+### Prolog
 
-### LLM KB Generation
-The requirements can be found inside the `requiremens.txt` file inside the `llm_kb_generation` folder. 
+Install the [SWI-Prolog](https://www.swi-prolog.org/download/stable) interpreter.
 
+### Python dependencies
 
-### PROLOG ONLY
-For the prolog only version you will only need the [SWI Prolog](https://www.swi-prolog.org/build/PPA.html) interpeter.
+There are a number of Python dependencies to be installed before being able to run the code. You can do so by running:
 
-
-## Installation
-
-I reccomend to use Ubuntu 20.04 (I used it for developing the project)
-
-### LLM KB Generation
-Run `pip3` to install the requirements:
-
-```bash
-python3 -m pip install -U -r llm_kb_gen/requirements.txt
+``` bash
+$ python3 -m pip install  -r requirements.txt
 ```
 
-### PROLOG ONLY
-1) For testing the *prolog only* version at first install the prolog interpreter [SWI Prolog](https://www.swi-prolog.org/build/PPA.html). Installation is the following:
-    ```BASH
-    sudo apt-add-repository ppa:swi-prolog/stable
-    sudo apt update
-    sudo apt install swi-prolog
-    ```
-2) Clone the project wherever you want
-    ```BASH
-    git clone https://github.com/davidedema/prolog_planner.git
-    ```
-3) Load the file with the swipl interpeter
-    ```BASH
-    cd ~/prolog_planner
-    swipl block_world.pl
-    ```
+SUGGESTION: before installing the requirements, install the `virtualenv` package with python and create a virtual environment 
+
+```bash
+$ python3 -m pip install -U virtualenv
+$ virtualenv venv
+$ source venv/bin/activate
+```
+
+The `requirements.txt` file contains the relative path to the other `requirements.txt` files. Otherwise install the packages for the single modules manually. 
+
+### C++ / ROS2 dependencies
+
+To compile and execute the behaviour tree part, a C++ development environment is required. Also ROS2 must be installed and working. The framework was tested using ROS2 Humble, which can be installed following [this guide](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html) for Ubuntu 22.04 (native), or by using [RobotStack](https://robostack.github.io/GettingStarted.html) on almost every other operating system (works also with Mac with M* CPUs).
+
+The other needed dependencies are [BehaviourTree.CPP](https://github.com/BehaviorTree/BehaviorTree.CPP) and [BehaviourTree.ROS2](https://github.com/BehaviorTree/BehaviorTree.ROS2), which should have been downloaded as submodules in the [Clone the repo](#clone-the-repo) section.
+
+If you are planning to use ROS2 and not to manually compile `behaviour_tree`, you can skip this paragraph. The framework uses [BehaviourTree.CPP](https://github.com/BehaviorTree/BehaviorTree.CPP) and [BehaviourTree.ROS2](https://github.com/BehaviorTree/BehaviorTree.ROS2) to execute and monitor the BTs. Please, if you are compiling with cmake and not colcon, visit the website to install the due dependencies (i.e., gtest, ZeroMQ and SQlite). Obviously, the nodes of the tree must also be changed accordingly, since the default ones are nodes sending messages to topics. 
+
+
+## Compiling
+
+In order to correctly run the framework, we need behaviour trees to be working and for them to be working we need to be able to compile them, so please verify that you have a working ROS2 environment before proceeding. Once you are sure you have, enter the `behaviour_tree` directory and run `colcon`.
+
+```bash
+$ cd behaviour_tree
+$ colcon build && source install/setup.bash
+```
+
+This should automatically compile the `BehaviourTree.{CPP,ROS2}` packages as well as the `behaviour_tree` package used by the framework.
 
 ## Running
+
+It's possible to both run the whole framework at once (next section), or to run single components (the other sections). 
+
+### The whole framework
+
+To run the whole framework you just need to run the Python script in the main directory.
+
+```
+$ python3 run_framework.py
+```
 
 ### GPT Fine-Tuning
 
@@ -119,6 +148,7 @@ python3 dataset_generator.py -y <path_to_yaml_file_1> <path_to_yaml_file_2> <pat
 ```
 
 ### LLM KB Generation
+
 You can run the knowledge creation by calling the python script `gpt_convo.py`. It uses few-shots learning to teach the LLM how to respond. The examples are in the `few-shots.yaml` file, but other files can be added by using hte `-y/--yaml-files` arguments:
 
 ```bash
@@ -150,38 +180,27 @@ entries:
         content:
 ```
 
-### PROLOG ONLY
-In order to create a pillar use the `pillar/7` rule. This needs 7 parameters in input:
-- x: x coord for the pillar generation
-- y: y coord for the pillar generation
-- z: z coord for the pillar generation
-- High: Pillar High
-- Width: Pillar width
-- Depth: Pillar depth
-- Actions: Our "output" variable
+### Prolog
 
-It will return in the output variable the plan that the robot has to execute in order to perform the pillar creation
+You can run a series of tests
 
-For example, let's create the pillar with height = 0.1 at (1, 0, 0)
+## References
+
+```bibtex
+@misc{saccon2023prolog,
+      title={When Prolog meets generative models: a new approach for managing knowledge and planning in robotic applications}, 
+      author={Enrico Saccon and Ahmet Tikna and Davide De Martini and Edoardo Lamon and Marco Roveri and Luigi Palopoli},
+      year={2023},
+      eprint={2309.15049},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO}
+}
 ```
-pillar(1,0,0,0.1,0.05,0.05,A).
-```
-**PN:** In prolog every instruction finish with the dot '.'. 
 
-After the instruction we will see an output like this:
-```
-?- pillar(1,0,0,0.1,0.05,0.05,A).
-A = [rotate(b1, 0.27, -0.26, 0.685, 1), move(b1, 0.27, -0.26, 0.685, 1, 0, 0), move(b2, 0.41, -0.26, 0.685, 1, 0, -0.05), link(b2, b1)] .
-```
-We can see the freshly created pillar with the instruction `listing(block/13).`
+## Known issues
+- LLMs fine-tuning is not currently working
 
-
-## Known issues and future works
-
-### Issues
-- [x] The blocks do not stack in simulation (they jitter) -> **Solved**
-
-### Future works
+## Future works
 - Get the blocks info with machine learning methods (e.g. neuro problog)
 - Optimize the makespan selecting the blocks that are faster to build 
 
