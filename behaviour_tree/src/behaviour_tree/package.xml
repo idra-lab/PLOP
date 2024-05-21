@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>behaviour_tree</name>
+  <version>0.0.0</version>
+  <description>
+  This package provides the Behavior Trees for the Prolog Planner Framework.
+  </description>
+
+  <maintainer email="enrico.saccon@unitn.it">Enrico Saccon</maintainer>
+
+  <license>MIT</license>
+
+  <author>Enrico Saccon</author>
+
+  <build_depend>ros_environment</build_depend>
+
+  <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>
+  <depend condition="$ROS_VERSION == 2">rclcpp</depend>
+  <depend condition="$ROS_VERSION == 2">ament_index_cpp</depend>
+
+  <depend>libsqlite3-dev</depend>
+  <depend>libzmq3-dev</depend>
+
+  <test_depend condition="$ROS_VERSION == 2">ament_cmake_gtest</test_depend>
+
+  <export>
+      <build_type condition="$ROS_VERSION == 2">ament_cmake</build_type>
+  </export>
+
+</package>
