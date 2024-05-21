@@ -3,48 +3,6 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 import networkx as nx
 
-NODES_POS = {
-    0: {"x": 2, "y": 5},
-    1: {"x": 0, "y": 0},
-    2: {"x": 1, "y": 0},
-    3: {"x": 1, "y": -4},
-    4: {"x": 1, "y": -3},
-    5: {"x": 1, "y": -2},
-    6: {"x": 1, "y": -1},
-    7: {"x": 1, "y": 1},
-    8: {"x": 1, "y": 2},
-    9: {"x": 1, "y": 3},
-    10: {"x": 1, "y": 4},
-    11: {"x": 3, "y": 0},
-    12: {"x": 4, "y": 0},
-    13: {"x": 5, "y": 0},
-    14: {"x": 6, "y": 0},
-    15: {"x": 7, "y": -4},
-    16: {"x": 7, "y": -3},
-    17: {"x": 7, "y": -2},
-    18: {"x": 7, "y": -1},
-    19: {"x": 7, "y": 1},
-    20: {"x": 7, "y": 2},
-    21: {"x": 7, "y": 3},
-    22: {"x": 7, "y": 4},
-    23: {"x": 8, "y": 0},
-    24: {"x": 9, "y": 0},
-    25: {"x": 10, "y": 0},
-    26: {"x": 11, "y": 0},
-    27: {"x": 12, "y": -4},
-    28: {"x": 12, "y": -3},
-    29: {"x": 12, "y": -2},
-    30: {"x": 12, "y": -1},
-    31: {"x": 12, "y": 1},
-    32: {"x": 12, "y": 2},
-    33: {"x": 12, "y": 3},
-    34: {"x": 12, "y": 4},
-    35: {"x": 13, "y": 0},
-    36: {"x": 14, "y": 0},
-    37: {"x": 7, "y": -5},
-}
-
-
 class Graph(nx.DiGraph):
     def __init__(self, nodes, edges):
         super().__init__()
@@ -53,12 +11,6 @@ class Graph(nx.DiGraph):
 
     def __init__(self, edges=[]):
         super().__init__()
-        # for (node1, node2) in edges:
-        #     if node1 not in self.nodes:
-        #         self.add_node(str(node1))
-        #     if node2 not in self.nodes:
-        #         self.add_node(str(node2))
-        #     self.add_edge(str(node1), str(node2))
         self.add_edges_from(edges)
 
     def __remove_redundant_edges(self):
@@ -126,7 +78,6 @@ class Graph(nx.DiGraph):
         import bokeh
         import pydot
         from networkx.drawing.nx_pydot import graphviz_layout
-
         pass
 
     def __draw_pyvis(
@@ -137,6 +88,7 @@ class Graph(nx.DiGraph):
         notebook=False,
         open_browser=False,
         rm_redundant=True,
+        nodes_pos=None,
     ):
         from pyvis.network import Network
 
@@ -147,10 +99,11 @@ class Graph(nx.DiGraph):
         net = Network(height=height, width=width, directed=True)
         net.from_nx(graph)
 
-        # for node in NODES_POS.keys():
-        #     net.get_node(node)["x"] = NODES_POS[node]["x"] * 100
-        #     net.get_node(node)["y"] = -NODES_POS[node]["y"] * 100
-        #     net.get_node(node)["label"] = str(node)
+        if nodes_pos is not None:
+            for node in nodes_pos.keys():
+                net.get_node(node)["x"] = nodes_pos[node]["x"] * 100
+                net.get_node(node)["y"] = -nodes_pos[node]["y"] * 100
+                net.get_node(node)["label"] = str(node)
 
         net.toggle_physics(False)
         net.show_buttons()

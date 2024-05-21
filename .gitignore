@@ -21,6 +21,8 @@ test_pg/
 *.png
 *.html
 
+*.jsonl
+
 test_ll/
 
 .DS_Store
