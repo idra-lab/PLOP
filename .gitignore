@@ -15,6 +15,7 @@ prologParser.html
 lib/
 
 test_pg/
+fibonacci/
 
 .idea
 
@@ -255,9 +256,6 @@ devel_isolated/
 # eclipse stuff
 .project
 .cproject
-
-# qcreator stuff
-CMakeLists.txt.user
 
 srv/_*.py
 *.pcd

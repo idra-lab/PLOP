@@ -8,7 +8,7 @@
 
   <maintainer email="enrico.saccon@unitn.it">Enrico Saccon</maintainer>
 
-  <license>MIT</license>
+  <license>Apache 2.0</license>
 
   <author>Enrico Saccon</author>
 
@@ -17,6 +17,10 @@
   <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>
   <depend condition="$ROS_VERSION == 2">rclcpp</depend>
   <depend condition="$ROS_VERSION == 2">ament_index_cpp</depend>
+  <depend condition="$ROS_VERSION == 2">behaviortree_cpp</depend>
+  <depend condition="$ROS_VERSION == 2">behaviortree_ros2</depend>
+  <depend condition="$ROS_VERSION == 2">action_tutorials</depend>
+  <depend condition="$ROS_VERSION == 2">action_tutorials_interfaces</depend>
 
   <depend>libsqlite3-dev</depend>
   <depend>libzmq3-dev</depend>
