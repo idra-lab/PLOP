@@ -156,9 +156,9 @@ class GPT_model:
 def includeYAML(file_name: str, messages: list, system_msg: str):
     print("Adding examples from file:", file_name)
     with open(file_name) as file:
-        yaml_file = yaml.load(file, Loader=yaml.FullLoader)["few_shots"]
+        yaml_file = yaml.load(file, Loader=yaml.FullLoader)["entries"]
         # Set headers for few-shots learning
-        # Check if system_msg (a dict) has alrteady been added
+        # Check if system_msg (a dict) has already been added
         if system_msg == "" and "system_msg" in yaml_file:
             system_msg = yaml_file["system_msg"]
             messages.append(system_msg)
@@ -268,7 +268,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # Adding optional argument
-    parser.add_argument("-L", "--LLM", help="ChatGPT configuration file", default="./conf/gpt40-8k.yaml")
+    parser.add_argument("-L", "--LLM", help="ChatGPT configuration file, default is ./conf/gpt40-8k.yaml", default="./conf/gpt40-8k.yaml")
     parser.add_argument(
         "-y",
         "--yaml_files",

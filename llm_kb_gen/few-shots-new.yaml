@@ -1,4 +1,4 @@
-few_shots:
+entries:
   system_msg:
     role: 'system'
     content: "Given a robotic problem, produce knowledge base in Prolog format"

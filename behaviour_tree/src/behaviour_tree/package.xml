@@ -19,7 +19,6 @@
   <depend condition="$ROS_VERSION == 2">ament_index_cpp</depend>
   <depend condition="$ROS_VERSION == 2">behaviortree_cpp</depend>
   <depend condition="$ROS_VERSION == 2">behaviortree_ros2</depend>
-  <depend condition="$ROS_VERSION == 2">action_tutorials</depend>
   <depend condition="$ROS_VERSION == 2">action_tutorials_interfaces</depend>
 
   <depend>libsqlite3-dev</depend>
