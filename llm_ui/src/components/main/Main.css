@@ -1,0 +1,9 @@
+.main {
+    position: absolute;
+    margin-top: 60px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    background-color: rgba(49, 102, 148, 1);
+    color: white;
+  }

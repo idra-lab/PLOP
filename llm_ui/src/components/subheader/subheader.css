@@ -1,0 +1,9 @@
+.subheader {
+    position: absolute;
+    margin-top: 4%;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    background-color: rgba(48, 143, 156, 1); 
+    color: white;
+  }
