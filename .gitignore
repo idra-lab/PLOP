@@ -5,6 +5,8 @@ settings.json
 c_cpp_properties.json
 knap.pl
 
+node_modules
+
 file.txt
 tmp.txt
 *.txt

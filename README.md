@@ -78,6 +78,25 @@ $ git submodule update --init --recursive --remote
 
 Install the [SWI-Prolog](https://www.swi-prolog.org/download/stable) interpreter.
 
+### NodeJS 
+
+``` bash
+# Refresh your local package index first:
+$ sudo apt update
+
+# Then install Node.js:
+$ sudo apt install nodejs
+
+# Verify the installation by checking the Node.js version:
+$ node -v
+
+# Navigate to the 'llm_ui' directory and install necessary node packages:
+$ cd ./llm_ui
+$ npm install
+$ cd ..
+
+```
+
 ### Python dependencies
 
 There are a number of Python dependencies to be installed before being able to run the code. You can do so by running:
@@ -124,8 +143,17 @@ It's possible to both run the whole framework at once (next section), or to run 
 
 To run the whole framework you just need to run the Python script in the main directory.
 
-```
+```bash
 $ python3 run_framework.py
+```
+
+### User Interface
+
+To run the web user interface:
+
+```bash
+$cd .\llm_kb_gen\
+$ npm start
 ```
 
 ### GPT Fine-Tuning
