@@ -91,7 +91,7 @@ $ sudo apt install nodejs
 $ node -v
 
 # Navigate to the 'llm_ui' directory and install necessary node packages:
-$ cd ./llm_ui
+$ cd .\llm_ui\
 $ npm install
 $ cd ..
 
@@ -152,7 +152,7 @@ $ python3 run_framework.py
 To run the web user interface:
 
 ```bash
-$cd .\llm_kb_gen\
+$ cd .\llm_ui\
 $ npm start
 ```
 
