@@ -91,9 +91,8 @@ $ sudo apt install nodejs
 $ node -v
 
 # Navigate to the 'llm_ui' directory and install necessary node packages:
-$ cd .\llm_ui\
+$ cd llm_ui/
 $ npm install
-$ cd ..
 
 ```
 
@@ -139,12 +138,13 @@ This should automatically compile the `BehaviourTree.{CPP,ROS2}` packages as wel
 
 It's possible to both run the whole framework at once (next section), or to run single components (the other sections). 
 
-### The whole framework
+### Running the Server
 
-To run the whole framework you just need to run the Python script in the main directory.
+To start the server, use the following command:
 
 ```bash
-$ python3 run_framework.py
+$ cd server/
+$ python server.py
 ```
 
 ### User Interface
@@ -152,8 +152,16 @@ $ python3 run_framework.py
 To run the web user interface:
 
 ```bash
-$ cd .\llm_ui\
+$ cd llm_ui/
 $ npm start
+```
+
+### The whole framework
+
+To run the whole framework you just need to run the Python script in the main directory.
+
+```bash
+$ python3 run_framework.py
 ```
 
 ### GPT Fine-Tuning
