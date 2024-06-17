@@ -1,0 +1,104 @@
+% Initial and final states
+init = [available(barista), requested(client1, espresso, to_go), requested(client2, cappuccino, not_to_go)].
+goal = [available(barista), served(client1, espresso), served(client2, cappuccino), washed(cup(client2))].
+
+% General knowledge base
+coffee(espresso).
+coffee(cappuccino).
+
+% Set of actions
+action(order_to_go_start(Client, Coffee),
+[available(barista), requested(Client, Coffee, to_go)],
+[],
+[],
+[coffee(Coffee)],
+[del(available(barista)), add(ordering(Client, Coffee))]
+).
+
+action(order_to_go_end(Client, Coffee),
+[ordering(Client, Coffee)],
+[],
+[],
+[],
+[del(available(barista)), add(ordered(Client, Coffee)), add(paper(Client, Coffee))]
+).
+
+action(order_not_to_go_start(Client, Coffee),
+[available(barista), requested(Client, Coffee, not_to_go)],
+[],
+[],
+[coffee(Coffee)],
+[del(available(barista)), add(ordering(Client, Coffee))]
+).
+
+action(order_not_to_go_end(Client, Coffee),
+[ordering(Client, Coffee)],
+[],
+[],
+[],
+[del(available(barista)), add(ordered(Client, Coffee)), add(china(Client, Coffee))]
+).
+
+action(payment_start(Client, Coffee),
+[ordered(Client, Coffee)],
+[],
+[],
+[],
+[del(ordered(Client, Coffee)), add(paying(Client, Coffee))]
+).
+
+action(payment_end(Client, Coffee),
+[paying(Client, Coffee)],
+[],
+[],
+[],
+[del(paying(Client, Coffee)), add(paid(Client, Coffee))]
+).
+
+action(make_coffee_start(Client, Coffee, Cup),
+[paid(Client, Coffee), Cup(Client, Coffee)],
+[],
+[],
+[],
+[del(paid(Client, Coffee)), add(making(Client, Coffee))]
+).
+
+action(make_coffee_end(Client, Coffee),
+[making(Client, Coffee)],
+[],
+[],
+[],
+[del(making(Client, Coffee)), add(made(Client, Coffee))]
+).
+
+action(serve_start(Client, Coffee),
+[made(Client, Coffee)],
+[],
+[],
+[],
+[del(made(Client, Coffee)), add(serving(Client, Coffee))]
+).
+
+action(serve_end(Client, Coffee),
+[serving(Client, Coffee)],
+[],
+[],
+[],
+[del(serving(Client, Coffee)), add(served(Client, Coffee))]
+).
+
+action(wash_start(Client, Coffee),
+[served(Client, Coffee), china(Client, Coffee)],
+[],
+[],
+[],
+[del(china(Client, Coffee), add(washing(cup(Client)))]
+).
+
+action(wash_end(Client, Coffee),
+[washing(cup(Client, Coffee))],
+[],
+[],
+[],
+[del(washing(cup(Client))), add(washed(cup(Client)))]
+).
