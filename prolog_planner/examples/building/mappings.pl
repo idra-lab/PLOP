@@ -12,25 +12,27 @@ mapping(place_arch_start(A, Pos1, Pos2, Arch),
 ).
 mapping(move_block_start(A, Block, From, To),
   [
-    move_arm_start(A, From),
-    move_arm_end(A, From),
+    move_arm_start(A, From, _, _, _, _, _, _),
+    move_arm_end(A, From, _, _, _, _, _, _),
     grip_start(A, Block),
     grip_end(A, Block),
-    move_arm_start(A, To),
-    move_arm_end(A, To),
+    move_arm_start(A, To, _, _, _, _, _, _),
+    move_arm_end(A, To, _, _, _, _, _, _),
     release_start(A),
     release_end(A)
   ]
 ).
 mapping(move_arch_start(A, Arch, From, To, Pos1, Pos2),
   [
-    move_arm_start(A, From),
-    move_arm_end(A, From),
+    move_arm_start(A, From, _, _, _, _, _, _),
+    move_arm_end(A, From, _, _, _, _, _, _),
     grip_start(A, Arch),
     grip_end(A, Arch),
-    move_arm_start(A, To),
-    move_arm_end(A, To),
+    move_arm_start(A, To, _, _, _, _, _, _),
+    move_arm_end(A, To, _, _, _, _, _, _),
     release_start(A),
     release_end(A)
   ]
 ).
+
+mapping(a,b).

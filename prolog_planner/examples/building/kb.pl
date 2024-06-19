@@ -11,7 +11,7 @@ block(block1).
 block(block2).
 
 agent(a1).
-% agent(a2).
+agent(a2).
 
 arch(arch1).
 
@@ -20,6 +20,7 @@ pos(b, 2, 2, 0).
 pos(c, 3, 4, 0).
 pos(d, 5, 5, 0).
 pos(e, 9, 9, 0).
+pos(g, 0, 0, 0).
 pos(f, 1.5, 1.5, 0).
 
 posi(_, X, Y, Z) :- 
@@ -29,17 +30,14 @@ posi(_, X, Y, Z) :-
   Y is (Y1 + Y2)/2,
   Z is Z1.
 
-arm(a1, 10, 10, 10).
-arm(a2, 20, 20, 20).
+arm(a1).
+arm(a2).
 
 gripper(a1).
 gripper(a2).
 
-% new_agent(a1, a2, a3).
-% new_agent(a2, a3, a7).
-% resources(new_agent(_, _, _)).
+resources(agent(_)).
+resources(arm(_)).
+resources(gripper(_)).
 
 resources :- resources(X), X, functor(X, Y, _), write(X), write(' '), write(Y), nl.
-resources(agent(_)).
-resources(arm(_, _, _, _)).
-resources(gripper(_)).

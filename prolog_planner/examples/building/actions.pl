@@ -93,34 +93,37 @@ ll_action(move_arch_end(A, Arch, From, To, _Pos1, _Pos2),
 ).
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%                                     LL                                     %%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%                                     LL                                     %%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-ll_action(move_arm_start(A, To),
+ll_action(move_arm_start(A, To, X1, Y1, Z1, X2, Y2, Z2),
+  [arm_at(A, X1, Y1, Z1)],
+  [moving_arm(A, _, _, _, _, _, _), gripping(A, _), releasing(A)],
   [],
-  [moving_arm(A, _), gripping(A, _), releasing(A)],
-  [],
-  [arm(A, X1, Y1, Z1), pos(To, _X2, _Y2, _Z2)],
+  [arm(A), pos(To, X2, Y2, Z2)],
   [
-    add(moving_arm(A, To))
+    add(moving_arm(A, To, X1, Y1, Z1, X2, Y2, Z2)),
+    del(arm_at(A, X1, Y1, Z1))
   ]
 ).
-ll_action(move_arm_end(A, To),
-  [moving_arm(A, To)],
+ll_action(move_arm_end(A, To, X1, Y1, Z1, X2, Y2, Z2),
+  [moving_arm(A, To, X1, Y1, Z1, X2, Y2, Z2)],
   [],
   [],
-  [assertz(arm(A, X, Y, Z))],
+  [],
   [
-    del(moving_arm(A, To))
+    del(moving_arm(A, To, X1, Y1, Z1, X2, Y2, Z2)),
+    add(arm_at(A, X2, Y2, Z2))
   ]
 ).
 ll_action(grip_start(A, B),
-  [],
-  [moving_arm(A, _), gripping(A, _), releasing(A), gripped(A)],
+  [gripper(A, open)],
+  [moving_arm(A, _, _, _, _, _, _), gripping(A, _), releasing(A), gripped(A)],
   [],
   [gripper(A)],
   [
+    del(gripper(A, open)),
     add(gripping(A, B))
   ]
 ).
@@ -131,16 +134,16 @@ ll_action(grip_end(A, B),
   [gripper(A)],
   [
     del(gripping(A, B)),
-    add(gripped(A))
+    add(gripped(A)), add(gripper(A, close))
   ]
 ).
 ll_action(release_start(A),
   [gripped(A)],
-  [moving_arm(A, _), gripping(A, _), releasing(A)],
+  [moving_arm(A, _, _, _, _, _, _), gripping(A, _), releasing(A)],
   [],
   [gripper(A)],
   [
-    del(gripped(A)),
+    del(gripped(A)), del(gripper(A, close)),
     add(releasing(A))
   ]
 ).
@@ -150,6 +153,7 @@ ll_action(release_end(A),
   [],
   [gripper(A)],
   [
-    del(releasing(A))
+    del(releasing(A)),
+    add(gripper(A, open))
   ]
 ).

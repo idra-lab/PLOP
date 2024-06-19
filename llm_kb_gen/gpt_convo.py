@@ -159,7 +159,7 @@ def includeYAML(file_name: str, messages: list, system_msg: str):
         yaml_file = yaml.load(file, Loader=yaml.FullLoader)["entries"]
         # Set headers for few-shots learning
         # Check if system_msg (a dict) has already been added
-        if system_msg == "" and "system_msg" in yaml_file:
+        if system_msg == "" and "system_msg" in yaml_file.keys():
             system_msg = yaml_file["system_msg"]
             messages.append(system_msg)
         elif system_msg and "system_msg" in yaml_file:

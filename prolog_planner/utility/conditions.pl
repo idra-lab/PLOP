@@ -142,9 +142,10 @@ achiever(PreT, PreF, Verify, Action):-
     (
         achiever(PreT, PreF, Verify, Effects, [])
         ->(
-            format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF])
+            true
+            % , format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF])
         );(
-            format('Action ~w ~w is not an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
+            % format('Action ~w ~w is not an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
             fail
         )
     ),
@@ -155,9 +156,10 @@ achiever(PreT, PreF, Verify, Action):-
     (
         achiever(PreT, PreF, Verify, Effects, [])
         ->(
-            format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF])
+            true
+            % , format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF])
         );(
-            format('Action ~w ~w is not an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
+            % format('Action ~w ~w is not an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
             fail
         )
     ),

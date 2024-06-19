@@ -1,0 +1,5 @@
+LLM_VERSION : "LLMPlanning4-128"
+API_KEY_NAME : "OPENAI_API_KEY4_turbo"
+ENDPOINT : "https://disi-logic-programming-gpt4-turbo.openai.azure.com/"
+API_VERSION : "2023-05-15"
+SYSTEM_FINGERPRINT : "fp_6d044fb900"

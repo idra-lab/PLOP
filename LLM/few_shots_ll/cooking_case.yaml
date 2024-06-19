@@ -1,0 +1,270 @@
+entries:
+  convo:
+    ############################################################################
+    ###############################     0     ##################################
+    ############################################################################
+    0: 
+      Q:
+        role: 'user'
+        content: |
+          Consider the following situation. We need to plan how to boil pasta. This process consits of:
+          - Filling a pot with water: the obotic arm picks the pot from the sideboard, it places it under the water tap, it turns on the tap and it turns off the tap after the right amount of water has been added.
+          - Putting the pot on the stove: the robotic arm picks the pot from the sink and it places it on the stove.
+          - Turning on the stove: the stove is turned on.
+          - Putting the pasta in the pot: the robotic arm picks the pasta from the sideboard and it puts it in the pot when the water is boiling.
+          - Turning off the stove: the stove is turned off.
+          - Draining the water from the pot: the robotic arm picks a strainer from the sideboard, it puts the strainer in the sink, it moves to the pot, it picks the pot from the stove and it pours the water and the pasta in the strainer.
+          We have a robotic arm that can pick and place the pot under the water tap and on the stove. Moreover such arm can also measure the water temperature. 
+          We also have a stove that can be turned on and off automatically, and also the tap can be turned on and off automatically.
+          The high-level actions are:
+          ```
+          action(fill_water(Pot),
+              [at(sideboard, Pot), available(arm)],
+              [],
+              [],
+              [pot(Pot)],
+              [del(available(arm)), add(water(Pot)), add(holding(arm, Pot))]
+          ).
+          action(put_pot_on_stove(Pot),
+              [water(Pot), holding(arm, Pot)],
+              [boiling(Pot)],
+              [],
+              [],
+              [del(holding(arm, Pot)), add(at(stove, Pot)), add(available(arm))]
+          ).
+          action(turn_on_stove(Pot),
+              [at(stove, Pot), water(Pot)],
+              [],
+              [],
+              [],
+              [add(boiling(Pot))]
+          ).
+          action(put_pasta_in_pot(Pot),
+              [at(stove, Pot), boiling(Pot), available(arm), at(sideboard, pasta)],
+              [],
+              [],
+              [],
+              [del(at(sideboard, pasta)), del(boiling(Pot), add(cooking(Pot, pasta))]
+          ).
+          action(turn_off_stove(Pot),
+              [cooking(Pot, pasta)],
+              [],
+              [],
+              [],
+              [del(cooking(Pot, pasta)), add(coocked(Pot, pasta))]
+          ).
+          action(drain_water(Pot),
+              [cooked(Pot, pasta)],
+              [],
+              [],
+              [],
+              [del(cooked(Pot, pasta)), add(ready(pasta))]
+          ).
+          ```
+          The intial state is:
+          ```init
+          [at(sideboard, pot), at(sideboard, pasta), available(arm)]
+          ```
+          The final state is:
+          ```goal
+          [ready(pasta)]
+          ```
+          The knowledge base is:
+          ```KB
+          pot(pot).
+          ```
+          The APIs for the low-level actions are:
+          ```API
+          move_arm_to_pos(arm, pos).
+          grip_object(arm, object).
+          release_object(arm, object).
+          rotate_arm(arm, angle).
+          measure_water_temperature(Pot).
+          turn_on_stove(Pot).
+          turn_off_stove(Pot).
+          ```
+          Can you provide Prolog code for:
+          - the mappings between high-level actions and low-level actions?  
+          - the knowledge base for the low-level actions?
+          - the low-level actions (remember to split them in start and end actions) with the same structure used for the high-level actions?
+        
+      A:
+        role: 'assistant'
+        content: |
+          Sure thing, here is the mappings for the high-level actions:
+          ```mappings
+          fill_water:
+            - move_arm_to_pos
+            - grip_object
+            - move_arm_to_pos
+            - release_object
+            - turn_on_tap
+            - turn_off_tap
+          put_pot_on_stove:
+            - move_arm_to_pos
+            - grip_object
+            - move_arm_to_pos
+            - release_object
+          turn_on_stove:
+            - turn_on_stove
+          put_pasta_in_pot:
+            - move_arm_to_pos
+            - grip_object
+            - move_arm_to_pos
+            - release_object
+          turn_off_stove:
+            - turn_off_stove
+          drain_water:
+            - move_arm_to_pos
+            - grip_object
+            - move_arm_to_pos
+            - release_object
+            - move_arm_to_pos
+            - grip_object
+            - move_arm_to_pos
+            - rotate_arm
+          ```
+          Here is the Prolog code for the low-level KB:
+          ```KB
+          pos(sideboard).
+          pos(sink).
+          pos(stove).
+          pos(tap).
+          ```
+          Finally, here is the Prolog code for the low-level actions:
+          ```actions
+          action(move_arm_to_pos_start(Arm, Pos),
+            [available(Arm)],
+            [moving(Arm)],
+            [],
+            [pos(Pos)],
+            [del(available(Arm)), add(moving(Arm, Pos))]
+          ).
+          action(move_arm_to_pos_end(Arm, Pos),
+            [moving(Arm, Pos)],
+            [],
+            [],
+            [pos(Pos)],
+            [del(moving(Arm, Pos)), add(available(Arm))]
+          ).
+
+          action(grip_object_start(Arm, Object),
+            [available(Arm), at(Pos, Object)],
+            [holding(Arm, _)],
+            [],
+            [],
+            [del(available(Arm)), add(holding(Arm, Object))]
+          ).
+          action(grip_object_end(Arm, Object),
+            [holding(Arm, Object)],
+            [],
+            [],
+            [],
+            [del(at(Pos, Object))]
+          ).
+
+          action(release_object_start(Arm, Object),
+            [holding(Arm, Object)],
+            [],
+            [],
+            [],
+            [del(holding(Arm, Object))]
+          ).
+          action(release_object_end(Arm, Object),
+            [available(Arm)],
+            [],
+            [],
+            [],
+            [add(at(Pos, Object)), add(available(Arm))]
+          ).
+
+          action(rotate_arm_start(Arm, Angle),
+            [holding(Arm, Object)],
+            [rotated(Arm)],
+            [],
+            [],
+            [del(available(Arm)), add(rotating(Arm, Angle))]
+          ).
+          action(rotate_arm_end(Arm, Angle),
+            [rotating(Arm, Angle)],
+            [],
+            [],
+            [],
+            [del(rotating(Arm, Angle)), add(rotated(Arm, Angle)), add(available(Arm))]
+          ).
+
+          action(measure_water_temperature_start(Pot),
+            [water(Pot), at(stove, Pot)],
+            [boiling(Pot)],
+            [],
+            [pot(Pot)],
+            [add(measuring_temp(Pot))]
+          ).
+          action(measure_water_temperature_end(Pot),
+            [measuring_temp(Pot)],
+            [],
+            [],
+            [pot(Pot)],
+            [del(measuring_temp(Pot)), add(boiling(Pot))]
+          ).
+
+          action(turn_on_tap_start(Pot),
+            [at(tap, Pot)],
+            [water(Pot)],
+            [],
+            [pot(Pot)],
+            [add(turning_on_tap(Pot))]
+          ).
+          action(turn_on_tap_end(Pot),
+            [turning_on_tap(Pot)],
+            [],
+            [],
+            [pot(Pot)],
+            [del(turning_on_tap(Pot)), add(water(Pot))]
+          ).
+
+          action(turn_off_tap_start(Pot),
+            [water(Pot)],
+            [],
+            [],
+            [pot(Pot)],
+            [add(turning_off_tap(Pot))]
+          ).
+          action(turn_off_tap_end(Pot),
+            [turning_off_tap(Pot)],
+            [],
+            [],
+            [pot(Pot)],
+            [del(turning_off_tap(Pot))]
+          ).
+
+          action(turn_on_stove_start(Pot),
+            [at(stove, Pot), water(Pot)],
+            [],
+            [],
+            [pot(Pot)],
+            [add(turning_on_stove(Pot))]
+          ).
+          action(turn_on_stove_end(Pot),
+            [turning_on_stove(Pot)],
+            [],
+            [],
+            [pot(Pot)],
+            [del(turning_on_stove(Pot)), add(boiling(Pot))]
+          ).
+
+          action(turn_off_stove_start(Pot),
+            [boiling(Pot)],
+            [],
+            [],
+            [pot(Pot)],
+            [add(turning_off_stove(Pot))]
+          ).
+          action(turn_off_stove_end(Pot),
+            [turning_off_stove(Pot)],
+            [],
+            [],
+            [pot(Pot)],
+            [del(turning_off_stove(Pot)), add(cooked(Pot))]
+          ).
+          ```

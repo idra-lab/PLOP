@@ -109,32 +109,32 @@ class Graph(nx.DiGraph):
         net.show_buttons()
         net.set_options(
             """
-var options = {
-  "configure": {
-    "enabled": true
-  },
-  "nodes": {
-    "borderWidth": null,
-    "borderWidthSelected": null,
-    "opacity": null,
-    "size": null
-  },
-  "edges": {
-    "color": {
-      "inherit": true
-    },
-    "selectionWidth": 3.5,
-    "selfReferenceSize": null,
-    "selfReference": {
-      "angle": 0.7853981633974483
-    },
-    "smooth": false
-  },
-  "physics": {
-    "enabled": false,
-    "minVelocity": 0.75
-  }
-}
-        """
+                var options = {
+                "configure": {
+                    "enabled": true
+                },
+                "nodes": {
+                    "borderWidth": null,
+                    "borderWidthSelected": null,
+                    "opacity": null,
+                    "size": null
+                },
+                "edges": {
+                    "color": {
+                    "inherit": true
+                    },
+                    "selectionWidth": 3.5,
+                    "selfReferenceSize": null,
+                    "selfReference": {
+                    "angle": 0.7853981633974483
+                    },
+                    "smooth": false
+                },
+                "physics": {
+                    "enabled": false,
+                    "minVelocity": 0.75
+                }
+                }
+            """
         )
         net.write_html(title, notebook=notebook, open_browser=open_browser)

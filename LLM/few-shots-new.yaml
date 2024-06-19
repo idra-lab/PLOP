@@ -1,0 +1,12 @@
+entries:
+  system_msg:
+    role: 'system'
+    content: "Given a robotic problem, produce knowledge base in Prolog format as described in the examples. If you 
+    notice something unfeasible write PROBLEM in the answer. "
+  files: 
+    - "few-shots_kb/general.yaml"
+    - "few-shots_kb/arch_single.yaml"
+    # - "few-shots_kb/arch.yaml"
+    - "few-shots_kb/blocks_case.yaml"
+    # - "few-shots_kb/medical_case.yaml"
+    # - "few-shots_kb/service_case.yaml"

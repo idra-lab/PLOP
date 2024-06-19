@@ -70,7 +70,7 @@ add_no_mapping_achievers_wrapped(ID-Action, [[PrevID-PrevAction]|T], IDHLAction,
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 apply_map([], _IDHLAction, State, Been_list, Plan, LastAchievers, State, Been_list, Plan, LastAchievers, _).
 apply_map([HAction|TActions], IDHLAction, State, Been_list, Plan, LastAchievers, RetState, RetBeen_list, RetPlan, RetLastAchievers, Pre) :-
-  % format('~wAdding map ~w ~w\n', [Pre, HAction, State]),
+  format('~wAdding map ~w ~w\n', [Pre, HAction, State]),
   ll_action(HAction, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Effects),
   % format('~wfound action ~w ~w ~w ~w ~w ~w ~n', [Pre, HAction, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Effects]),
   is_applicable(State, PreconditionsT, PreconditionsF, FinalConditionsF, Verify),
@@ -151,8 +151,9 @@ generate_plan(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPlan, 
   length(Plan, Length), Length < MaxDepth,
   % Check new action
   action(Name, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Effects),
-  % format('Checking action ~w for state: ~w\n', [Name, State]),
+  % format('\n\nChecking action ~w for state: ~w\n', [Name, State]),
   is_applicable(State, PreconditionsT, PreconditionsF, FinalConditionsF, Verify),
+  format('Action ~w is applicable for state ~w\n', [Name, State]),
   change_state(State, Effects, NewState),
   (
     (
@@ -161,6 +162,7 @@ generate_plan(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPlan, 
     );
     equal_set(NewState, Goal)
   ),
+  format('Obtained new state ~w\n', [NewState]),
 
   % format('Finding last achievers for ~w ~w ~w\n', [Name, PreconditionsT, PreconditionsF]),
   % (

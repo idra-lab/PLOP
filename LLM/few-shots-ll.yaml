@@ -1,0 +1,12 @@
+entries:
+  system_msg:
+    role: 'system'
+    content: "Given high-level robotic actions and the APIs for low-level actions, divide the high-level actions into sets of low-level actions"
+  files: 
+    - "few_shots_ll/general.yaml"
+    - "few_shots_ll/arch.yaml"
+    # - "few_shots_ll/blocks_case.yaml"
+    # - "few_shots_ll/cooking_case.yaml"
+    # - "few_shots_ll/medical_case.yaml"
+    # - "few_shots_ll/service_case.yaml"
+    # - "few_shots_ll/APIs.yaml"

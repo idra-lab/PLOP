@@ -1,0 +1,176 @@
+entries:
+  convo:
+    ############################################################################
+    ###############################     0     ##################################
+    ############################################################################
+    0: 
+      Q:
+        role: 'user'
+        content: |
+          Consider the following scenario:
+          The environment is a 3x3 grid with 9 positions and each position is identified by a tuple of coordinates `(x, y, z)`, where z=0 in every case.
+          There is only one robot that has both a robotic arm, which can be used to pick objects, and wheels to move around. 
+          The goal is to build a tower of blocks, which are initially placed on the ground, in a specific position.
+
+          You are given the following high-level actions:
+          ```actions
+          action(pick_up(Robot_id, Object_id),
+            [at(Robot_id, Pos), at(Object_id, Pos), available(Robot_id)],
+            [holding(Robot_id, _), holding(_, Object_id)],
+            [at(Object_id, Pos)],
+            [pos(Pos)],
+            [del(at(Object_id, Pos)), del(available(Robot_id)), add(holding(Robot_id, Object_id))]
+          ).
+          action(release(Robot_id, Object_id, Pos),
+            [holding(Robot_id, Object_id), at(Robot_id, Pos)],
+            [at(_, Pos)],
+            [],
+            [pos(Pos)],
+            [del(holding(Robot_id, Object_id)), add(available(Robot_id)), add(at(Object_id, Pos))]
+          ).
+          ```
+          And the following high-level knowledge base:
+          ```KB
+          pos(pointA).
+          pos(pointB).
+          pos(pointC).
+          ```
+          And the following APIs for low=level actions:
+          ```API
+          move_arm(robot_id, xi, yi, zi, xf, yf, zf)
+          ```
+          Which moves a robotic arm identified by `robot_id` from the initial position `(xi, yi, zi)` to the final position `(xf, yf, zf)`.
+          ```API
+          grip(robot_id, obj_id, x, y, z, stretch)
+          ```
+          Which uses a robotic arm, identified by `robot_id`, to grip an object, identified by `obj_id`, at position `(x, y, z)` with a stretch of size `stretch`.
+          ```API
+          release(robot_id, obj_id x, y, z)
+          ```
+          Which uses a robotic arm, identified by `robot_id`, to release an object, identified by obj_id, at position `(x, y, z)`.
+          ```API
+          move_base(robot_id, xi, yi, zi, xf, yf, zf)
+          ```
+          Which moves a robot identified by `robot_id` from the initial position `(xi, yi, zi)` to the final position `(xf, yf, zf)`.
+          Please map each high-level action to the low-level APIs. Also produce the Prolog code for the low-level actions using the same structure as for the high-level ones.
+          Finally, produce also a lowl-level knowledge base expliciting the structure of the environment and the robot.
+      
+      A:
+        role: 'assistant'
+        content: |
+          Sure, here is the mappings for the high-level actions:
+          ```mappings
+          pick_up:
+            - move_base
+            - move_arm
+            - grip
+          release:
+            - move_base
+            - move_arm
+            - release
+          ```
+          Here is the Prolog code for the low-level KB:
+          ```KB
+          pos(1,1,0).
+          pos(1,2,0).
+          pos(1,3,0).
+          pos(2,1,0).
+          pos(2,2,0).
+          pos(2,3,0).
+          pos(3,1,0).
+          pos(3,2,0).
+          pos(3,3,0).
+
+          arm(r1).
+          wheeled(r1).
+          ```
+          Finally, here is the Prolog code for the low-level actions:
+          ```ll_actions
+          action(move_arm_start(Robot_id, Xi, Yi, Zi, Xf, Yf, Zf),
+            [available(Robot_id), at(Robot_id, Xi, Yi, Zi)],
+            [moving_arm(_, _, _, _, Xf, Yf, Zf)],
+            [at(Robot_id, Xi, Yi, Zi)],
+            [arm(Robot_id), pos(Xi, Yi, Zi), pos(Xf, Yf, Zf)],
+            [
+              del(at(Robot_id, Xi, Yi, Zi)), del(available(Robot_id)),
+              add(moving_arm(Robot_id, Xi, Yi, Zi, Xf, Yf, Zf))
+            ]
+          ).
+
+          action(move_arm_end(Robot_id, Xi, Yi, Zi, Xf, Yf, Zf),
+            [moving_arm(Robot_id, Xi, Yi, Zi, Xf, Yf, Zf)],
+            [at(_, Xf, Yf, Zf)],
+            [],
+            [],
+            [
+              del(moving_arm(Robot_id, Xi, Yi, Zi, Xf, Yf, Zf)), 
+              add(moved_arm(Robot_id, Xi, Yi, Zi, Xf, Yf, Zf)), add(at(Robot_id, Xf, Yf, Zf)), add(available(Robot_id))
+            ]
+          ).
+
+          action(grip_start(Robot_id, obj_id, x, y, z, Stretch),
+            [available(Robot_id), at(Robot_id, x, y, z), placed(obj_id, x, y, z)],
+            [gripping(_, obj_id), gripped(obj_id)],
+            [placed(obj_id, x, y, z)],
+            [pos(x, y, z), arm(Robot_id)],
+            [
+              del(available(Robot_id)),
+              add(gripping(Robot_id, obj_id, x, y, z, Stretch))
+            ]
+          ).
+
+          action(grip_end(Robot_id, obj_id x, y, z, Stretch),
+            [gripping(Robot_id, obj_id, x, y, z, Stretch)],
+            [],
+            [],
+            [],
+            [
+              del(gripping(Robot_id, obj_id, x, y, z, Stretch)), del(placed(obj_id, x, y, z)),
+              add(gripped(Robot_id, x, y, z, Stretch))
+            ]
+          ).
+
+          action(release_start(Robot_id, obj_id, x, y, z),
+            [gripped(Robot_id, obj_id, _, _, __), at(Robot_id, x, y, z)],
+            [placed(_, x, y, z)],
+            [],
+            [pos(x, y, z), arm(Robot_id)],
+            [
+              del(gripped(Robot_id, obj_id, _, _, _, _)),
+              add(releasing(Robot_id, obj_id, x, y, z))
+            ]
+          ).
+
+          action(release_end(Robot_id, x, y, z),
+            [releasing(Robot_id, obj_id, x, y, z)],
+            [],
+            [],
+            [],
+            [
+              del(releasing(Robot_id, obj_id, x, y, z)),
+              add(available(Robot_id)), add(placed(obj_id, x, y, z))
+            ]
+          ).
+
+          action(move_base_start(Robot_id, Xi, Yi, Zi, Xf, Yf, Zf),
+            [at(Robot_id, Xi, Yi, Zi), available(Robot_id)],
+            [moving_base(_, _, _, _, Xf, Yf, Zf)],
+            [at(Robot_id, Xi, Yi, Zi)],
+            [wheeled(Robot_id), pos(Xi, Yi, Zi), pos(Xf, Yf, Zf)],
+            [
+              del(at(Robot_id, Xi, Yi, Zi)), del(available(Robot_id)),
+              add(moving_base(Robot_id, Xi, Yi, Zi, Xf, Yf, Zf))
+            ]
+          ).
+
+          action(move_base_end(Robot_id, Xi, Yi, Zi, Xf, Yf, Zf),
+            [moving_base(Robot_id, Xi, Yi, Zi, Xf, Yf, Zf)],
+            [at(_, Xf, Yf, Zf)],
+            [],
+            [],
+            [
+              del(moving_base(Robot_id, Xi, Yi, Zi, Xf, Yf, Zf)),
+              add(at(Robot_id, Xf, Yf, Zf)), add(available(Robot_id))
+            ]
+          ).
+          ```

@@ -1,7 +1,10 @@
 import collections
 from ortools.sat.python import cp_model
 
-from utility.Graph.Graph import Graph
+try:
+    from python_interface.utility.Graph.Graph import Graph
+except:
+    from utility.Graph.Graph import Graph
 
 class MILPSolver(cp_model.CpSolver): 
     def __init__(self, tta_actions, actions, adj_matrix, resources):

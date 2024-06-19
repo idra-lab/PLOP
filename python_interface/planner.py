@@ -1,8 +1,14 @@
 import os
 import sys
 
-from MILP.MILP import MILPSolver
-from Prolog import prolog as PrologLib
+try:
+    from python_interface.BT.BT import BehaviourTree
+    from python_interface.MILP.MILP import MILPSolver
+    from python_interface.Prolog import prolog as PrologLib
+except:
+    from BT.BT import BehaviourTree
+    from MILP.MILP import MILPSolver
+    from Prolog import prolog as PrologLib
 
 # from STN import SimpTempNet
 # from BT.BT import BehaviourTree

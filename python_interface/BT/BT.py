@@ -1,8 +1,15 @@
-from . import BTNode
-from python_interface.STN import SimpTempNet
-from python_interface.BT.BTNode import *
 import networkx as nx
 import matplotlib.pyplot as plt
+
+from . import BTNode
+
+try:
+    from python_interface.STN.STN import SimpTempNet
+    from python_interface.BT.BTNode import *
+except:
+    from STN.STN import SimpTempNet
+    # from .BTNode import *
+
 
 class BehaviourTree(nx.DiGraph):
     def __init__(self, stn : SimpTempNet):
