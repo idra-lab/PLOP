@@ -1,0 +1,153 @@
+% Inital and final states
+init = [available(barista), at(barista, register)].
+goal = [available(barista)].
+
+% General knowledge base
+pos(Register).
+pos(Service_area).
+pos(Ingredient_area).
+pos(Coffee_machine).
+pos(Coffee_dispenser).
+pos(Milk_dispenser).
+pos(Cup_dispender).
+pos(Sink).
+wheeled(barista).
+arm(barista).
+object(paper_cup).
+object(china_cup).
+
+% Low-level actions
+action(move_base_start(Rob, Pos1, Pos2),
+[available(Rob), at(Rob, Pos1)],
+[at(_, Pos2)],
+[],
+[wheeled(Rob), pos(Pos1), pos(Pos2)],
+[del(at(Rob, Pos1)), del(available(Rob)), add(moving_base(Rob, Pos1, Pos2))]
+).
+
+action(move_base_end(Rob, Pos1, Pos2),
+[moving_base(Rob, Pos1, Pos2)],
+[at(_, Pos2)],
+[],
+[],
+[del(moving_base(Rob, Pos1, Pos2)), add(at(Rob, Pos2)), add(available(Rob))]
+).
+
+action(move_arm_start(Rob, X, Y, Z),
+[available(Rob)],
+[],
+[],
+[arm(Rob],
+[del(available(Rob)), add(moving_arm(Rob, X, Y, Z))]
+).
+
+action(move_arm_end(Rob, X, Y, Z),
+[moving_arm(Rob, X, Y, Z],
+[],
+[],
+[],
+[del(moving_arm(Rob, X, Y, Z))]
+).
+
+action(grip_start(Rob, Obj)
+[available(Rob)]
+[gripping(Rob, _), gripping(_, Obj), gripped(_, Obj), gripped(Rob, _)],
+[],
+[object(Obj), arm(Rob)],
+[del(available(Rob)), add(gripping(Rob, Obj))]
+).
+
+action(grip_end(Rob, Obj)
+[gripping(Rob, Obj)]
+[],
+[],
+[],
+[del(gripping(Rob, Obj)), add(available(Rob)), add(gripped(Rob, Obj))]
+).
+
+action(release_start(Rob, Obj)
+[available(Rob), gripped(Rob, Obj)]
+[],
+[],
+[],
+[del(available(Rob)), add(releasing(Rob, Obj))] % If I add del(gripped(Rob, Obj)) here, it may happen that the
+grip_start action is taken while releasing
+).
+
+action(release_end(Rob, Obj)
+[releasing(Rob, Obj)]
+[],
+[],
+[],
+[del(gripped(Rob, Obj)), add(available(Rob))]
+).
+
+action(activate_machine_start(),
+[],
+[active_machine],
+[],
+[],
+[add(active_machine)]
+).
+
+action(activate_machine_end(),
+[active_machine],
+[],
+[],
+[],
+[del(active_machine)]
+).
+
+action(activate_register_start(),
+[],
+[active_register],
+[],
+[],
+[add(active_register)]
+).
+
+action(activate_register_end(),
+[active_register],
+[],
+[],
+[],
+[del(active_register)]
+).
+
+action(wait_start(Time),
+[],
+[waiting(_)],
+[],
+[],
+[add(waiting(Time))]
+).
+
+action(wait_end(Time),
+[waiting(_)],
+[],
+[],
+[],
+[del(waiting(Time))]
+).
+
+% Mappings
+mappings{
+order_to_go(Client, Coffee):
+[move_base_start(Rob, Pos1, Service_area), move_base_end(Rob, Pos1, Service_area), queue_order(Client, Coffee)],
+order_not_to_go(Client, Coffee):
+[move_base_start(Rob, Pos1, Service_area), move_base_end(Rob, Pos1, Service_area), queue_order(Client, Coffee)],
+payment(Client, Coffee):
+[move_base_start(Rob, Pos1, ],
+make_coffee(Client, espresso, paper):
+[],
+make_coffee(Client, espresso, china):
+[],
+make_coffee(Client, cappuccino, paper):
+[],
+make_coffee(Client, cappuccino, china):
+[],
+serve(Client, Coffee):
+[],
+wash(Client, Coffee):
+[]
+}
