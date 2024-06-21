@@ -130,7 +130,7 @@ def main():
     close(arm), which makes the gripper close.
     open(arm), which makes the gripper open.
     Could you:
-    - update the knowledge base,
+    - update the knowledge base containing the new low-level predicates and the resources,
     - identify the low-level actions,
     - provide the mappings from high-level actions to low-level actions.
     """
