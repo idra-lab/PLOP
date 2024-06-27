@@ -17,13 +17,12 @@ function App(){
   
   const [response_LL, setResponse_LL] = useState('');                     // LLM response
   const [response_HL, setResponse_HL] = useState('');                     // LLM response
-
   
   //                          Error Handling - HL                         //
   const [selectedCategory_HL, setSelectedCategory_HL] = useState(null);   //
   const [selectedType_HL, setSelectedType_HL] = useState(null);           //
   const [fixedCode_HL, setFixedCode_HL] = useState('');                   //
-  const [specification_HL, setSpecification_HL]   = useState('');         // Specification of the error detected in HL-KB
+  const [specification_HL, setSpecification_HL] = useState('');           // Specification of the error detected in HL-KB
   const [isValidKB_HL, setKBValidity_HL] = useState(true);                // Validity of the HL-KnowledgeBase
   const [isSolvable_HL, setSolvable_HL] = useState(false);                // Model Solvability - HL
 
@@ -31,7 +30,7 @@ function App(){
   const [selectedCategory_LL, setSelectedCategory_LL] = useState(null);   //
   const [selectedType_LL, setSelectedType_LL] = useState(null);           //
   const [fixedCode_LL, setFixedCode_LL] = useState('');                   //
-  const [specification, setSpecification]   = useState('');               // Specification of the error detected in LL-KB
+  const [specification_LL, setSpecification_LL]   = useState('');         // Specification of the error detected in LL-KB
   const [isValidKB_LL, setKBValidity_LL] = useState(true);                // Validity of the LL-KnowledgeBase
   const [isSolvable_LL, setSolvable_LL] = useState(false);                // Model Solvability - LL
 
@@ -43,6 +42,7 @@ function App(){
                   "Mismatch between the Effects of the start action and the ValidConditions of the end action",
                   "Wrong number of literals in the predicates",
                   "Wrong number of arguments in the actions"];   // Array of options
+  
   //============================================================================//
   //                      Error Descriptions - Low Level                        //
   //============================================================================//
@@ -59,65 +59,53 @@ function App(){
   const win_dim = FetchDimensions()                                             
   //console.log("Window dimensions : ", win_dim["width"])
 
-
   //============================================================================//
   //                            Handle Text Inputs                              //
   //============================================================================//
+  // QUARY CHANGE
+  const handleChangeQuery_HL = (event) => {
+    setQuery_HL(event.target.value);
+  };
+
   const handleChangeQuery_LL = (event) => {
     setQuery_LL(event.target.value);
   };
 
-  const handleChangeFixed = (event) => {
-    setFixedCode_HL(event.target.value);
+  // CATEGORY CHANGE
+  const handleCategoryHLChange = (event) => {
+    setSelectedCategory_HL(event.target.value);
   };
-
-  const handleSpecification = (event) => {
-    setSpecification(event.target.value);
-  };
-
-
 
   const handleCategoryLLChange = (event) => {
     setSelectedCategory_LL(event.target.value);
+  };
+
+  // TYPE CHANGE
+  const handleTypeHLChange = (event) => {
+    setSelectedType_HL(event.target.value);
   };
 
   const handleTypeLLChange = (event) => {
     setSelectedType_LL(event.target.value);
   };
 
-
-  const handleFix_LL = (event) => {
-    setFixedCode_LL(event.target.value);
-  };
-
-  /*
-
-
+  // SPECIFICATION
   const handleSpecification_HL = (event) => {
     setSpecification_HL(event.target.value);
   };
-  */
 
-  const handleChangeQuery_HL = (event) => {
-    setQuery_HL(event.target.value);
+  const handleSpecification_LL = (event) => {
+    setSpecification_LL(event.target.value);
   };
 
-  const handleCategoryHLChange = (event) => {
-    setSelectedCategory_HL(event.target.value);
-  };
-
-  const handleTypeHLChange = (event) => {
-    setSelectedType_HL(event.target.value);
-  };
-
+  // FIX
   const handleFix_HL = (event) => {
     setFixedCode_HL(event.target.value);
   };
 
-  const handleSpecification_HL = (event) => {
-    setSpecification_HL(event.target.value);
+  const handleFix_LL = (event) => {
+    setFixedCode_LL(event.target.value);
   };
-  
 
   //============================================================================//
   //                            Handle Buttons                                  //
@@ -133,7 +121,7 @@ function App(){
       query_HL
     }
 
-    fetch("/llm_response",{
+    fetch("/llm_response_hl",{
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
@@ -161,7 +149,7 @@ function App(){
       const prompt = {
         query_LL
       }
-      fetch("/llm_response",{
+      fetch("/llm_response_ll",{
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
@@ -181,63 +169,106 @@ function App(){
     };
 
 
-  // Button: Complete
-  const handleClickComplete = () => {
+  // Button: Complete - LL
+  const handleClickComplete_HL = () => {
     setSolvable_HL(true);
-  };    
+  /*
+    Sends high-level KB
+  */
+    const prompt = {
+      kb_hl: fixedCode_HL
+    }
+    fetch("/kb_hl",{
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      method: "POST",
+      body: JSON.stringify(prompt)
+    })
+  };
 
-  // Button: Plan
-  const handleClickPlan = () => {
+  // Button: Complete - LL
+  const handleClickComplete_LL = () => {
     setSolvable_LL(true);
+  /*
+    Sends high-level KB
+  */
+    const prompt = {
+      kb_ll: fixedCode_LL
+    }
+    fetch("/kb_ll",{
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      method: "POST",
+      body: JSON.stringify(prompt)
+    })
   };
 
 
-
-
-
-
-
   // Button: Fix - HL
-  const handleClickFix_HL = () => {                         
+  const handleClickFix_HL = () => {
     /*
-      Send a post request containing the final version of the code
+      Submit user query
     */
-    console.log("Fix button clicked")
-      /*
-      const prompt = {                                      
-        fixedCode                           
-      }                                                     
-      fetch("/plan",{
+      setResponse_HL("LLM is processing your query . . .")
+      const prompt = {
+        category_hl: selectedCategory_HL,
+        type_hl: selectedType_HL,
+        specification_hl: specification_HL
+      }
+      fetch("/llm_response_fix_hl",{
         headers: {
-          'Accept': 'application/json',                     
+          'Accept': 'application/json',
           'Content-Type': 'application/json'
         },
         method: "POST",
         body: JSON.stringify(prompt)
-      })
-      */
-    }
+      }).then(
+        res => res.json()).then(
+        data => {
+          if(data.response !== undefined){
+            setResponse_HL(data.response)
+            console.log("RESPONSE : " + data.response)
+          }else
+            setResponse_HL("LLM is not reachable !")
+          }
+      )
+    };
 
   // Button: Fix - LL
-  const handleClickFix_LL = () => {                         
+
+  const handleClickFix_LL = () => {
     /*
-      Send a post request containing the final version of the code
+      Submit user query
     */
-    console.log("Fix button clicked")
-      /*
-      const prompt = {                                      
-        fixedCode                           
-      }                                                     
-      fetch("/plan",{
+      setResponse_LL("LLM is processing your query . . .")
+      const prompt = {
+        category_ll: selectedCategory_LL,
+        type_ll: selectedType_LL,
+        specification_ll: specification_LL
+      }
+      fetch("/llm_response_fix_ll",{
         headers: {
-          'Accept': 'application/json',                     
+          'Accept': 'application/json',
           'Content-Type': 'application/json'
         },
         method: "POST",
         body: JSON.stringify(prompt)
-      })
-      */
-    }
+      }).then(
+        res => res.json()).then(
+        data => {
+          if(data.response !== undefined){
+            setResponse_LL(data.response)
+            console.log("RESPONSE : " + data.response)
+          }else
+            setResponse_LL("LLM is not reachable !")
+          }
+      )
+    };
+
   
   //========================================================//
   //                     VALIDITY CHECK                     //
@@ -395,8 +426,8 @@ function App(){
               type="text"
               id="query"
               name="query"
-              onChange={handleSpecification}
-              value={specification}
+              onChange={handleSpecification_LL}
+              value={specification_LL}
             />
           </div>
           <button class="btn btn-primary" style={{fontSize: "16px",  marginLeft: win_dim["width"]/60 }} onClick={handleClickFix_LL}>Fix</button>
@@ -406,7 +437,6 @@ function App(){
       return null;
     }
   }    
-
 
 
 
@@ -469,7 +499,7 @@ function App(){
           value={fixedCode_HL}
         />
         </div>
-        <button class="btn btn-primary" style={{fontSize: "16px", marginTop: win_dim["height"]/8,  marginLeft: win_dim["width"]/80 }} onClick={handleClickComplete}>COMPLETE</button>
+        <button class="btn btn-primary" style={{fontSize: "16px", marginTop: win_dim["height"]/8,  marginLeft: win_dim["width"]/80 }} onClick={handleClickComplete_HL}>COMPLETE</button>
       </div>
 
       <Footer solvability={isSolvable_HL} validity={isValidKB_HL} />
@@ -521,11 +551,11 @@ function App(){
           type="text"
           id="fixedCode"
           name="fixedCode"
-          onChange={handleChangeFixed}
+          onChange={handleFix_LL}
           value={fixedCode_LL}
         />
         </div>
-        <button class="btn btn-primary" style={{fontSize: "16px", marginTop: win_dim["height"]/8,  marginLeft: win_dim["width"]/80 }} onClick={handleClickPlan}>COMPLETE</button>
+        <button class="btn btn-primary" style={{fontSize: "16px", marginTop: win_dim["height"]/8,  marginLeft: win_dim["width"]/80 }} onClick={handleClickComplete_LL}>COMPLETE</button>
       </div>
 
       <FooterBottom solvability={isSolvable_LL} validity={isValidKB_LL} />

@@ -3,7 +3,7 @@ import "./Footer.css";
 import { MdVerifiedUser } from "react-icons/md";
 import { BiSolidError } from "react-icons/bi";
 
-export default function Header(props) {
+export default function Footer(props) {
   if(props.solvability && props.validity){
     return (
       <div className="footer">

@@ -7,14 +7,14 @@ export default function FooterBottom(props) {
 
   if(props.solvability && props.validity){
     return (
-      <div className="footer">
+      <div className="footerBottom">
         <MdVerifiedUser />
         <text> Model Solvability (Low-Level) </text>
       </div>
     );
   }else{
     return (
-      <div className="footer">
+      <div className="footerBottom">
           <BiSolidError />
           <text> Model Solvability (Low-Level) </text>
       </div>
