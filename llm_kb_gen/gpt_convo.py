@@ -8,13 +8,23 @@ from openai import AzureOpenAI
 from retry import retry
 
 # =======================================================================#
-#                            GLOBAL VALUES                               #
+#                            API Paramters                               #
 # =======================================================================#
-LLM_VERSION  = ""
-API_KEY_NAME = ""
-ENDPOINT     = ""
-API_VERSION  = ""
+class Params():
+    def __init__(
+        self,
+        llm_version  = "",
+        api_key_name = "",
+        endpoint     = "",
+        api_version  = ""
+    ):
+        self.LLM_VERSION  = llm_version
+        self.API_KEY_NAME = api_key_name
+        self.ENDPOINT     = endpoint
+        self.API_VERSION  = api_version
 # =======================================================================#
+
+params = Params()
 
 
 # ===================================================================================================================#
@@ -74,9 +84,9 @@ def connect_openai(
 ):
     # UNITN-key
     client = AzureOpenAI(
-        api_key=os.environ[API_KEY_NAME],
-        azure_endpoint=ENDPOINT,
-        api_version=API_VERSION,
+        api_key=os.environ[params.API_KEY_NAME],
+        azure_endpoint=params.ENDPOINT,
+        api_version=params.API_VERSION,
     )
     response = client.chat.completions.create(
         model=engine,
@@ -201,9 +211,9 @@ def num_tokens_from_string(string: str, encoding_name: str) -> int:
 #                                               	MAIN FUNCTION                                               #
 # ===================================================================================================================#
 def main(yaml_files):
-    openai.api_key = os.environ[API_KEY_NAME]
+    openai.api_key = os.environ[params.API_KEY_NAME]
 
-    llm_gpt = GPT_model(engine=LLM_VERSION)
+    llm_gpt = GPT_model(engine=params.LLM_VERSION)
     messages = []
     system_msg = ""
 
@@ -274,6 +284,7 @@ if __name__ == "__main__":
         "--yaml_files",
         nargs="+",
         help="A space defined list of YAML files containing the few-shots examples",
+        default=[]
     )
 
     # Read arguments from command line
@@ -290,15 +301,15 @@ if __name__ == "__main__":
             print("Opened")
             llm_conf = yaml.load(file, Loader=yaml.FullLoader)
 
-            LLM_VERSION  = llm_conf["LLM_VERSION"]
-            API_KEY_NAME = llm_conf["API_KEY_NAME"]
-            ENDPOINT     = llm_conf["ENDPOINT"]
-            API_VERSION  = llm_conf["API_VERSION"]
+            params.LLM_VERSION  = llm_conf["LLM_VERSION"]
+            params.API_KEY_NAME = llm_conf["API_KEY_NAME"]
+            params.ENDPOINT     = llm_conf["ENDPOINT"]
+            params.API_VERSION  = llm_conf["API_VERSION"]
 
-            print("LLM_VERSION: ", LLM_VERSION)
-            print("API_KEY_NAME: ", API_KEY_NAME)
-            print("ENDPOINT: ", ENDPOINT)
-            print("API_VERSION: ", API_VERSION)
+            print("LLM_VERSION: ", params.LLM_VERSION)
+            print("API_KEY_NAME: ", params.API_KEY_NAME)
+            print("ENDPOINT: ", params.ENDPOINT)
+            print("API_VERSION: ", params.API_VERSION)
 
     else:
         print("The selected file {} does not exist or is not a yaml file".format(llm_conf_file))
