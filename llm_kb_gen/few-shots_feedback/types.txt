@@ -1,0 +1,27 @@
+Syntactic Error Types
+
+- Variable Names:
+    * Wrong Predicate Name
+    * Wrong Argument Name
+    * Wrong Action Name
+
+- Misplaced, missing, or mismatched punctuation
+    
+    - Inappropriately used punctuation
+        * Incorrect use of parenthesis
+        * Incorrect use of bracket
+        * Incorrect use of comma
+    
+    - Inappropriately used punctuation
+        * Missing parenthesis
+        * Missing bracket
+        * Missing comma
+
+
+Semantic Error Types
+
+    - Wrong number of arguments in predicates
+    - Wrong number of arguments in actions
+    - Wrong number of predicate definitions in the argument(s) of actions
+
+    - Mismatch between the Effects of the start action and the ValidConditions of the end action
