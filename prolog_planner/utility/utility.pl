@@ -7,6 +7,12 @@
 %%                             UTILITY FUNCTIONS                              %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+debug_format(Format) :- 
+	planner_debug(true) -> format(Format); true.
+
+debug_format(Format, Args) :- 
+	planner_debug(true) -> format(Format, Args); true.
+
 reverse_print_actions(Actions) :-
 	length_stack(Actions, Len),
 	I is Len,
@@ -52,3 +58,4 @@ print_list(L) :- print_list(L, 0, "").
 reverse_list([],Acc,Acc).
 reverse_list([H|T],Acc,Ret) :- reverse_list(T,[H|Acc],Ret).
 reverse_list(X,Y) :- reverse_list(X,[],Y).
+

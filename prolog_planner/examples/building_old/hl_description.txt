@@ -1,0 +1,14 @@
+Consider the scenario in which we have to build an arch out of some blocks using 
+a robotic arm to move the blocks. In order to build an arch, first we need to
+build the two pillars in two different points and then to place the architrave
+on top of the two pillars.
+As general knowledge, there are 3 points, namely 'a', 'b' and 'c' in which it's
+possible to build the pillars. 
+At the beginning there is no pillar and the robot is available, whereas at the 
+end there are two pillars, the architrave as been placed and there robot is
+available again.
+Can you generate a Prolog code containing the set of actions required to build
+an arch? Also, can you generate the initial and final states? Finally, generate
+a general knowldge base in Prolog for the other predicates that should not
+change during execution.
+

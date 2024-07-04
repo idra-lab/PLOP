@@ -9,11 +9,14 @@
 
 block(block1).
 block(block2).
+block(block3).
+block(block4).
 
 agent(a1).
 agent(a2).
 
 arch(arch1).
+arch(arch2).
 
 pos(a, 1, 1, 0).
 pos(b, 2, 2, 0).

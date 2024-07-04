@@ -21,24 +21,24 @@ action(build_pillar_end(A, Pos, Block1),
     add(av(A)), add(pillar(Pos, Block1))
   ]
 ).
-action(place_arch_start(A, Pos1, Pos2, Arch),
+action(place_arch_start(A, Pos1, Pos2, Arch, To),
   [av(A), pillar(Pos1, _), pillar(Pos2, _), free(Arch)],
-  [placing_arch(_, Pos1, Pos2, _), placed_arch(Pos1, Pos2, _)],
-  [placed_arch(Pos1, Pos2, Arch)],
-  [arch(Arch), agent(A), pos(Pos1,_,_,_), pos(Pos2,_,_,_), Pos1\=Pos2],
+  [placing_arch(_, Pos1, Pos2, _), arch(Pos1, Pos2, _, To)],
+  [arch(Pos1, Pos2, Arch, To)],
+  [arch(Arch), agent(A), pos(Pos1,_,_,_), pos(Pos2,_,_,_), Pos1\=Pos2, pos(To,_,_,_)],
   [
     del(av(A)), del(free(Arch)),
-    add(placing_arch(A, Pos1, Pos2, Arch))
+    add(placing_arch(A, Pos1, Pos2, Arch, To))
   ]
 ).
-action(place_arch_end(A, Pos1, Pos2, Arch),
-  [placing_arch(A, Pos1, Pos2, Arch)],
+action(place_arch_end(A, Pos1, Pos2, Arch, To),
+  [placing_arch(A, Pos1, Pos2, Arch, To)],
   [arch(_, Pos1, Pos2)],
   [],
   [],
   [
-    del(placing_arch(A, Pos1, Pos2, Arch)),
-    add(arch(Pos1, Pos2, Arch)), add(av(A))
+    del(placing_arch(A, Pos1, Pos2, Arch, To)),
+    add(arch(Pos1, Pos2, Arch, To)), add(av(A))
   ]
 ).
 
@@ -46,51 +46,51 @@ action(place_arch_end(A, Pos1, Pos2, Arch),
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                                    INT                                     %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-ll_action(move_block_start(A, Block, From, To),
-  [pillaring(A, To, Block), at(From, Block)],
-  [at(To, _)],
-  [at(To, Block)],
-  [],
-  [
-    del(at(From, Block)),
-    add(moving_block(A, Block, From, To))
-  ]
-).
-ll_action(move_block_end(A, Block, From, To),
-  [moving_block(A, Block, From, To)],
-  [at(To, _)],
-  [],
-  [],
-  [
-    del(moving_block(A, Block, From, To)),
-    add(at(To, Block))
-  ]
-).
-ll_action(move_arch_start(A, Arch, From, To, Pos1, Pos2),
-  [placing_arch(A, Pos1, Pos2, Arch), at(From, Arch)],
-  [at(To, _)],
-  [at(To, Arch)],
-  [
-    % pos(Pos1, X1, Y1, Z1),pos(Pos2, X2, Y2, Z2),
-    % Xf is (X1+X2)/2.0, Yf is (Y1+Y2)/2.0, Zf is Z1,
-    % format('X ~w Y ~w Z ~w~n', [Xf, Yf, Zf]),
-    % \+pos(_, Xf, Yf, Zf) -> assertz(pos(To, Xf, Yf, Zf)) ; true
-  ],
-  [
-    del(at(From, Arch)),
-    add(moving_arch(A, Arch, From, To))
-  ]
-).
-ll_action(move_arch_end(A, Arch, From, To, _Pos1, _Pos2),
-  [moving_arch(A, Arch, From, To)],
-  [at(To, _)],
-  [],
-  [],
-  [
-    del(moving_arch(A, Arch, From, To)),
-    add(at(To, Arch))
-  ]
-).
+% ll_action(move_block_start(A, Block, From, To),
+%   [at(From, Block)],
+%   [at(To, _)],
+%   [at(To, Block)],
+%   [],
+%   [
+%     del(at(From, Block)),
+%     add(moving_block(A, Block, From, To))
+%   ]
+% ).
+% ll_action(move_block_end(A, Block, From, To),
+%   [moving_block(A, Block, From, To)],
+%   [at(To, _)],
+%   [],
+%   [],
+%   [
+%     del(moving_block(A, Block, From, To)),
+%     add(at(To, Block))
+%   ]
+% ).
+% ll_action(move_arch_start(A, Arch, From, To, Pos1, Pos2),
+%   [at(From, Arch)],
+%   [at(To, _)],
+%   [at(To, Arch)],
+%   [
+%     % pos(Pos1, X1, Y1, Z1),pos(Pos2, X2, Y2, Z2),
+%     % Xf is (X1+X2)/2.0, Yf is (Y1+Y2)/2.0, Zf is Z1,
+%     % format('X ~w Y ~w Z ~w~n', [Xf, Yf, Zf]),
+%     % \+pos(_, Xf, Yf, Zf) -> assertz(pos(To, Xf, Yf, Zf)) ; true
+%   ],
+%   [
+%     del(at(From, Arch)),
+%     add(moving_arch(A, Arch, From, To))
+%   ]
+% ).
+% ll_action(move_arch_end(A, Arch, From, To, _Pos1, _Pos2),
+%   [moving_arch(A, Arch, From, To)],
+%   [at(To, _)],
+%   [],
+%   [],
+%   [
+%     del(moving_arch(A, Arch, From, To)),
+%     add(at(To, Arch))
+%   ]
+% ).
 
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

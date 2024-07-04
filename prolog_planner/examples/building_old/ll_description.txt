@@ -1,0 +1,8 @@
+We are provided with the following APIs to move the robot:
+- move_arm(robot_id, x, y, z), which moves the arm of robot_id from its current 
+  position to the tuple (x, y, z);
+- grip(robot_id), which closes the endeffector on the robotic arm, robot_id;
+- release(robot_id), which opens the endeffector on the robotic arm, robot_id.
+Given these APIs, we are to implement the following function:
+- build_pillar(Robot_id, Point1): which takes three blocks scattered around and 
+  stacks them on top of each other to form a pillar. 
