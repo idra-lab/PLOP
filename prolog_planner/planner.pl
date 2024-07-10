@@ -1,6 +1,7 @@
 :- ensure_loaded('full_planner.pl').
 
-planner_debug(false).
+planner_debug(true).
+% planner_debug(false).
 
 plan(Actions, AdjMatrix, TTActionList, Resources, ActionXResources) :-
   init_state(Init),
@@ -8,10 +9,10 @@ plan(Actions, AdjMatrix, TTActionList, Resources, ActionXResources) :-
   debug_format('Planning from: ~w to: ~w~n', [Init, Goal]),
   % leash(-all), etrace,
   % extract_hl_goal(Goal, HLGoal),
-  generate_plan(Init, Goal, HLActions, LastAchievers),
-  debug_format('HL total-order plan: ~n'),
-  reverse(HLActions, HLActionsReversed),
-  print_list(HLActionsReversed),
+  generate_plan(Init, Goal, TOActions, LastAchievers),
+  debug_format('Total-order plan: ~n'),
+  reverse(TOActions, TOActionsReversed),
+  print_list(TOActionsReversed),
   debug_format('Last achievers: ~n'),
   reverse(LastAchievers, LastAchieversReversed),
   print_list(LastAchieversReversed),

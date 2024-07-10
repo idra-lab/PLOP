@@ -76,12 +76,34 @@ in_resources([], _, _) :- fail.
 in_resources([HPre|_TPre], Verify, RetRes) :-
     HPre =.. [_|PreArgs],
     check_args_verify(PreArgs, Verify, RetRes),
+    debug_format('\t\t\t[in_resources] PreArgs: ~w~n', [PreArgs]),
+    debug_format('\t\t\t[in_resources] Verify: ~w~n', [Verify]),
     findall(X, resources(X), Resources),
+    debug_format('\t\t\t[in_resources] Resources: ~w~n', [Resources]),
     member(RetRes, Resources),
     true.
 in_resources([_HPre|TPre], Verify, RetRes) :-
     in_resources(TPre, Verify, RetRes).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% :brief: Checks that at least one of the arguments is not a resource
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+not_in_resources([], _, _) :- true.
+not_in_resources([HPre|_TPre], Verify, RetRes) :-
+    HPre =.. [_|PreArgs],
+    check_args_verify(PreArgs, Verify, RetRes),
+    debug_format('\t\t[in_resources] PreArgs: ~w~n', [PreArgs]),
+    debug_format('\t\t[in_resources] Verify: ~w~n', [Verify]),
+    findall(X, resources(X), Resources),
+    debug_format('\t\t[in_resources] Resources: ~w~n', [Resources]),
+    \+member(RetRes, Resources),
+    true.
+not_in_resources([_HPre|TPre], Verify, RetRes) :-
+    in_resources(TPre, Verify, RetRes).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % :brief: It checks if an action is an achiever for another action's 
@@ -117,14 +139,24 @@ achiever([], [_HPref|TPreF], Verify, [], Eff):-
     TPreF = [NewH|_T],
     achiever([], TPreF, Verify, Eff, []).
 
-% When we find an achiever
+% % When we find an achiever
+% achiever([HPreT|_TPreT], _PreF, Verify, [add(HPreT)|_TEff], _UsedEff) :- 
+%     \+in_resources([HPreT], Verify, _), 
+%     % format('HPreT: ~w is not in resources~n', [HPreT]),
+%     true.
+% achiever(_PreT, [HPreF|_TPreF], Verify, [del(HPreF)|_TEff], _UsedEff) :- 
+%     \+in_resources([HPreF], Verify, _),
+%     % format('HPreF: ~w is not in resources~n', [HPreF]),
+%     true.
+
+    % When we find an achiever
 achiever([HPreT|_TPreT], _PreF, Verify, [add(HPreT)|_TEff], _UsedEff) :- 
     \+in_resources([HPreT], Verify, _), 
-    % format('HPreT: ~w is not in resources~n', [HPreT]),
+    % debug_format('HPreT: ~w is not in resources~n', [HPreT]),
     true.
 achiever(_PreT, [HPreF|_TPreF], Verify, [del(HPreF)|_TEff], _UsedEff) :- 
     \+in_resources([HPreF], Verify, _),
-    % format('HPreF: ~w is not in resources~n', [HPreF]),
+    % debug_format('HPreF: ~w is not in resources~n', [HPreF]),
     true.
 
 % Normal execution going through the effects
@@ -138,6 +170,7 @@ achiever([], PreF, Verify, [HEff|TEff], UsedEff):-
 % This wrapper functions are used to call the achiever function with the correct
 % arguments and check whether the action is a high-level or a low-level one.
 achiever(PreT, PreF, Verify, Action):-
+    mapping(Action, _),
     action(Action, _PreT, _PreF, _FinalConditionsF, _Verify, Effects),
     (
         achiever(PreT, PreF, Verify, Effects, [])
@@ -151,7 +184,6 @@ achiever(PreT, PreF, Verify, Action):-
     ),
     true.
 achiever(PreT, PreF, Verify, Action):-
-    mapping(Action, _),
     ll_action(Action, _PreT, _PreF, _FinalConditionsF, _Verify, Effects),
     (
         achiever(PreT, PreF, Verify, Effects, [])
@@ -187,6 +219,17 @@ last_achievers(PreT, PreF, [HA|TA], LastAchievers):-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 last_achievers_ids(_PreT, _PreF, _Verify, [], RetAchievers, RetAchievers).
 last_achievers_ids(PreT, PreF, Verify, [[ID-HA]|TA], Achievers, RetAchievers):-
+    (
+        achiever(PreT, PreF, Verify, HA) 
+        ->(
+            append(Achievers, [ID], NewAchievers)
+        );(
+            NewAchievers = Achievers
+        )
+    ),
+    last_achievers_ids(PreT, PreF, Verify, TA, NewAchievers, RetAchievers).
+
+last_achievers_ids(PreT, PreF, Verify, [ID-HA|TA], Achievers, RetAchievers):-
     (
         achiever(PreT, PreF, Verify, HA) 
         ->(

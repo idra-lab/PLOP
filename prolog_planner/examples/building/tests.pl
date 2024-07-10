@@ -23,6 +23,6 @@ goal_state([
   % HL
   av(a1), pillar(a, block1), pillar(b, block2), arch(a, b, arch1, e), pillar(c, block3), pillar(d, block4), arch(c, d, arch2, f),
   % LL 
-  arm_at(a1, _, _, _), gripper(a1, _)
+  arm_at(a1, _, _, _), gripper(a1, open)
 ]).
 
