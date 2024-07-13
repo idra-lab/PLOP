@@ -6,6 +6,7 @@ planner_debug(true).
 plan(Actions, AdjMatrix, TTActionList, Resources, ActionXResources) :-
   init_state(Init),
   goal_state(Goal),
+  % trace(apply_action_map),
   debug_format('Planning from: ~w to: ~w~n', [Init, Goal]),
   % leash(-all), etrace,
   % extract_hl_goal(Goal, HLGoal),

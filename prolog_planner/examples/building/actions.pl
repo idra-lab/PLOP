@@ -111,7 +111,7 @@ ll_action(move_arm_end(A, To, X1, Y1, Z1, X2, Y2, Z2),
   [moving_arm(A, To, X1, Y1, Z1, X2, Y2, Z2)],
   [],
   [],
-  [],
+  [arm(A)],
   [
     del(moving_arm(A, To, X1, Y1, Z1, X2, Y2, Z2)),
     add(arm_at(A, X2, Y2, Z2))
@@ -121,7 +121,7 @@ ll_action(grip_start(A, B),
   [gripper(A, open)],
   [moving_arm(A, _, _, _, _, _, _), gripping(A, _), releasing(A), gripped(A)],
   [],
-  [gripper(A)],
+  [gripper(A), arm(A)],
   [
     del(gripper(A, open)),
     add(gripping(A, B))
@@ -131,7 +131,7 @@ ll_action(grip_end(A, B),
   [gripping(A, B)],
   [],
   [],
-  [gripper(A)],
+  [gripper(A), arm(A)],
   [
     del(gripping(A, B)),
     add(gripped(A)), add(gripper(A, close))
@@ -141,7 +141,7 @@ ll_action(release_start(A),
   [gripped(A)],
   [moving_arm(A, _, _, _, _, _, _), gripping(A, _), releasing(A)],
   [],
-  [gripper(A)],
+  [gripper(A), arm(A)],
   [
     del(gripped(A)), del(gripper(A, close)),
     add(releasing(A))
@@ -151,7 +151,7 @@ ll_action(release_end(A),
   [releasing(A)],
   [],
   [],
-  [gripper(A)],
+  [gripper(A), arm(A)],
   [
     del(releasing(A)),
     add(gripper(A, open))

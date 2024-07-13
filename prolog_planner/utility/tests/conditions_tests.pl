@@ -1,23 +1,27 @@
 :-ensure_loaded('../conditions.pl').
-:-ensure_loaded('../../includes.pl').
 
-% agent(a1).
-% agent(a2).
+planner_debug(true).
 
-% arm(a1, 10, 10, 10).
-% arm(a2, 20, 20, 20).
+agent(a1).
+agent(a2).
 
-% gripper(a1).
-% gripper(a2).
+arm(a1, 10, 10, 10).
+arm(a2, 20, 20, 20).
 
-% new_agent(a1, a2, a3).
-% new_agent(a2, a3, a7).
+gripper(a1).
+gripper(a2).
 
-% resources :- resources(X), X, functor(X, Y, _), write(X), write(' '), write(Y), nl.
-% resources(new_agent(_, _, _)).
-% resources(agent(_)).
-% resources(arm(_, _, _, _)).
-% resources(gripper(_)).
+new_agent(a1, a2, a3).
+new_agent(a2, a3, a7).
+
+pos(pos1, 1, 2, 3).
+
+resources :- resources(X), X, functor(X, Y, _), write(X), write(' '), write(Y), nl.
+resources(new_agent(_, _, _)).
+resources(agent(_)).
+resources(arm(_, _, _, _)).
+resources(gripper(_)).
+resources(pos(_, _, _, _)).
 
 % test_check_args :-
 %   check_args([a1], [a1,a2], R),
@@ -37,6 +41,31 @@ test_in_resources :-
   in_resources([tree(t2), av(a2)], [point(p2), agent(a2)], agent(a2)),
   \+in_resources([tree(t2)], [tree(t2)], _),
   in_resources([av(a1), free(block2)], [agent(a1)], agent(a1)),
+  true.
+
+
+test_not_in_resources :-
+  \+not_in_resources([av(a1)], [agent(a1)], _),
+  format('1~n'), !,
+  \+not_in_resources([], [], _),
+  format('2~n'), !,
+  not_in_resources([block(b1)], [agent(a1)], _),
+  format('3~n'), !,
+  \+not_in_resources([av(a1), av(a2)], [agent(a1), agent(a2)], _),
+  format('4~n'), !,
+  \+not_in_resources([av(a2), av(a1)], [agent(a1), agent(a2)], _),
+  format('5~n'), !,
+  not_in_resources([tree(t2), av(a2)], [point(p2), agent(a2)], _),
+  format('6~n'), !,
+  not_in_resources([tree(t2)], [tree(t2)], _),
+  format('7~n'), !,
+  not_in_resources([av(a1), free(block2)], [agent(a1)], _),
+  format('8~n'), !,
+  leash(-all), trace,
+  \+not_in_resources([block(b1, pos1), free(block2)], [agent(a1), pos(pos1, X, Y, Z)], _),
+  format('9~n'), !,
+  % not_in_resources([moving_arm(a1, pos1), free(block2)], [agent(a1), pos(pos1, X, Y, Z)], _),
+  % format('10~n'), !,
   true.
 
 test_achievers_4 :-
@@ -67,8 +96,33 @@ test_achievers_5 :-
   format('A ~w~n', [A]).
 
 
-test_check_args_verify :-
+test_check_not_args_verify :- 
+  \+check_not_args_verify([a1], [agent(a1),agent(a2)], _),
+  format('1~n'),
+  \+check_not_args_verify([a1, a2], [agent(a1),agent(a2)], _),
+  format('2~n'),
+  \+check_not_args_verify([a2], [agent(a2),agent(a1)], _),
+  format('3~n'),
+  \+check_not_args_verify([a2], [agent(a1),agent(a2)], _),
+  format('4~n'),
+  check_not_args_verify([b], [agent(a2)], b),
+  format('5~n'),
+  check_not_args_verify([b, a2], [block(b1), agent(a3), agent(a2)], b),
+  format('6~n'),
+  true.
+
+
+test_check_args_verify :- 
   check_args_verify([a1], [agent(a1),agent(a2)], agent(a1)),
+  format('1~n'),
+  check_args_verify([a1, a2], [agent(a1),agent(a2)], agent(a1)),
+  format('2~n'),
+  check_args_verify([a2], [agent(a2),agent(a1)], agent(a2)),
+  format('3~n'),
+  check_args_verify([a2], [agent(a1),agent(a2)], agent(a2)),
+  format('4~n'),
   \+check_args_verify([b], [agent(a2)], _),
+  format('5~n'),
   check_args_verify([b, a2], [block(b1), agent(a3), agent(a2)], agent(a2)),
+  format('6~n'),
   true.

@@ -7,12 +7,22 @@
 %%                             UTILITY FUNCTIONS                              %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% :brief: prints the message with the format provided if the predicate 
+% planner_debug(true) is set.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 debug_format(Format) :- 
 	planner_debug(true) -> format(Format); true.
 
 debug_format(Format, Args) :- 
 	planner_debug(true) -> format(Format, Args); true.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% :brief: prints the list of actions reversed.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 reverse_print_actions(Actions) :-
 	length_stack(Actions, Len),
 	I is Len,
@@ -42,8 +52,12 @@ reverse_print_actions_times(Actions, Times, I) :-
 	NewI is I - 1,
 	reverse_print_actions_times(TActions, TTimes, NewI),
 	format("[~w] ~w ~w~n", [I, A, T]).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% :brief: prints a list.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 print_list([], _I, _S).
 print_list([H|T], I, S) :- 
     format('~w[~w] ~w~n', [S, I, H]),
@@ -53,9 +67,14 @@ print_list([H|T], I, S) :-
 print_list(L, S) :- print_list(L, 0, S).
 
 print_list(L) :- print_list(L, 0, "").
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Reverse list 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% :brief: reverses a list 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 reverse_list([],Acc,Acc).
 reverse_list([H|T],Acc,Ret) :- reverse_list(T,[H|Acc],Ret).
 reverse_list(X,Y) :- reverse_list(X,[],Y).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

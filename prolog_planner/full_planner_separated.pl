@@ -60,25 +60,38 @@ is_applicable(State, PreconditionsT, PreconditionsF, FinalConditionsF, Verify) :
 % end action are achievers of the end action
 % TODO I should also check that the actions have the same arguments here
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-add_achievers_end(_PrevActionName, [], LastAchievers, LastAchievers).
+add_achievers_end(_PrevActionName, [], LastAchievers, LastAchievers, _).
 
-add_achievers_end(PrevActionName, [[_ID-HAction]|_TActions], LastAchievers, LastAchievers) :-
+add_achievers_end(PrevActionName, [[_ID-HAction]|_TActions], LastAchievers, LastAchievers, Pre) :-
   functor(HAction, ActionName, _),
   sub_string(ActionName, _, _, _, PrevActionName).
-add_achievers_end(PrevActionName, [[ID-HAction]|TActions], LastAchievers, RetLastAchievers) :-
+add_achievers_end(PrevActionName, [[ID-HAction]|TActions], LastAchievers, RetLastAchievers, Pre) :-
   functor(HAction, ActionName, _),
   \+sub_string(ActionName, _, _, _, PrevActionName),
   append([ID], LastAchievers, TempLastAchievers),
-  add_achievers_end(PrevActionName, TActions, TempLastAchievers, RetLastAchievers).
+  add_achievers_end(PrevActionName, TActions, TempLastAchievers, RetLastAchievers, Pre).
 
-add_achievers_end(PrevActionName, [_ID-HAction|_TActions], LastAchievers, LastAchievers) :-
+add_achievers_end_ll(_PrevActionName, [], LastAchievers, LastAchievers, _).
+
+add_achievers_end_ll(PrevActionName, [_ID-HAction|_TActions], LastAchievers, LastAchievers, Pre) :-
+  debug_format('~w[add_achievers_end] Is ~w the start action ~w_start\n', [Pre, HAction, PrevActionName]),
   functor(HAction, ActionName, _),
-  sub_string(ActionName, _, _, _, PrevActionName).
-add_achievers_end(PrevActionName, [ID-HAction|TActions], LastAchievers, RetLastAchievers) :-
-  functor(HAction, ActionName, _),
-  \+sub_string(ActionName, _, _, _, PrevActionName),
-  append(ID, LastAchievers, TempLastAchievers),
-  add_achievers_end(PrevActionName, TActions, TempLastAchievers, RetLastAchievers).
+  sub_string(ActionName, _, _, _, PrevActionName),
+  sub_string(ActionName, _, _, _, '_start'),
+  debug_format('~w[add_achievers_end] Found start action ~w for action ~w\n', [Pre, ActionName, PrevActionName]),
+  true.
+add_achievers_end_ll(PrevActionName, [ID-HAction|TActions], LastAchievers, RetLastAchievers, Pre) :-
+  debug_format('~w[add_achievers_end] ~w is not the start action of ~w_end\n', [Pre, HAction, PrevActionName]),
+  % functor(HAction, ActionName, _),
+  % \+((
+  %   sub_string(ActionName, _, _, _, PrevActionName),
+  %   sub_string(ActionName, _, _, _, '_start')
+  % )),
+  append([ID], LastAchievers, TempLastAchievers),
+  debug_format('~w[add_achievers_end] Adding achiever ~w for action ~w\n', [Pre, HAction, ID]),
+  debug_format('~w[add_achievers_end] to ~w\n', [Pre, LastAchievers]),
+  debug_format('~w[add_achievers_end] obtaining ~w\n', [Pre, TempLastAchievers]),
+  add_achievers_end_ll(PrevActionName, TActions, TempLastAchievers, RetLastAchievers, Pre).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -134,35 +147,42 @@ apply_mappings(Init, Goal, _HL_Plan, _HL_Achievers, LL_Plan, LL_Achievers, LL_Pl
   true.
 
 apply_mappings(Init, Goal, [[IDHLAction-HL_Action]|T_HL_Actions], [IDHLAction-HL_Action-HL_Achievers|T_HL_Achievers], Plan, LastAchievers, RetPlan, RetLastAchievers) :-
-  debug_format('[apply_mappings] HL_Achievers:\n'), 
+  debug_format('\n\n[apply_mappings] HL_Achievers:\n'), 
   print_list([HL_Achievers]),
   length(Plan, Length),
   action(HL_Action, PreconditionsT, PreconditionsF, _FinalConditionsF, Verify, Effects),
   append([Length-HL_Action], Plan, TempPlan),
   change_state(Init, Effects, CurrentState),
-  last_achievers_ids(PreconditionsT, PreconditionsF, Verify, Plan, Achievers),
-  append([Length-HL_Action-Achievers], LastAchievers, TempLastAchievers),
+  last_achievers_ids(PreconditionsT, PreconditionsF, Verify, Plan, TempActionLastAchievers),
   (
     mapping(HL_Action, Mappings) 
     ->(
+      append([Length-HL_Action-TempActionLastAchievers], LastAchievers, TempLastAchievers),
       debug_format('[apply_mappings] Found mapping for action ~w ~w ~w\n', [HL_Action, Mappings, Length]),
+      debug_format('[apply_mappings] Calling apply_action_map with'),
+      debug_format('[apply_mappings] Mappings: ~w\n', [Mappings]), 
+      debug_format('[apply_mappings] Length: ~w\n', [Length]), 
+      debug_format('[apply_mappings] CurrentState: ~w\n', [CurrentState]), 
+      debug_format('[apply_mappings] TempPlan: ~w\n', [TempPlan]),
       apply_action_map(Mappings, Length, CurrentState, TempPlan, TempLastAchievers, NewPlan, NewLastAchievers, '\t'),
-      debug_format('[apply_mappings] TempLastAchievers: ~w\n', [TempLastAchievers])
+      debug_format('[apply_mappings] NewLastAchievers: ~w\n', [NewLastAchievers])
     );(
       NewPlan = TempPlan,
       functor(HL_Action, ActionNameFull, _), 
       sub_string(ActionNameFull, Value, _, _, '_end'), 
-      sub_string(ActionNameFull, _, Value, _, ActionName),
-      debug_format('[apply_mappings] 1: \n')
+      sub_string(ActionNameFull, _, Value, _, ActionName)
       ->(
-        debug_format('~w[apply_action_map] Calling add_achievers_end for ~w ~w ~w\n', [Pre, ActionName, NewPlan, TempLastAchievers]),
-        add_achievers_end(ActionName, NewPlan, TempLastAchievers, NewLastAchievers),
-        debug_format('[apply_mappings] 2: \n'),
+        debug_format('[apply_action_map] Calling add_achievers_end_ll for ~w ~w\n', [ActionName, TempLastAchievers]),
+        debug_format('[apply_mappings] TempPlan: \n'),
+        print_list(TempPlan),
+        % leash(-all),trace,
+        add_achievers_end_ll(ActionName, TempPlan, TempActionLastAchievers, NewActionLastAchievers, '\t'),
+        % append(TempTempLastAchievers, TempLastAchievers, NewLastAchievers),
+        debug_format('[apply_mappings] NewActionLastAchievers: ~w\n', [NewActionLastAchievers]),
+        append([Length-HL_Action-NewActionLastAchievers], LastAchievers, NewLastAchievers),
         true
       );(
-        debug_format('[apply_mappings] 3: \n'),
-        NewLastAchievers = TempLastAchievers,
-        debug_format('[apply_mappings] 4: \n'),
+        append([Length-HL_Action-TempActionLastAchievers], LastAchievers, NewLastAchievers),
         true
       )
     )
@@ -183,7 +203,7 @@ apply_action_map([HAction|TActions], IDHLAction, State, Plan, LastAchievers, Ret
   ll_action(HAction, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Effects),
   debug_format('~w[apply_action_map] found action ~w ~w ~w ~w ~w ~w \n', [Pre, HAction, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Effects]),
   is_applicable(State, PreconditionsT, PreconditionsF, FinalConditionsF, Verify),
-  debug_format('~w[apply_action_map] stacking ~w\n', [Pre, HAction]),
+  debug_format('~w[apply_action_map] applicable ~w\n', [Pre, HAction]),
   length(Plan, Length),
 
   % Find last achievers
@@ -193,8 +213,10 @@ apply_action_map([HAction|TActions], IDHLAction, State, Plan, LastAchievers, Ret
   (
     functor(HAction, ActionNameFull, _), sub_string(ActionNameFull, Value, _, _, '_end'), sub_string(ActionNameFull, _, Value, _, ActionName) 
     ->(
-      debug_format('~w[apply_action_map] Calling add_achievers_end for ~w ~w ~w\n', [Pre, ActionName, Plan, TempLastAchievers]),
-      add_achievers_end(ActionName, Plan, TempLastAchievers, TempTempLastAchievers),
+      debug_format('~w[apply_action_map] Calling add_achievers_end_ll for ~w ~w ~w\n', [Pre, ActionName, Plan, TempLastAchievers]),
+      % Create NewPre by concatenating Pre and a tab
+      string_concat(Pre, '\t', NewPre),
+      add_achievers_end_ll(ActionName, Plan, TempLastAchievers, TempTempLastAchievers, NewPre),
       true
     );( 
       append([], TempLastAchievers, TempTempLastAchievers)  
@@ -213,7 +235,6 @@ apply_action_map([HAction|TActions], IDHLAction, State, Plan, LastAchievers, Ret
   % Change state.
   change_state(State, Effects, NewState),
   debug_format('~w[apply_action_map] changed to ~w\n', [Pre, NewState]),
-  % trace(verify),trace(conditions_met),trace(conditions_not_met),trace(change_state),trace(is_applicable),trace(stack),trace(mapping),trace(apply_action_map),% trace,
   string_concat(Pre, '\t', NewPre),
   (
     mapping(HAction, Mappings)
@@ -224,6 +245,12 @@ apply_action_map([HAction|TActions], IDHLAction, State, Plan, LastAchievers, Ret
     )
     ; (
       debug_format('~w[apply_action_map] No mappings for action ~w\n', [Pre, HAction]),
+      debug_format('~w[apply_action_map] Applying next action\n', [Pre]), 
+      debug_format('~w[apply_action_map] TActions: ~w\n', [Pre, TActions]),
+      debug_format('~w[apply_action_map] IDHLAction: ~w\n', [Pre, IDHLAction]),
+      debug_format('~w[apply_action_map] NewState: ~w\n', [Pre, NewState]),
+      debug_format('~w[apply_action_map] NewPlan: ~w\n', [Pre, NewPlan]),
+      debug_format('~w[apply_action_map] NewLastAchievers: ~w\n', [Pre, NewLastAchievers]),
       apply_action_map(TActions, IDHLAction, NewState, NewPlan, NewLastAchievers, RetPlan, RetLastAchievers, Pre)
     )
   ),
@@ -288,7 +315,7 @@ generate_plan_hl(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPla
     functor(Name, ActionNameFull, _), sub_string(ActionNameFull, Value, _, _, '_end'), sub_string(ActionNameFull, _, Value, _, ActionName) 
     ->(
       debug_format('Adding achievers for ~w ~w ~w ~w\n', [Name, ActionNameFull, ActionName, Value]),
-      add_achievers_end(ActionName, Plan, Achievers, TempLastAchievers)
+      add_achievers_end(ActionName, Plan, Achievers, TempLastAchievers, '\t')
     );(
       append([], Achievers, TempLastAchievers)
     )

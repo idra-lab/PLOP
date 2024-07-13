@@ -3,6 +3,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 :- ensure_loaded('adts.pl').
+:- ensure_loaded('utility.pl').
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % :brief: Checks if the conditions are met
@@ -48,9 +49,22 @@ verify([H|T]) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % :brief: Checks if the arguments of a preconditions are inside the verify
 % predicates
-% :returns: The first verify predicate that contains the arguments
+% :details: It runs recursively through the list of arguments of a precondition
+% and through the predicates inside the verify list. For each argument, it 
+% checks if it is inside of the arguments of a verify predicate. If it is, then
+% it returns the verify predicate that contains it, otherwise it continues. If
+% the list of verify predicates is empty, then the call fails. 
+% In the wrapper version, the function arguments are 3 instead of 4, with :#3: 
+% not present and moving :#4: to :#3:.
+% :#1: List of arguments
+% :#2: List of verify predicates
+% :#3: The list of used verify predicates
+% :#4: The first verify predicate that contains the arguments
+% :returns: The first verify predicate that contains the arguments (#3)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 check_args_verify(PreArgs, Ver, RetRes) :-
+    debug_format('[check_args_verify] PreArgs: ~w~n', [PreArgs]),
+    debug_format('[check_args_verify] Ver: ~w~n', [Ver]),
     check_args_verify(PreArgs, Ver, [], RetRes).
 
 check_args_verify([], _, _, _) :- fail.
@@ -60,8 +74,109 @@ check_args_verify([HArgs|_TArgs], [HVer|_TVer], _, HVer) :-
     HVer =.. [_|VerifyArgs],
     member(HArgs, VerifyArgs).
 check_args_verify([HArgs|TArgs], [HVer|TVer], TmpUsedVer, RetRes) :-
+    HVer =.. [_|VerifyArgs],
+    \+member(HArgs, VerifyArgs),
+    debug_format('[check_args_verify] ~w not in ~w~n', [HArgs, VerifyArgs]),
     append(TmpUsedVer, [HVer], NewTmpUsedVer),
     check_args_verify([HArgs|TArgs], TVer, NewTmpUsedVer, RetRes).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% :brief: Checks if at least one of the arguments of a preconditions is not 
+% inside the verify predicates
+% :details: It runs recursively through the list of arguments of a precondition
+% and through the predicates inside the verify list. For each argument, it 
+% checks if it is inside of the arguments of a verify predicate. If it is not, 
+% then it returns the verify predicate that contains it, otherwise it continues.
+% If the list of verify predicates is empty, then the call returns true. 
+% In the wrapper version, the function arguments are 3 instead of 4, with :#3: 
+% not present and moving :#4: to :#3:.
+% :#1: List of arguments
+% :#2: List of verify predicates
+% :#3: The list of used verify predicates
+% :#4: The first arguments that is not contained in the verify arguments
+% :returns: The first argument that's not contained in the verify arguments (#3)
+% TODO this does not consider the case in which Args are made of recurring
+% predicates, such as `arm(agent(a1))`, nor the case in which the arguments it's 
+% actually a single predicate, such as `system_sleeping`
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+check_not_args_verify(Pre, Ver, Res) :-
+    debug_format('[check_not_args_verify_init] Pre: ~w~n', [Pre]),
+    debug_format('[check_not_args_verify_init] Ver: ~w~n', [Ver]),
+    Pre =.. [_|PreArgs],
+    lenght(PreArgs, Len),
+    check_not_args_verify(PreArgs, Ver, [], Res).
+
+check_not_args_verify([], [], _, _).
+
+check_not_args_verify([], Ver, _, _) :- fail.
+
+check_not_args_verify([HArg|TArgs], [], _, HArg).
+
+% If arg is a member, then for sure it's not what we are looking for, so move to 
+% the next predicate
+check_not_args_verify([HArg|TArgs], [HVer|TVer], UsedVerify, Res) :-
+    HVer =.. [_|VerifyArgs],
+    member(HArg, VerifyArgs),
+    append(UsedVerify, [HVer], TempUsedVerify),
+    append(TempUsedVerify, TVer, Verify),
+    check_not_args_verify(TArgs, Verify, [], Res).
+
+% If arg is not a member, then we keep going until we finish the list of verify
+% predicates
+check_not_args_verify([HArg|TArgs], [HVer|TVer], UsedVerify, Res) :-
+    HVer =.. [_|VerifyArgs],
+    \+member(HArg, VerifyArgs),
+    append(UsedVerify, [HVer], TempUsedVerify),
+    check_not_args_verify([HArg|TArgs], TVer, TempUsedVerify, Res).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% :brief: Checks that at least one of the arguments is not a resource
+% :details: It runs recursively through the list of preconditions. For each 
+% precondition, it checks if its arguments are inside the verify predicates.
+% If they are, then it checks if the predicate is inside the resources, and if 
+% it is, then the call fails and it enters the last case recurring to the next
+% predicate. If the list of predicates is empty, then the call fails.
+% :#1: List of preconditions
+% :#2: List of verify predicates
+% :#3: The first predicate that is not inside the resources
+% :returns: true if at least one predicate is not inside the resources, otherwise false.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+not_in_resources([], _, _) :- false.
+
+% Check if the predicate, or if any of its arguments, is not an argument in the
+% verify predicates
+not_in_resources([HPre|TPre], Verify, RetRes) :-
+    check_not_args_verify(HPre, Verify, RetRes),
+    debug_format('[in_resources2] ~w not in verify arguments, so not in resources~n', [PreArgs]),
+    true.
+
+% Check if the predicate 
+not_in_resources([HPre|TPre], Verify, RetRes) :-
+    HPre =.. [_|PreArgs],
+    debug_format('[in_resources1] PreArgs: ~w~n', [PreArgs]),
+    debug_format('[in_resources1] Verify: ~w~n', [Verify]),
+    \+check_not_args_verify(PreArgs, Verify, _),
+    check_args_verify(PreArgs, Verify, RetRes1),
+    findall(X, resources(X), Resources),
+    debug_format('[in_resources1] Resources: ~w~n', [Resources]),
+    (
+        \+member(RetRes, Resources)
+        ->(
+            true
+        );(
+            debug_format('[in_resources1] ~w is in resources~n', [RetRes]),
+            % This RetRes must be different from the previous one
+            not_in_resources(TPre, Verify, RetRes1)
+        )
+    ).
+
+% not_in_resources([_HPre|TPre], Verify, _) :-
+%     not_in_resources(TPre, Verify, _).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -69,7 +184,8 @@ check_args_verify([HArgs|TArgs], [HVer|TVer], TmpUsedVer, RetRes) :-
 % :brief: Checks if the arguments of the preconditions are inside the resources.
 % :details: It does so by first checking if the arguments are inside the verify 
 % predicates and then by checking that the predicate returned by 
-% `check_args_verify` is inside the resources.
+% `check_args_verify` is inside the resources. This assumes that the resources
+% are predicates that are inside the verify predicates, as they should be.
 % :returns: The first predicate it finds inside the resources
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 in_resources([], _, _) :- fail.
@@ -83,24 +199,6 @@ in_resources([HPre|_TPre], Verify, RetRes) :-
     member(RetRes, Resources),
     true.
 in_resources([_HPre|TPre], Verify, RetRes) :-
-    in_resources(TPre, Verify, RetRes).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% :brief: Checks that at least one of the arguments is not a resource
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-not_in_resources([], _, _) :- true.
-not_in_resources([HPre|_TPre], Verify, RetRes) :-
-    HPre =.. [_|PreArgs],
-    check_args_verify(PreArgs, Verify, RetRes),
-    debug_format('\t\t[in_resources] PreArgs: ~w~n', [PreArgs]),
-    debug_format('\t\t[in_resources] Verify: ~w~n', [Verify]),
-    findall(X, resources(X), Resources),
-    debug_format('\t\t[in_resources] Resources: ~w~n', [Resources]),
-    \+member(RetRes, Resources),
-    true.
-not_in_resources([_HPre|TPre], Verify, RetRes) :-
     in_resources(TPre, Verify, RetRes).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -213,6 +311,7 @@ last_achievers(PreT, PreF, [HA|TA], LastAchievers):-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % :brief: These functions are used to return a the ids of the achievers of a certain 
 % action. 
+% :returns: A list of the ids of the actions that are achievers of the action
 % :note: Apparently, this code is better than having two functions, one if the
 % action is achiever and one if it is not. 
 % TODO fix last_achievers function with same if-then-else
