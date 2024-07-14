@@ -147,13 +147,22 @@ apply_mappings(Init, Goal, _HL_Plan, _HL_Achievers, LL_Plan, LL_Achievers, LL_Pl
   true.
 
 apply_mappings(Init, Goal, [[IDHLAction-HL_Action]|T_HL_Actions], [IDHLAction-HL_Action-HL_Achievers|T_HL_Achievers], Plan, LastAchievers, RetPlan, RetLastAchievers) :-
-  debug_format('\n\n[apply_mappings] HL_Achievers:\n'), 
+  debug_format('\n\n[apply_mappings] HL_Action: ~w\n', [HL_Action]), 
+  debug_format('[apply_mappings] HL_Achievers:\n'), 
   print_list([HL_Achievers]),
   length(Plan, Length),
   action(HL_Action, PreconditionsT, PreconditionsF, _FinalConditionsF, Verify, Effects),
   append([Length-HL_Action], Plan, TempPlan),
   change_state(Init, Effects, CurrentState),
+  debug_format('[apply_mappings] Finding last achievers for: ~w\n', [HL_Action]),
+  debug_format('[apply_mappings] PreconditionsT: ~w\n', [PreconditionsT]),
+  debug_format('[apply_mappings] PreconditionsF: ~w\n', [PreconditionsF]),
+  debug_format('[apply_mappings] Verify: ~w\n', [Verify]),
+  debug_format('[apply_mappings] Plan: ~w\n', [Plan]),
+  % leash(-all),trace,
   last_achievers_ids(PreconditionsT, PreconditionsF, Verify, Plan, TempActionLastAchievers),
+  debug_format('[apply_mappings] Last achievers for ~w: ~w\n', [HL_Action, TempActionLastAchievers]),
+  format(atom(Pre), '\t~w', [HL_Action]),
   (
     mapping(HL_Action, Mappings) 
     ->(
@@ -164,7 +173,7 @@ apply_mappings(Init, Goal, [[IDHLAction-HL_Action]|T_HL_Actions], [IDHLAction-HL
       debug_format('[apply_mappings] Length: ~w\n', [Length]), 
       debug_format('[apply_mappings] CurrentState: ~w\n', [CurrentState]), 
       debug_format('[apply_mappings] TempPlan: ~w\n', [TempPlan]),
-      apply_action_map(Mappings, Length, CurrentState, TempPlan, TempLastAchievers, NewPlan, NewLastAchievers, '\t'),
+      apply_action_map(Mappings, Length, CurrentState, TempPlan, TempLastAchievers, NewPlan, NewLastAchievers, Pre),
       debug_format('[apply_mappings] NewLastAchievers: ~w\n', [NewLastAchievers])
     );(
       NewPlan = TempPlan,
@@ -176,7 +185,7 @@ apply_mappings(Init, Goal, [[IDHLAction-HL_Action]|T_HL_Actions], [IDHLAction-HL
         debug_format('[apply_mappings] TempPlan: \n'),
         print_list(TempPlan),
         % leash(-all),trace,
-        add_achievers_end_ll(ActionName, TempPlan, TempActionLastAchievers, NewActionLastAchievers, '\t'),
+        add_achievers_end_ll(ActionName, TempPlan, TempActionLastAchievers, NewActionLastAchievers, Pre),
         % append(TempTempLastAchievers, TempLastAchievers, NewLastAchievers),
         debug_format('[apply_mappings] NewActionLastAchievers: ~w\n', [NewActionLastAchievers]),
         append([Length-HL_Action-NewActionLastAchievers], LastAchievers, NewLastAchievers),
@@ -215,7 +224,7 @@ apply_action_map([HAction|TActions], IDHLAction, State, Plan, LastAchievers, Ret
     ->(
       debug_format('~w[apply_action_map] Calling add_achievers_end_ll for ~w ~w ~w\n', [Pre, ActionName, Plan, TempLastAchievers]),
       % Create NewPre by concatenating Pre and a tab
-      string_concat(Pre, '\t', NewPre),
+      format(atom(NewPre), '\t~w', [Pre]),
       add_achievers_end_ll(ActionName, Plan, TempLastAchievers, TempTempLastAchievers, NewPre),
       true
     );( 
@@ -224,7 +233,7 @@ apply_action_map([HAction|TActions], IDHLAction, State, Plan, LastAchievers, Ret
   ),
   debug_format('~w[apply_action_map] TempLastAchievers: ~w\n', [Pre, TempLastAchievers]),
   % NewPre is the concatenation of Pre and a tab
-  string_concat(Pre, '\t', NewPre),
+  format(atom(NewPre), '\t~w', [Pre]),
   add_no_mapping_achievers(Length-HAction, Plan, IDHLAction, TempTempLastAchievers, TempTempTempLastAchievers, NewPre),
   % TempTempTempLastAchievers = TempLastAchievers,
   debug_format('~w[apply_action_map] Last achievers: ~w\n', [Pre, TempTempTempLastAchievers]),
@@ -235,7 +244,7 @@ apply_action_map([HAction|TActions], IDHLAction, State, Plan, LastAchievers, Ret
   % Change state.
   change_state(State, Effects, NewState),
   debug_format('~w[apply_action_map] changed to ~w\n', [Pre, NewState]),
-  string_concat(Pre, '\t', NewPre),
+  format(atom(NewPre), '\t~w', [Pre]),
   (
     mapping(HAction, Mappings)
     ->(

@@ -15,7 +15,7 @@ action(build_pillar_end(A, Pos, Block1),
   [pillaring(A, Pos, Block1)],
   [pillar(Pos, _)],
   [],
-  [],
+  [agent(A), block(Block1), pos(Pos,_,_,_)],
   [
     del(pillaring(A, Pos, Block1)),
     add(av(A)), add(pillar(Pos, Block1))
