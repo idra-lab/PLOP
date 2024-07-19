@@ -50,6 +50,8 @@ agent(a2).
 arm(a1, 10, 10, 10).
 arm(a2, 20, 20, 20).
 
+arm(a1).
+
 gripper(a1).
 gripper(a2).
 
@@ -67,6 +69,7 @@ resources(arm(_, _, _, _)).
 resources(gripper(_)).
 resources(pos(_, _, _, _)).
 resources(block(_)).
+resources(arm(_)).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -168,17 +171,41 @@ test_last_achievers_ids :-
   true.
 
 test :-
-  % trace(not_in_resources),
+  % \+achiever(
+  %  [av(a1),free(block2)],
+  %  [pillar(b,_10558),pillaring(_10568,b,_10572)],
+  %  [block(block2),agent(a1),pos(b,_10616,_10618,_10620)],
+  %  [del(pillaring(a1,a,block1)),add(av(a1)),add(pillar(a,block1))],
+  %  []
+  % ),
+  % format('1~n'),
+  
+  % achiever(
+  %   [moving_arm(a1,a,0,0,0,1,1,0)],
+  %   [],
+  %   [arm(a1)],
+  %   [add(moving_arm(a1,a,0,0,0,1,1,0)),del(arm_at(a1,0,0,0))],
+  %   []
+  % ),
+  % format('2~n'),
 
-  % Is pillaring(a1, a, block1) NOT in the resources? No, it is in the resources since it depends on a1 which is in the resources
-  % \+not_in_resources([pillaring(a1, a, block1)], [block(block1), agent(a1), pos(a, 1, 1, 1)], pillaring(a1, a, block1)),
+  % \+achiever(
+  %   [av(a1),free(block2)],
+  %   [pillar(b,_6458),pillaring(_6468,b,_6472)],
+  %   [block(block2),agent(a1),pos(b,_6516,_6518,_6520)],
+  %   [add(av(a1)),add(pillar(a,block1))],
+  %   []
+  % ),
+  % format('3~n'),
+
+% Adding constraint that 12_move_arm_start(a1, a, 0, 0, 0, 1, 1, 0) starts after 5_grip_end(a1, block1)
 
   \+achiever(
-   [av(a1),free(block2)],
-   [pillar(b,_10558),pillaring(_10568,b,_10572)],
-   [block(block2),agent(a1),pos(b,_10616,_10618,_10620)],
-   [del(pillaring(a1,a,block1)),add(av(a1)),add(pillar(a,block1))],
-   []
+    [arm_at(a1,0,0,0)],
+    [moving_arm(a1, _, _, _, _, _, _), gripping(a1, _), releasing(a1)],
+    [arm(a1),pos(a,1,1,0)],
+    [add(gripped(a1)),add(gripper(a1,close)),del(gripping(a1,block1))],
+    []
   ),
-  format('1~n'),
+  format('4~n'),
   true.

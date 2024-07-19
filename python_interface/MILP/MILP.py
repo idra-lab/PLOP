@@ -19,7 +19,17 @@ class MILPSolver(cp_model.CpSolver):
         print("Creating MILP model")
         print(self.tta_actions)
         print(self.actions)
+
+        from math import log
+
+        for space_id in range(int(log(len(self.adj_matrix), 10)) + 2):
+            print('', end=" ")
+        for col_id in range(len(self.adj_matrix[0])):
+            print(f"{col_id:>{len(str(len(self.adj_matrix)))}}", end=" ")
+        print()
+        
         for row_id in range(len(self.adj_matrix)):
+            self.adj_matrix[row_id][row_id] = 0
             #print row_id occupying as many spaces as math.log(len(self.adj_matrix), 10) + 1
             print(f"{row_id:>{len(str(len(self.adj_matrix)))}}", end=" ")
             for col_id in range(len(self.adj_matrix[row_id])):
@@ -52,6 +62,7 @@ class MILPSolver(cp_model.CpSolver):
         self.all_tta = {}
         self.all_resources = collections.defaultdict(list)
 
+        print('Printing tta_actions:')
         for tta in self.tta_actions.keys():
             prefix = f"{tta}_"
             start_var = self.model.NewIntVar(0, horizon, prefix + "s")
@@ -60,6 +71,7 @@ class MILPSolver(cp_model.CpSolver):
             interval_var = self.model.NewIntervalVar(start_var, duration, end_var, prefix + "i")
             self.all_tta[tta] = task_type(start=start_var, end=end_var, interval=interval_var)
         
+            print(self.tta_actions[tta])
             if self.tta_actions[tta]['R'] != []:
                 for res in self.tta_actions[tta]['R']:
                     self.all_resources[res].append(self.all_tta[tta].interval)
@@ -99,8 +111,10 @@ class MILPSolver(cp_model.CpSolver):
                 raise Exception(f"Error: Snap action {snap_action} found in more than one TTA, {self.tta_actions}")
 
         for node in self.graph.nodes:
-            if self.graph.find_cycle(node):
-                raise Exception("Error: Graph has at least one cycle")
+            (cycles, edges) = self.graph.find_cycle(node)
+            if cycles:
+                print(edges)
+                raise Exception("Error: Graph has at least one cycle between nodes")
         
         import networkx as nx
         for node in self.graph.nodes:
@@ -151,7 +165,6 @@ class MILPSolver(cp_model.CpSolver):
                 if self.adj_matrix[idr][idc] == 1:
                     tta_id1 = self.__tta_from_snap_action(self.actions[idr].split("_")[0])
                     tta_id2 = self.__tta_from_snap_action(self.actions[idc].split("_")[0])
-                    # print(f"Checking {idr},{tta_id1} -> {idc},{tta_id2}")
                     print(f"Adding constraint that {self.actions[idc]} starts after {self.actions[idr]}")
         
                     if "_s" in self.actions[idc]:
@@ -184,6 +197,9 @@ class MILPSolver(cp_model.CpSolver):
         
         # The number of tasks using a resource must be less than the resource capacity
         for res in self.all_resources.keys():
+            for n_tta in self.all_resources[res]:
+                print(n_tta, end=" ")
+            print("\n", str([1 for n_tta in self.all_resources[res]]))
             self.model.AddCumulative(self.all_resources[res], [1 for n_tta in self.all_resources[res]], self.resources[res])
 
     def solve(self) -> None:

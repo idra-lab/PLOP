@@ -64,16 +64,18 @@ verify([H|T]) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 check_in_verify(Pred, [HVer|TVers], Res) :-
     % Check that Pred is not a list
-    \+is_list(Pred), 
+    \+is_list(Pred),
+    debug_format('[check_in_verify0] ~w ~w ~n', [Pred, [HVer|TVers]]),
     check_in_verify(Pred, [HVer|TVers], Res, HVer).
 
 check_in_verify(Pred, [HVer|TVers], Res) :-
     is_list(Pred),
-    debug_format('[check_in_verify] Pred ~w~n', [Pred]),
+    debug_format('[check_in_verify0.5] Pred ~w~n', [Pred]),
     halt.
 
 check_in_verify(Pred, [HVer|TVers], Res, LargeVer) :-
     \+var(HVer),
+    \+number(HVer),
     functor(HVer, VerName, Arity),
     (
         Arity > 0
@@ -81,27 +83,35 @@ check_in_verify(Pred, [HVer|TVers], Res, LargeVer) :-
             HVer =.. [VerName|VerArgs],
             check_in_verify(Pred, VerArgs, Res, LargeVer)
             ->(
+                debug_format('[check_in_verify1] ~w ~w ~n', [Pred, [HVer|TVers]]),
                 true
             );(
                 TVers = [NewHVer | _],
+                debug_format('[check_in_verify2] ~w ~w ~n', [Pred, [HVer|TVers]]),
                 check_in_verify(Pred, TVers, Res, NewHVer)
             )
         );(
             Pred = VerName
             ->(
+                debug_format('[check_in_verify3] ~w ~w ~n', [Pred, [HVer|TVers]]),
                 Res = LargeVer
             );(
                 TVers = [NewHVer | _],
+                debug_format('[check_in_verify4] ~w ~w ~n', [Pred, [HVer|TVers]]),
                 check_in_verify(Pred, TVers, Res, LargeVer)
             )
         )
     ),
+    debug_format('[check_in_verify5] ~w ~w ~n', [Pred, [HVer|TVers]]),
     true.
 
 check_in_verify(Pred, [HVer|TVers], Res, LargeVer) :-
+    debug_format('[check_in_verify6] ~w ~w ~n', [Pred, [HVer|TVers]]),
     check_in_verify(Pred, TVers, Res, LargeVer).
 
-check_in_verify(_, [], _, _) :- fail.
+check_in_verify(_, [], _, _) :- 
+    debug_format('[check_in_verify7]~n'),
+    fail.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -129,27 +139,29 @@ not_in_resources([HPred|TPreds], Verify, Res, Resources) :-
             HPred =.. [_|PredArgs],
             not_in_resources(PredArgs, Verify, Res, Resources)
             ->(
-                % format('[not_in_resources1]~n'),
+                debug_format('[not_in_resources1]~n'),
                 true
             );(
-                % format('[not_in_resources2]~n'),
+                debug_format('[not_in_resources2]~n'),
                 not_in_resources(TPreds, Verify, Res, Resources)
             )
         );(
-            % format('[not_in_resources2.2] check_in_verify(~w, ~w)~n', [HPred, Verify]),
+            debug_format('[not_in_resources2.2] calling check_in_verify(~w, ~w)~n', [HPred, Verify]),
+            % leash(-all),trace,
+            % (check_in_verify(HPred, Verify, ResPre), notrace)
             check_in_verify(HPred, Verify, ResPre)
             ->(
-                % format('[not_in_resources2.5]~w ~w~n', [ResPre, Resources]),
+                debug_format('[not_in_resources2.5] ~w ~w~n', [ResPre, Resources]),
                 member(ResPre, Resources)
                 ->(
-                    % format('[not_in_resources3]~n'),
+                    debug_format('[not_in_resources3] ~w~n', [TPreds]),
                     not_in_resources(TPreds, Verify, Res, Resources)
                 );(
-                    % format('[not_in_resources4]~n'),
+                    debug_format('[not_in_resources4]~n'),
                     Res = HPred
                 )
             );(
-                % format('[not_in_resources5]~n'),
+                debug_format('[not_in_resources5]~n'),
                 Res = HPred
             )
         )
@@ -170,60 +182,97 @@ not_in_resources([], _, _, _) :-
 % - List of PreconditionF
 % - List of Verify conditions
 % - List of Effects
-% - List of Achievers
+% - List of used effects
 % :details:
 % The function recursively checks if the head of the preconditions is enabled 
 % by one of the effects of the action. By doing so, it recursively eliminate the 
 % head of the effects and stores it in the UsedEff list. If the head of the
-% preconditions is enabled by any of the effects, then it returns true (second
-% function), otherwise it will loop until the effects are empty and at that 
+% preconditions is enabled by any of the effects, then it checks if the 
+% predicate is part of the resources. If it is not, then it returns true, 
+% otherwise it will recurse until the effects are empty and at that 
 % point it will remove the head of the preconditions and restart the recursion 
 % by resetting the effects from the used effects list (third function). If after
-% all the precondition are checked, the list is empty, then it returns false 
-% (first function).
+% all the precondition are checked, the list is empty, then it returns false.
 % :returns: true if
-% - The add effects of the action add a preconditionT of the other action, or 
-% - The del effects of the action delete a preconditionF of the other action
+% - The add effects of the action adds a preconditionT of the other action, or 
+% - The del effects of the action deletes a preconditionF of the other action
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % When we don't find an achiever
 achiever([], [], _, _, _) :- 
-    format('[achiever0] Called~n'),
-    false.
-
-achiever([], [_HPreF|TPreF], Verify, [], Eff) :-
-    format('[achiever1] Calling with [] ~w ~w ~w~n', [TPreF, Verify, Eff]),
-    achiever([], TPreF, Verify, Eff, []).
+    % leash(-all),trace,
+    debug_format('[achiever0] Called~n'),
+    fail.
 
 % When we have finished the effects and must restart the recursion on another precondition
-achiever([_HPreT|TPreT], PreF, Verify, [], Eff):-
-    format('[achiever2] Calling with ~w ~w ~w ~w~n', [TPreT, PreF, Verify, Eff]),
-    achiever(TPreT, PreF, Verify, Eff, []).
-achiever([], [_HPreF|TPreF], Verify, [], Eff):-
-    format('[achiever3] Calling with [] ~w ~w ~w~n', [TPreF, Verify, Eff]),
+achiever([], [_HPreF|TPreF], Verify, [], Eff) :-
+    debug_format('[achiever1] Calling with~n'),
+    debug_format('\t[achiever1] PreT:   []~n'),
+    debug_format('\t[achiever1] PreF:   ~w~n', [TPreF]),
+    debug_format('\t[achiever1] Verify: ~w~n', [Verify]),
+    debug_format('\t[achiever1] Eff:    ~w~n', [Eff]),
     achiever([], TPreF, Verify, Eff, []).
 
-% When we find an achiever
-achiever([HPreT|_TPreT], PreF, Verify, [add(HPreT)|_TEff], UsedEff) :- 
-    format('[achiever4] Called~n'),
-    not_in_resources([HPreT], Verify, _), 
-    debug_format('HPreTAdd: ~w is not in resources~n', [HPreT]),
-    true.
-achiever([], [HPreF|_TPreF], Verify, [del(HPreF)|_TEff], UsedEff) :- 
-    format('[achiever5] Called~n'),
-    not_in_resources([HPreF], Verify, _),
-    debug_format('HPreFDel: ~w is not in resources~n', [HPreF]),
-    true.
+achiever([_HPreT|TPreT], PreF, Verify, [], Eff):-
+    debug_format('[achiever2] Calling with~n'),
+    debug_format('\t[achiever2] PreT:   ~w~n', [TPreT]),
+    debug_format('\t[achiever2] PreF:   ~w~n', [PreF]),
+    debug_format('\t[achiever2] Verify: ~w~n', [Verify]),
+    debug_format('\t[achiever2] Eff:    ~w~n', [Eff]),
+    achiever(TPreT, PreF, Verify, Eff, []).
 
-% Normal execution going through the effects
-achiever([], PreF, Verify, [HEff|TEff], UsedEff):-
-    format('[achiever7] Calling with [] ~w ~w ~w~n', [PreF, Verify, TEff]),
-    append(UsedEff, [HEff], NewUsedEff),
-    achiever([], PreF, Verify, TEff, NewUsedEff).
-achiever(PreT, PreF, Verify, [HEff|TEff], UsedEff):-
-    append(UsedEff, [HEff], NewUsedEff),
-    format('[achiever6] Calling with ~w ~w ~w ~w~n', [PreT, PreF, Verify, TEff]),
-    achiever(PreT, PreF, Verify, TEff, NewUsedEff).
+% When the head of the preconditions is enabled by the head of the effects
+achiever([HPreT|TPreT], PreF, Verify, [add(HPreT)|TEff], UsedEff) :- 
+    debug_format('[achiever4] Called with~n'),
+    debug_format('\t[achiever4] PreT:   ~w~n', [[HPreT|TPreT]]),
+    debug_format('\t[achiever4] PreF:   ~w~n', [PreF]),
+    debug_format('\t[achiever4] Verify: ~w~n', [Verify]),
+    debug_format('\t[achiever4] Eff:    ~w~n', [[add(HPreT)|TEff]]),
+    not_in_resources([HPreT], Verify, _)
+    ->(
+        debug_format('[achiever4.1] ~w not in resources with verify ~w~n', [HPreT, Verify]),
+        true
+    );(
+        debug_format('[achiever4.2] ~w in resources with verify ~w~n', [HPreT, Verify]),
+        append(UsedEff, [add(HPreT)], NewUsedEff),
+        achiever([HPreT|TPreT], PreF, Verify, TEff, NewUsedEff)
+    ).
 
+achiever([], [HPreF|TPreF], Verify, [del(HPreF)|TEff], UsedEff) :- 
+    debug_format('[achiever5] Called with~n'),
+    debug_format('\t[achiever5] PreT:   []~n'),
+    debug_format('\t[achiever5] PreF:   ~w~n', [[HPreF|TPreF]]),
+    debug_format('\t[achiever5] Verify: ~w~n', [Verify]),
+    debug_format('\t[achiever5] Eff:    ~w~n', [[del(HPreF)|TEff]]),
+    not_in_resources([HPreF], Verify, _)
+    ->(
+        debug_format('[achiever5.1] ~w not in resources with verify ~w~n', [HPreF, Verify]),
+        true
+    );(
+        debug_format('[achiever5.2] ~w in resources with verify ~w~n', [HPreF, Verify]),
+        append(UsedEff, [del(HPreF)], NewUsedEff),
+        achiever([], [HPreF|TPreF], Verify, TEff, NewUsedEff)
+    ).
+
+% When the head of the preconditions is not enabled by the head of the effects
+achiever([HPreT|TPreT], PreF, Verify, [HEff|TEff], UsedEff):-
+    HEff \= add(HPreT), 
+    debug_format('[achiever6.1] Called with~n'),
+    debug_format('\t[achiever6.1] PreT:   ~w~n', [[HPreT|TPreT]]),
+    debug_format('\t[achiever6.1] PreF:   ~w~n', [PreF]),
+    debug_format('\t[achiever6.1] Verify: ~w~n', [Verify]),
+    debug_format('\t[achiever6.1] Eff:    ~w~n', [[HEff|TEff]]),
+    append(UsedEff, [HEff], NewUsedEff),
+    achiever([HPreT|TPreT], PreF, Verify, TEff, NewUsedEff).
+
+achiever([], [HPreF|TPreF], Verify, [HEff|TEff], UsedEff):-
+    HEff \= del(HPreF), 
+    debug_format('[achiever7.1] Called with~n'),
+    debug_format('\t[achiever7.1] PreT:   []~n'),
+    debug_format('\t[achiever7.1] PreF:   ~w~n', [[HPreF|TPreF]]),
+    debug_format('\t[achiever7.1] Verify: ~w~n', [Verify]),
+    debug_format('\t[achiever7.1] Eff:    ~w~n', [[HEff|TEff]]),
+    append(UsedEff, [HEff], NewUsedEff),
+    achiever([], [HPreF|TPreF], Verify, TEff, NewUsedEff).
 
 % This wrapper functions are used to call the achiever function with the correct
 % arguments and check whether the action is a high-level or a low-level one.
@@ -234,10 +283,10 @@ achiever(PreT, PreF, Verify, Action):-
     (
         achiever(PreT, PreF, Verify, Effects, [])
         ->(
+            debug_format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
             true
-            % , format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF])
         );(
-            % format('Action ~w ~w is not an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
+            debug_format('Action ~w ~w is not an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
             fail
         )
     ),
@@ -247,10 +296,10 @@ achiever(PreT, PreF, Verify, Action):-
     (
         achiever(PreT, PreF, Verify, Effects, [])
         ->(
+            debug_format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
             true
-            % , format('Action ~w ~w is an achiever ~w ~w~n', [Action, Effects, PreT, PreF])
         );(
-            % format('Action ~w ~w is not an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
+            debug_format('Action ~w ~w is not an achiever ~w ~w~n', [Action, Effects, PreT, PreF]),
             fail
         )
     ),

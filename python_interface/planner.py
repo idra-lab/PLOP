@@ -17,13 +17,13 @@ except:
 def main():
     data_dict = PrologLib.execTest()
 
-    for i in range(len(data_dict["adj_matrix"][0])):
-        if i not in [1, 13]:
-            data_dict["adj_matrix"][0][i] = 0
+    #  for i in range(len(data_dict["adj_matrix"][0])):
+    #      if i not in [1, 13]:
+    #          data_dict["adj_matrix"][0][i] = 0
 
-    for i in range(len(data_dict["adj_matrix"])):
-        if i != 36:
-            data_dict["adj_matrix"][i][37] = 0
+    #  for i in range(len(data_dict["adj_matrix"])):
+    #      if i != 36:
+    #          data_dict["adj_matrix"][i][37] = 0
 
     milp_solver = MILPSolver(
         data_dict["tt_actions"],
@@ -42,4 +42,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    

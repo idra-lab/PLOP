@@ -216,7 +216,9 @@ apply_action_map([HAction|TActions], IDHLAction, State, Plan, LastAchievers, Ret
   length(Plan, Length),
 
   % Find last achievers
-  last_achievers_ids(PreconditionsT, PreconditionsF, Verify, Plan, Achievers),
+  debug_format('~w[apply_action_map] Finding last achievers for ~w-~w\n', [Pre, Length, HAction]),
+  % last_achievers_ids(PreconditionsT, PreconditionsF, Verify, Plan, Achievers),
+  Achievers = [],
   append([IDHLAction], Achievers, TempLastAchievers),
   debug_format('~w[apply_action_map] Achievers ~w\n', [Pre, TempLastAchievers]),
   (
@@ -305,6 +307,7 @@ generate_plan_hl(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPla
   % Check new action
   action(Name, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Effects),
   debug_format('\n\nChecking action ~w for state: ~w\n', [Name, State]),
+  debug_format('Achievers: ~w\n', [LastAchievers]),
   is_applicable(State, PreconditionsT, PreconditionsF, FinalConditionsF, Verify),
   debug_format('Action ~w is applicable for state ~w\n', [Name, State]),
   change_state(State, Effects, NewState),
