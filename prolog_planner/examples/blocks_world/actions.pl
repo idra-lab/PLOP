@@ -45,28 +45,28 @@ action(
   ]
 ).
 % Move Block1 from (X1,Y1) on top of another block to the top of block Block2 in (X2,Y2). Notice that we are not removing the predicates for Block2 yet as the action is not concluded yet.
-action(
-  move_onblock_to_block_start(Agent, Block1, Block2, X1, Y1, X2, Y2),
-  [available(Agent), on(Block1, Block3), at(Block1, X1, Y1), at(Block2, X2, Y2), clear(Block2), clear(Block1)],
-  [moving(_, Block1), on(_, Block1)],
-  [on(Block1, Block3), at(Block1, X1, Y1)],
-  [pos(X1, Y1), pos(X2, Y2), block(Block1), block(Block2), block(Block3)],
-  [
-    del(available(Agent)), del(clear(Block1)), del(on(Block1, Block3)), del(at(Block1, X1, Y1)),
-    add(moving_onblock_to_block(Agent, Block1, Block2, X1, Y1, X2, Y2)), add(clear(Block3))
-  ]
-).
-action(
-  move_onblock_to_block_end(Agent, Block1, Block2, X1, Y1, X2, Y2),
-  [moving_onblock_to_block(Agent, Block1, Block2, X1, Y1, X2, Y2), clear(Block2)],
-  [],
-  [],
-  [],
-  [
-    del(clear(Block2)), del(moving_onblock_to_block(Agent, Block1, Block2, X1, Y1, X2, Y2)),
-    add(on(Block1, Block2)), add(at(Block1, X2, Y2)), add(clear(Block1))
-  ]
-).
+% action(
+%   move_onblock_to_block_start(Agent, Block1, Block2, X1, Y1, X2, Y2),
+%   [available(Agent), on(Block1, Block3), at(Block1, X1, Y1), at(Block2, X2, Y2), clear(Block2), clear(Block1)],
+%   [moving(_, Block1), on(_, Block1)],
+%   [on(Block1, Block3), at(Block1, X1, Y1)],
+%   [pos(X1, Y1), pos(X2, Y2), block(Block1), block(Block2), block(Block3)],
+%   [
+%     del(available(Agent)), del(clear(Block1)), del(on(Block1, Block3)), del(at(Block1, X1, Y1)),
+%     add(moving_onblock_to_block(Agent, Block1, Block2, X1, Y1, X2, Y2)), add(clear(Block3))
+%   ]
+% ).
+% action(
+%   move_onblock_to_block_end(Agent, Block1, Block2, X1, Y1, X2, Y2),
+%   [moving_onblock_to_block(Agent, Block1, Block2, X1, Y1, X2, Y2), clear(Block2)],
+%   [],
+%   [],
+%   [],
+%   [
+%     del(clear(Block2)), del(moving_onblock_to_block(Agent, Block1, Block2, X1, Y1, X2, Y2)),
+%     add(on(Block1, Block2)), add(at(Block1, X2, Y2)), add(clear(Block1))
+%   ]
+% ).
 % % Move Block1 from (X1,Y1) on top of another block to the table in (X2,Y2). 
 % action(
 %   move_onblock_to_block_start(Agent, Block1, Block2, X1, Y1, X2, Y2),

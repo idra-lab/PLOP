@@ -1,7 +1,7 @@
 init_state([
-  ontable(b1), ontable(b2), on(b3,b2),
-  at(b1,1,1), at(b2,2,2), at(b3,2,2),
-  clear(b1), clear(b3),
+  ontable(b1), ontable(b2),
+  at(b1,1,1), at(b2,2,2), 
+  clear(b1), clear(b2),
   available(a1)
 ]).
 
@@ -13,9 +13,10 @@ init_state([
 % ]).
 
 goal_state([
-  ontable(b1), ontable(b2), on(b3,b1),
-  at(b1,1,1), at(b2,2,2), at(b3,1,1),
-  clear(b2), clear(b3),
+  ontable(b1),
+  on(b2,b1),
+  at(b1,3,3), at(b2,3,3), 
+  clear(b2),
   available(a1)
 ]).
 

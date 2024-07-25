@@ -19,5 +19,6 @@ block(b5).
 block(b6).
 
 agent(a1).
+agent(a2).
 
 resources(agent(_)).

@@ -111,36 +111,24 @@ is_applicable(State, PreconditionsT, PreconditionsF, FinalConditionsF, Verify) :
 is_applicable(State, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Goal) :-
     notrace,
     verify(Verify),
-    debug_format('Grounded ~w\n', [Verify]),
+    % debug_format('Grounded ~w\n', [Verify]),
     (
         conditions_met_wrapper(PreconditionsT, State)
         ->(
-            debug_format('Checked that the preconditions are met ~w in state ~w\n', [PreconditionsT, State]),
+            % debug_format('Checked that the preconditions are met ~w in state ~w\n', [PreconditionsT, State]),
             (
                 conditions_not_met_wrapper(PreconditionsF, State)
                 ->(
-                    debug_format('Checked that the preconditions are not met ~w in state ~w\n', [PreconditionsF, State]),
-                    % (
-                    %     final_conditions_not_met_wrapper(FinalConditionsF, State, Goal)
-                    %     ->(
-                    %         debug_format('Checked that the final conditions are not met ~w in state ~w\n', [FinalConditionsF, State]),
-                    %         true
-                    %     );(
-                    %         which_final_conditions_met_wrapper(FinalConditionsF, State, Goal, R),
-                    %         debug_format('Final conditions ~w is met in state ~w, but should not\n', [R, State]),
-                    %         fail
-                    %     )
-                    % ),
                     true
                 );(
-                    which_conditions_met_wrapper(FinalConditionsF, State, R),
-                    debug_format('Precondition ~w is met in state ~w, but should not\n', [R, State]),
+                    % which_conditions_met_wrapper(FinalConditionsF, State, R),
+                    % debug_format('Precondition ~w is met in state ~w, but should not\n', [R, State]),
                     fail
                 )
             )
         );(
-            which_conditions_not_met_wrapper(PreconditionsT, State, R), 
-            debug_format('Precondition ~w is not met in state ~w\n', [R, State]), 
+            % which_conditions_not_met_wrapper(PreconditionsT, State, R), 
+            % debug_format('Precondition ~w is not met in state ~w\n', [R, State]), 
             fail
         )
     ),

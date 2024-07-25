@@ -139,7 +139,6 @@ apply_mappings(Init, Goal, [[IDHLAction-HL_Action]|T_HL_Actions], [IDHLAction-HL
   debug_format('[apply_mappings] PreconditionsF: ~w\n', [PreconditionsF]),
   debug_format('[apply_mappings] Verify: ~w\n', [Verify]),
   debug_format('[apply_mappings] Plan: ~w\n', [Plan]),
-  % leash(-all),trace,
   last_achievers_ids(PreconditionsT, PreconditionsF, Verify, Plan, TempActionLastAchievers),
   debug_format('[apply_mappings] Last achievers for ~w: ~w\n', [HL_Action, TempActionLastAchievers]),
   format(atom(Pre), '\t~w', [HL_Action]),
@@ -164,7 +163,6 @@ apply_mappings(Init, Goal, [[IDHLAction-HL_Action]|T_HL_Actions], [IDHLAction-HL
         debug_format('[apply_action_map] Calling add_achievers_end_ll for ~w ~w\n', [ActionName, TempLastAchievers]),
         debug_format('[apply_mappings] TempPlan: \n'),
         print_list(TempPlan),
-        % leash(-all),trace,
         add_achievers_end_ll(ActionName, TempPlan, TempActionLastAchievers, NewActionLastAchievers, Pre),
         % append(TempTempLastAchievers, TempLastAchievers, NewLastAchievers),
         debug_format('[apply_mappings] NewActionLastAchievers: ~w\n', [NewActionLastAchievers]),
@@ -258,7 +256,7 @@ generate_plan(Init, Goal, Plan, LastAchievers) :-
   \+equal_set(Init, Goal),
   debug_format('Generating the high-level temporal plan from ~w to ~w\n', [Init, Goal]),
   (
-    generate_plan_hl(Init, Goal, [], [], [], 2, HL_Plan, HL_Achievers)
+    generate_plan_hl(Init, Goal, [], [], [], 20, HL_Plan, HL_Achievers)
     ->(
       % Print information on the high-level part
       debug_format('High-level plan generated\n~w\n', [HL_Plan]),
@@ -305,7 +303,6 @@ generate_plan_hl(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPla
   % choose_action(State, Goal, Name, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Effects),
   action(Name, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Effects),
   debug_format('\n\nChecking action ~w for state: ~w\n', [Name, State]),
-  leash(-all), trace,
   is_applicable(State, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Goal),
   debug_format('Action ~w is applicable for state ~w\n', [Name, State]),
 
@@ -328,30 +325,16 @@ generate_plan_hl(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPla
   ),
   append([Length-Name-TempLastAchievers], LastAchievers, NewLastAchievers),
   debug_format('Last achievers: ~w\n', [TempLastAchievers]),
-  % NewLastAchievers = [],
   % Change state and add action to plan
   stack(NewState, Been_list, NewBeen_list),
   debug_format('New state: ~w\n', [NewState]),
   stack([Length-Name], Plan, NewPlan),
   debug_format('New plan: ~w\n', [NewPlan]),
-  % leash(-all), trace,
   generate_plan_hl(NewState, Goal, NewBeen_list, NewPlan, NewLastAchievers, MaxDepth, FinalPlan, FinalLastAchievers),
   true.
 
 generate_plan_hl(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPlan, FinalLastAchievers) :-
   fail. 
-  % \+equal_set(State, Goal),
-  % length(Plan, Length), Length < MaxDepth,
-
-  % % choose_action(State, Goal, Name, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Effects),
-  % action(Name, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Effects),
-  % debug_format('\n\nChecking action ~w for state: ~w\n', [Name, State]),
-  % leash(-all), trace,
-  % \+is_applicable(State, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Goal),
-  % debug_format('Action ~w is not applicable for state ~w\n', [Name, State]),
-
-  % generate_plan_hl(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPlan, FinalLastAchievers),
-  % true.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
