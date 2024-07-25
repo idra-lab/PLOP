@@ -170,7 +170,7 @@ test_last_achievers_ids :-
   
   true.
 
-test :-
+test_achievers :-
   % \+achiever(
   %  [av(a1),free(block2)],
   %  [pillar(b,_10558),pillaring(_10568,b,_10572)],
@@ -208,4 +208,42 @@ test :-
     []
   ),
   format('4~n'),
+  true.
+
+test_apply_action :-
+  \+is_applicable(
+    [available(a1),available(a2),ontable(b1,2,2),ontable(b2,4,4),ontable(b4,8,8),on(b5,b1,2,2),on(b3,b2,4,4),clear(b5),clear(b3),clear(b4)],
+    [ontable(B, X, Y), available(A), clear(B)],
+    [gripped(_, B), gripping(_, B)],
+    [ontable(B, X, Y)],
+    [agent(A)]
+  ),
+  debug_format('B ~w X ~w Y ~w A ~w~n', [B, X, Y, A]),
+  
+  is_applicable(
+    [available(a1),available(a2),ontable(b1,2,2),ontable(b2,4,4),ontable(b4,8,8),on(b5,b1,2,2),on(b3,b2,4,4),clear(b5),clear(b3),clear(b4)],
+    [on(B1, B2, X1, Y1), available(A1), clear(B1)],
+    [gripped(_, B1), gripping(_, B1)],
+    [on(B1, B2, X, Y)],
+    [agent(A1)]
+  ),
+  debug_format('B1 ~w B2 ~w X1 ~w Y1 ~w A1 ~w~n', [B1, B2, X1, Y1, A1]),
+  true.
+
+test_conditions_met :-
+  conditions_met(
+    [av(Agent),free(Arch)],
+    [av(a2),free(b1)]
+  ),
+  debug_format('Agent ~w Arch ~w~n', [Agent, Arch]),
+  \+conditions_met(
+    [av(Agent1),free(Arch1)],
+    [av(a2),block(b1)]
+  ),
+  which_conditions_not_met(
+    [av(Agent1),free(Arch1)],
+    [av(a2),block(b1)],
+    R
+  ),
+  debug_format('R ~w~n', [R]),
   true.

@@ -93,13 +93,13 @@ member_set(E, S) :- member(E, S).
     % add_to_set adds a new member to a set, allowing each element
     % to appear only once
 
-add_to_set(X, S, S) :- member(X, S), !.
+add_to_set(X, S, S) :- member(X, S).
 add_to_set(X, S, [X|S]).
 
 remove_from_set(_, [], []).
-remove_from_set(E, [E|T], T) :- !.
+remove_from_set(E, [E|T], T).
 remove_from_set(E, [H|T], [H|T_new]) :-
-    remove_from_set(E, T, T_new), !.
+    remove_from_set(E, T, T_new).
     
 union([], S, S).
 union([H|T], S, S_new) :- 
@@ -109,16 +109,16 @@ union([H|T], S, S_new) :-
 intersection([], _, []).
 intersection([H|T], S, [H|S_new]) :-
     member_set(H, S),
-    intersection(T, S, S_new),!.
+    intersection(T, S, S_new).
 intersection([_|T], S, S_new) :-
-    intersection(T, S, S_new),!.
+    intersection(T, S, S_new).
     
 set_diff([], _, []).
 set_diff([H|T], S, T_new) :- 
     member_set(H, S), 
-    set_diff(T, S, T_new),!.
+    set_diff(T, S, T_new).
 set_diff([H|T], S, [H|T_new]) :- 
-    set_diff(T, S, T_new), !.
+    set_diff(T, S, T_new).
 
 subset([], _).
 subset([H|T], S) :- 

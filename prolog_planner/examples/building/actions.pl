@@ -3,7 +3,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 action(build_pillar_start(A, Pos, Block1),
   [av(A), free(Block1)],
-  [pillar(Pos, _), pillaring(_, Pos, _)],
+  [pillar(Pos, _), pillaring(_, Pos, _), arch(_, _, _, Pos)],
   [pillar(Pos, Block1)],
   [block(Block1), agent(A), pos(Pos,_,_,_)],
   [
@@ -23,7 +23,15 @@ action(build_pillar_end(A, Pos, Block1),
 ).
 action(place_arch_start(A, Pos1, Pos2, Arch, To),
   [av(A), pillar(Pos1, _), pillar(Pos2, _), free(Arch)],
-  [placing_arch(_, Pos1, Pos2, _), arch(Pos1, Pos2, _, To)],
+  [
+    pillar(To, _), 
+    placing_arch(_, Pos1, _, _), placing_arch(_, _, Pos1, _), placing_arch(_, _, _, Pos1), 
+    placing_arch(_, Pos2, _, _), placing_arch(_, _, Pos2, _), placing_arch(_, _, _, Pos2), 
+    placing_arch(_, To, _, _), placing_arch(_, _, To, _), placing_arch(_, _, _, To), 
+    arch(Pos1, _, _, _), arch(_, Pos1, _, _), arch(_, _, _, Pos1),
+    arch(Pos2, _, _, _), arch(_, Pos2, _, _), arch(_, _, _, Pos2),
+    arch(To, _, _, _), arch(_, To, _, _), arch(_, _, _, To)
+  ],
   [arch(Pos1, Pos2, Arch, To)],
   [arch(Arch), agent(A), pos(Pos1,_,_,_), pos(Pos2,_,_,_), Pos1\=Pos2, pos(To,_,_,_)],
   [

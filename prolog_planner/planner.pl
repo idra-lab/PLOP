@@ -41,7 +41,19 @@ plan(Actions, AdjMatrix, TTActionList, Resources, ActionXResources) :-
   print_list(ActionXResources),
   nl,nl,nl,
 
+  format('Finished planning.~n'),
+
   true.
+
+plan(Actions, AdjMatrix, TTActionList, Resources, ActionXResources) :-
+  init_state(Init),
+  goal_state(Goal),
+  % trace(apply_action_map),
+  debug_format('Planning from: ~w to: ~w~n', [Init, Goal]),
+  % leash(-all), etrace,
+  % extract_hl_goal(Goal, HLGoal),
+  \+generate_plan(Init, Goal, TOActions, LastAchievers),
+  format('Could not generate TO plan').
 
 plan :-
   plan(_, _, _, _, _).  

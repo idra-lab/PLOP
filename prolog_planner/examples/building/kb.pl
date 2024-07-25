@@ -23,8 +23,8 @@ pos(b, 2, 2, 0).
 pos(c, 3, 4, 0).
 pos(d, 5, 5, 0).
 pos(e, 9, 9, 0).
-pos(g, 0, 0, 0).
 pos(f, 1.5, 1.5, 0).
+pos(g, 0, 0, 0).
 
 posi(_, X, Y, Z) :- 
   pos(_, X1, Y1, Z1), 
@@ -43,4 +43,3 @@ resources(agent(_)).
 resources(arm(_)).
 resources(gripper(_)).
 
-resources :- resources(X), X, functor(X, Y, _), write(X), write(' '), write(Y), nl.

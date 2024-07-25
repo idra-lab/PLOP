@@ -5,6 +5,10 @@
 :- ensure_loaded('adts.pl').
 :- ensure_loaded('utility.pl').
 
+:-discontiguous ll_action/6.
+
+ll_action(action_name, pred_true, pred_f, final_f, verify, eff).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % :brief: Checks if the conditions are met
 % :args:
@@ -12,10 +16,21 @@
 % - Current state
 % :returns: true if all the conditions are met
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+conditions_met_wrapper(Conditions, State) :-
+    conditions_met(Conditions, State).
+which_conditions_not_met_wrapper(Conditions, State, Res) :-
+    which_conditions_not_met(Conditions, State, Res).
+
 conditions_met([], _S).
 conditions_met([H|T], S) :- 
-	member_set(H,S),
+	member(H,S),
 	conditions_met(T, S).
+
+which_conditions_not_met([], _S, _R) :- fail.
+which_conditions_not_met([H|T], S, H) :- 
+    \+member(H, S).
+which_conditions_not_met([_H|T], S, R) :-
+    which_conditions_not_met(T, S, R).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -26,10 +41,21 @@ conditions_met([H|T], S) :-
 % - Current state
 % :returns: true if all the conditions are not met
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+conditions_not_met_wrapper(Conditions, State) :-
+    conditions_not_met(Conditions, State).
+which_conditions_met_wrapper(Conditions, State, Res) :-
+    which_conditions_met(Conditions, State, Res).
+
 conditions_not_met([], _).
 conditions_not_met([H|T], S) :- 
-	\+member_set(H, S),
+	\+member(H, S),
 	conditions_not_met(T, S).
+
+which_conditions_met([], _S, _R) :- fail.
+which_conditions_met([H|T], S, H) :- 
+    member(H, S).
+which_conditions_met([_H|T], S, R) :-
+    which_conditions_met(T, S, R).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -43,6 +69,85 @@ verify([]).
 verify([H|T]) :-
 	H,
 	verify(T).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% :brief: Checks if the final conditions are met both in the current state and 
+% in the goal state
+% :args:
+% - List of conditions
+% - Current state
+% - Goal state
+% :returns: true if there is at least a predicate that is not met in the goal
+% and in the current state
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+final_conditions_not_met_wrapper(Conditions, State, Goal) :-
+    final_conditions_not_met(Conditions, State, Goal).
+which_final_conditions_met_wrapper(Conditions, State, Goal, Res) :-
+    which_final_conditions_met(Conditions, State, Goal, Res).
+
+final_conditions_not_met([], _, _).
+final_conditions_not_met([H|T], S, G) :- 
+	\+ (member(H, S), member(H, G)),
+	final_conditions_not_met(T, S, G).
+final_conditions_not_met([_H|T], S, G) :- fail.
+
+which_final_conditions_met([], _S, _G, _R) :- fail.
+which_final_conditions_met([H|T], S, G, H) :- 
+    member(H, S), member(H, G).
+which_final_conditions_met([_H|T], S, G, R) :-
+    which_final_conditions_met(T, S, G, R).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This function checks if an action is applicable, i.e., checks if the 
+% preconditions are met and the final conditions are not met
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+is_applicable(State, PreconditionsT, PreconditionsF, FinalConditionsF, Verify) :-
+    is_applicable(State, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, []).
+
+is_applicable(State, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Goal) :-
+    notrace,
+    verify(Verify),
+    debug_format('Grounded ~w\n', [Verify]),
+    (
+        conditions_met_wrapper(PreconditionsT, State)
+        ->(
+            debug_format('Checked that the preconditions are met ~w in state ~w\n', [PreconditionsT, State]),
+            (
+                conditions_not_met_wrapper(PreconditionsF, State)
+                ->(
+                    debug_format('Checked that the preconditions are not met ~w in state ~w\n', [PreconditionsF, State]),
+                    % (
+                    %     final_conditions_not_met_wrapper(FinalConditionsF, State, Goal)
+                    %     ->(
+                    %         debug_format('Checked that the final conditions are not met ~w in state ~w\n', [FinalConditionsF, State]),
+                    %         true
+                    %     );(
+                    %         which_final_conditions_met_wrapper(FinalConditionsF, State, Goal, R),
+                    %         debug_format('Final conditions ~w is met in state ~w, but should not\n', [R, State]),
+                    %         fail
+                    %     )
+                    % ),
+                    true
+                );(
+                    which_conditions_met_wrapper(FinalConditionsF, State, R),
+                    debug_format('Precondition ~w is met in state ~w, but should not\n', [R, State]),
+                    fail
+                )
+            )
+        );(
+            which_conditions_not_met_wrapper(PreconditionsT, State, R), 
+            debug_format('Precondition ~w is not met in state ~w\n', [R, State]), 
+            fail
+        )
+    ),
+%   debug_format('Checked that the preconditions are not met ~w in state ~w\n', [PreconditionsF, State]),
+%   conditions_not_met(FinalConditionsF, State),
+%   debug_format('Checked that the final conditions are not met ~w in state ~w\n', [FinalConditionsF, State]),  
+    true.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 

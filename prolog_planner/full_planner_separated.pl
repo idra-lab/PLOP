@@ -40,26 +40,13 @@ match_goal(Goal, [HPrecondition|TPreconditions]) :-
   ).
 
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This function checks if an action is applicable, i.e., checks if the 
-% preconditions are met and the final conditions are not met
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-is_applicable(State, PreconditionsT, PreconditionsF, FinalConditionsF, Verify) :-
-  verify(Verify),
-  conditions_met(PreconditionsT, State),
-  conditions_not_met(PreconditionsF, State),
-  conditions_not_met(FinalConditionsF, State).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This function is used to add the last achievers for end actions.
 % For each end action, the start action is an achiever and if the action is not
 % low-level, then all the lower-level action between the start action and the 
 % end action are achievers of the end action
 % TODO I should also check that the actions have the same arguments here
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 add_achievers_end(_PrevActionName, [], LastAchievers, LastAchievers, _).
 
 add_achievers_end(PrevActionName, [[_ID-HAction]|_TActions], LastAchievers, LastAchievers, Pre) :-
@@ -92,16 +79,16 @@ add_achievers_end_ll(PrevActionName, [ID-HAction|TActions], LastAchievers, RetLa
   debug_format('~w[add_achievers_end] to ~w\n', [Pre, LastAchievers]),
   debug_format('~w[add_achievers_end] obtaining ~w\n', [Pre, TempLastAchievers]),
   add_achievers_end_ll(PrevActionName, TActions, TempLastAchievers, RetLastAchievers, Pre).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % As a first iteration, all the low-level actions that are not mapped to any 
 % lower level action share the same resources and hence are achievers of the 
 % following low-level actions in the same mapping. This function adds all the
 % previous low-level actions as achievers of the current low-level action, up 
 % until the previous high-level action.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 add_no_mapping_achievers(Lenght-HAction, Plan, IDHLAction, TempLastAchievers, RetLastAchievers, Pre) :-
   \+mapping(HAction, _),
   debug_format('~w[add_no_mapping_achievers] No mapping for action ~w adding prev resource constraints\n', [Pre, HAction]),
@@ -124,19 +111,12 @@ add_no_mapping_achievers_wrapped(ID-Action, [PrevID-PrevAction|T], IDHLAction, T
   append([PrevID], TmpAchievers, NewTmpAchievers),
   debug_format('~w[add_no_mapping_achievers_wrapped single] Adding achiever ~w ~w for action ~w ~w, achievers: ~w\n', [Pre, PrevID, PrevAction, ID, Action, NewTmpAchievers]),
   add_no_mapping_achievers_wrapped(ID-Action, T, IDHLAction, NewTmpAchievers, RetAchievers, Pre).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% add_achievers_test(Length-HAction, Plan, IDHLAction, TempLastAchievers, RetLastAchievers) :-
-%   \+mapping(HAction, _),
-%   add_no_mapping_achievers(Lenght-HAction, Plan, IDHLAction, TempLastAchievers, RetLastAchievers).
 
-% add_achievers_test(Length-HAction, Plan, IDHLAction, TempLastAchievers, RetLastAchievers) :-
-%   \+mapping(HAction, _),
-%   add_no_mapping_achievers(Lenght-HAction, Plan, IDHLAction, TempLastAchievers, RetLastAchievers).
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This function applies the mappings of an action. It also checks that the ll action is applicable and changes the state accordingly 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 apply_mappings(Init, Goal, HL_Plan, HL_Achievers, LL_Plan, LL_Achievers) :-
   debug_format('[apply_mappings] The HL plan is ~w\n', [HL_Plan]),
   apply_mappings(Init, Goal, HL_Plan, HL_Achievers, [], [], LL_Plan, LL_Achievers).
@@ -200,12 +180,12 @@ apply_mappings(Init, Goal, [[IDHLAction-HL_Action]|T_HL_Actions], [IDHLAction-HL
   debug_format('[apply_mappings] Current state: ~w\n', [CurrentState]),
   debug_format('[apply_mappings] NewPlan: ~w\n', [NewPlan]),
   apply_mappings(CurrentState, Goal, T_HL_Actions, T_HL_Achievers, NewPlan, NewLastAchievers, RetPlan, RetLastAchievers).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This function applies the mappings of an action. It also checks that the ll action is applicable and changes the state accordingly 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 apply_action_map([], _IDHLAction, _State, Plan, LastAchievers, Plan, LastAchievers, _).
 apply_action_map([HAction|TActions], IDHLAction, State, Plan, LastAchievers, RetPlan, RetLastAchievers, Pre) :-
   debug_format('\n~w[apply_action_map] Adding map ~w ~w\n', [Pre, HAction, State]),
@@ -267,60 +247,74 @@ apply_action_map([HAction|TActions], IDHLAction, State, Plan, LastAchievers, Ret
   ),
   true
   .
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This function generates a plan
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 generate_plan(Init, Goal, Plan, LastAchievers) :-
   debug_format('Checking if the initial state is the goal state ~w~w\n', [Init, Goal]),
   \+equal_set(Init, Goal),
   debug_format('Generating the high-level temporal plan from ~w to ~w\n', [Init, Goal]),
-  generate_plan_hl(Init, Goal, [], [], [], 50, HL_Plan, HL_Achievers),
-  % Print information on the high-level part
-  debug_format('High-level plan generated\n~w\n', [HL_Plan]),
-  debug_format('High-level achievers found\n'),
-  print_list(HL_Achievers),
-  extract_adj_matrix_actions(HL_Achievers, AdjMatrix, Actions),
-  debug_format('Adjacency matrix:\n'),
-  print_list(AdjMatrix),
-  print_list(Actions),
-  % Find the low-level plan
-  debug_format('Applying the mappings to obtain the low-level temporal plan from ~w to ~w\n', [Init, Goal]),
-  findall(Mapping, mapping(Mapping, _), Mappings),
-  debug_format('Mappings available: ~w\n', [Mappings]),
-  reverse(HL_Plan, HL_PlanReversed),
-  reverse(HL_Achievers, HL_AchieversReversed),
-  apply_mappings(Init, Goal, HL_PlanReversed, HL_AchieversReversed, Plan, LL_Achievers),
-  debug_format('Plan generated~w\n', [Plan]),
-  debug_format('LL achievers:\n'),
-  print_list(LL_Achievers),
-  clean_achievers(LL_Achievers, LastAchievers),
-  true.
+  (
+    generate_plan_hl(Init, Goal, [], [], [], 2, HL_Plan, HL_Achievers)
+    ->(
+      % Print information on the high-level part
+      debug_format('High-level plan generated\n~w\n', [HL_Plan]),
+      debug_format('High-level achievers found\n'),
+      print_list(HL_Achievers),
+      extract_adj_matrix_actions(HL_Achievers, AdjMatrix, Actions),
+      debug_format('Adjacency matrix:\n'),
+      print_list(AdjMatrix),
+      print_list(Actions),
+      % Find the low-level plan
+      debug_format('Applying the mappings to obtain the low-level temporal plan from ~w to ~w\n', [Init, Goal]),
+      findall(Mapping, mapping(Mapping, _), Mappings),
+      debug_format('Mappings available: ~w\n', [Mappings]),
+      reverse(HL_Plan, HL_PlanReversed),
+      reverse(HL_Achievers, HL_AchieversReversed),
+      (
+        apply_mappings(Init, Goal, HL_PlanReversed, HL_AchieversReversed, Plan, LL_Achievers)
+        ->(
+          debug_format('Plan generated~w\n', [Plan]),
+          debug_format('LL achievers:\n'),
+          print_list(LL_Achievers),
+          clean_achievers(LL_Achievers, LastAchievers)
+        );(
+          format('Could not apply mappings\n'), fail
+        )
+      )
+    );(
+      format('Could not generate a HL plan\n'), fail
+    )
+  ).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This function generates a HL plan
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 generate_plan_hl(State, Goal, _Been_list, Plan, LastAchievers, _MaxDepth, Plan, LastAchievers) :-
   equal_set(State, Goal).
 generate_plan_hl(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPlan, FinalLastAchievers) :-
   \+equal_set(State, Goal),
   length(Plan, Length), Length < MaxDepth,
-  % Check new action
+  debug_format('Current plan: ~w\n', [Plan]),
+
+  % choose_action(State, Goal, Name, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Effects),
   action(Name, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Effects),
   debug_format('\n\nChecking action ~w for state: ~w\n', [Name, State]),
-  debug_format('Achievers: ~w\n', [LastAchievers]),
-  is_applicable(State, PreconditionsT, PreconditionsF, FinalConditionsF, Verify),
+  leash(-all), trace,
+  is_applicable(State, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Goal),
   debug_format('Action ~w is applicable for state ~w\n', [Name, State]),
-  change_state(State, Effects, NewState),
-  (
-    (
-      \+equal_set(NewState, Goal),
-      \+member_state(NewState, Been_list)
-    );
-    equal_set(NewState, Goal)
-  ),
-  debug_format('Obtained new state ~w\n', [NewState]),
 
-  % Find last achievers
+  change_state(State, Effects, NewState),
+  debug_format('Obtained new state ~w\n', [NewState]),
+  
+  \+member_state(NewState, Been_list),
+
+  % % Find last achievers
   debug_format('Finding last achievers for ~w ~w ~w ~w\n', [Name, PreconditionsT, PreconditionsF, Plan]),
   last_achievers_ids(PreconditionsT, PreconditionsF, Verify, Plan, Achievers),
   (
@@ -334,19 +328,36 @@ generate_plan_hl(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPla
   ),
   append([Length-Name-TempLastAchievers], LastAchievers, NewLastAchievers),
   debug_format('Last achievers: ~w\n', [TempLastAchievers]),
-
+  % NewLastAchievers = [],
   % Change state and add action to plan
   stack(NewState, Been_list, NewBeen_list),
   debug_format('New state: ~w\n', [NewState]),
   stack([Length-Name], Plan, NewPlan),
+  debug_format('New plan: ~w\n', [NewPlan]),
+  % leash(-all), trace,
   generate_plan_hl(NewState, Goal, NewBeen_list, NewPlan, NewLastAchievers, MaxDepth, FinalPlan, FinalLastAchievers),
   true.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+generate_plan_hl(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPlan, FinalLastAchievers) :-
+  fail. 
+  % \+equal_set(State, Goal),
+  % length(Plan, Length), Length < MaxDepth,
+
+  % % choose_action(State, Goal, Name, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Effects),
+  % action(Name, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Effects),
+  % debug_format('\n\nChecking action ~w for state: ~w\n', [Name, State]),
+  % leash(-all), trace,
+  % \+is_applicable(State, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Goal),
+  % debug_format('Action ~w is not applicable for state ~w\n', [Name, State]),
+
+  % generate_plan_hl(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPlan, FinalLastAchievers),
+  % true.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This function takes a list of achievers, removes the duplicates and reverses the list
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clean_achievers(LastAchievers, RetLastAchievers) :-
   clean_achievers(LastAchievers, [], TmpLastAchievers),
   reverse(TmpLastAchievers, [], RetLastAchievers).
@@ -357,12 +368,12 @@ clean_achievers([ID-Action-Achievers|TActions], TempLastAchievers, RetLastAchiev
   debug_format('Cleaned achievers for ~w ~w ~w from ~w\n', [ID, Action, NewAchievers, Achievers]),
   append([ID-Action-NewAchievers], TempLastAchievers, NewLastAchievers),
   clean_achievers(TActions, NewLastAchievers, RetLastAchievers).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This function removes duplicates from a list
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 move_to_set(Ach, Ret) :-
   move_to_set(Ach, [], TmpRet),
   reverse(TmpRet, Ret).
@@ -375,14 +386,14 @@ move_to_set([H|T], Temp, Ret) :-
   \+member(H, Temp),
   append([H], Temp, NewTemp),
   move_to_set(T, NewTemp, Ret).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This function reverses a list
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 reverse([], Ret, Ret).
 reverse([H|T], Temp, Ret) :-
   append([H], Temp, NewTemp),
   reverse(T, NewTemp, Ret).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
