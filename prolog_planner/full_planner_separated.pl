@@ -256,7 +256,7 @@ generate_plan(Init, Goal, Plan, LastAchievers) :-
   \+equal_set(Init, Goal),
   debug_format('Generating the high-level temporal plan from ~w to ~w\n', [Init, Goal]),
   (
-    generate_plan_hl(Init, Goal, [], [], [], 20, HL_Plan, HL_Achievers)
+    generate_plan_hl(Init, Goal, [], [], [], 10, HL_Plan, HL_Achievers)
     ->(
       % Print information on the high-level part
       debug_format('High-level plan generated\n~w\n', [HL_Plan]),
@@ -267,22 +267,23 @@ generate_plan(Init, Goal, Plan, LastAchievers) :-
       print_list(AdjMatrix),
       print_list(Actions),
       % Find the low-level plan
-      debug_format('Applying the mappings to obtain the low-level temporal plan from ~w to ~w\n', [Init, Goal]),
-      findall(Mapping, mapping(Mapping, _), Mappings),
-      debug_format('Mappings available: ~w\n', [Mappings]),
-      reverse(HL_Plan, HL_PlanReversed),
-      reverse(HL_Achievers, HL_AchieversReversed),
-      (
-        apply_mappings(Init, Goal, HL_PlanReversed, HL_AchieversReversed, Plan, LL_Achievers)
-        ->(
-          debug_format('Plan generated~w\n', [Plan]),
-          debug_format('LL achievers:\n'),
-          print_list(LL_Achievers),
-          clean_achievers(LL_Achievers, LastAchievers)
-        );(
-          format('Could not apply mappings\n'), fail
-        )
-      )
+      % debug_format('Applying the mappings to obtain the low-level temporal plan from ~w to ~w\n', [Init, Goal]),
+      % findall(Mapping, mapping(Mapping, _), Mappings),
+      % debug_format('Mappings available: ~w\n', [Mappings]),
+      % reverse(HL_Plan, HL_PlanReversed),
+      % reverse(HL_Achievers, HL_AchieversReversed),
+      % (
+      %   apply_mappings(Init, Goal, HL_PlanReversed, HL_AchieversReversed, Plan, LL_Achievers)
+      %   ->(
+      %     debug_format('Plan generated~w\n', [Plan]),
+      %     debug_format('LL achievers:\n'),
+      %     print_list(LL_Achievers),
+      %     clean_achievers(LL_Achievers, LastAchievers)
+      %   );(
+      %     format('Could not apply mappings\n'), fail
+      %   )
+      % ),
+      true
     );(
       format('Could not generate a HL plan\n'), fail
     )
@@ -298,11 +299,11 @@ generate_plan_hl(State, Goal, _Been_list, Plan, LastAchievers, _MaxDepth, Plan, 
 generate_plan_hl(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPlan, FinalLastAchievers) :-
   \+equal_set(State, Goal),
   length(Plan, Length), Length < MaxDepth,
-  debug_format('Current plan: ~w\n', [Plan]),
+  debug_format('\n\nCurrent plan: ~w\n', [Plan]),
 
   % choose_action(State, Goal, Name, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Effects),
   action(Name, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Effects),
-  debug_format('\n\nChecking action ~w for state: ~w\n', [Name, State]),
+  debug_format('Checking action ~w for state: ~w\n', [Name, State]),
   is_applicable(State, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Goal),
   debug_format('Action ~w is applicable for state ~w\n', [Name, State]),
 
