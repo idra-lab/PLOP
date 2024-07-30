@@ -4,6 +4,7 @@
 
 :- discontiguous resources/1.
 
+pos(0,0).
 pos(1,1).
 pos(2,2).
 pos(3,3).
@@ -15,10 +16,14 @@ block(b1).
 block(b2).
 block(b3).
 block(b4).
-% block(b5).
+block(b5).
 % block(b6).
 
 agent(a1).
 agent(a2).
 
+arm(a1).
+arm(a2).
+
 resources(agent(_)).
+resources(arm(_)).

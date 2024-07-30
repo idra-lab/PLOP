@@ -1,9 +1,7 @@
 :- ensure_loaded('full_planner.pl').
 
-planner_debug(true).
-% planner_debug(false).
-
 plan(Actions, AdjMatrix, TTActionList, Resources, ActionXResources) :-
+  disable_debug,
   init_state(Init),
   goal_state(Goal),
   % trace(apply_action_map),
