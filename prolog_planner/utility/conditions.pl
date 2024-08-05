@@ -417,6 +417,7 @@ last_achievers(PreT, PreF, [HA|TA], LastAchievers):-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 last_achievers_ids(_PreT, _PreF, _Verify, [], RetAchievers, RetAchievers).
 last_achievers_ids(PreT, PreF, Verify, [[ID-HA]|TA], Achievers, RetAchievers):-
+    disable_debug,
     (
         achiever(PreT, PreF, Verify, HA) 
         ->(
@@ -428,6 +429,7 @@ last_achievers_ids(PreT, PreF, Verify, [[ID-HA]|TA], Achievers, RetAchievers):-
     last_achievers_ids(PreT, PreF, Verify, TA, NewAchievers, RetAchievers).
 
 last_achievers_ids(PreT, PreF, Verify, [ID-HA|TA], Achievers, RetAchievers):-
+    disable_debug,
     (
         achiever(PreT, PreF, Verify, HA) 
         ->(

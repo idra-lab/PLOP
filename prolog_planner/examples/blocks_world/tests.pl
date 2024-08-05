@@ -1,3 +1,9 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Given an initial state in which there are two blocks b1, b2 in positions (1,1) and (2,2) 
+% respectively, move the block b1 to position (3,3) and place b2 on top of b1 using an agent, which
+% is initially available and it will also be available at the end.
+
 % init_state([
 %   ontable(b1), ontable(b2),
 %   at(b1,1,1), at(b2,2,2), 
@@ -18,6 +24,10 @@
 % ]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Given an initial state in which there are two blocks b1, b2 on the table in positions (1,1), 
+% (2,2), respectively, and a third block b3 on top of b1 in position (1,1), move the block b3 on top
+% of b2 using an agent, which is initially available and it will also be available at the end.
 
 % init_state([
 %   ontable(b1), ontable(b2), on(b3, b1),
@@ -193,6 +203,12 @@
 % ]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Given an initial state in which there are four blocks b1, b2, b3, b5 on the table in positions
+% (2,2), (1,1), (3,3), (4,4), respectively, and a fifth block b4 on top of b3 in position (3,3),
+% move the block b2 on top of b1, b3 on top of b2 and place b5 on the table in position (0,0) and 
+% b4 on the table in position (3,3). The agent is initially available and it will also be available 
+% at the end.
 
 % % This HL plan has length 10 and must be run without debug, oterwise it will take too long
 % init_state([

@@ -298,7 +298,7 @@ generate_plan(Init, Goal, Plan, LastAchievers) :-
   \+equal_set(Init, Goal),
   debug_format('Generating the high-level temporal plan from ~w to ~w\n', [Init, Goal]),
   (
-    generate_plan_hl(Init, Goal, [], [], [], 6, HL_Plan, HL_Achievers)
+    generate_plan_hl(Init, Goal, [], [], [], 2, HL_Plan, HL_Achievers)
     ->(
       % Print information on the high-level part
       debug_format('High-level plan generated\n~w\n', [HL_Plan]),
@@ -355,7 +355,7 @@ generate_plan_hl(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPla
   \+member_state(NewState, Been_list),
 
   % % Find last achievers
-  debug_format('Finding last achievers for ~w ~w ~w ~w\n', [Name, PreconditionsT, PreconditionsF, Plan]),
+  debug_format('Finding last achievers FOR ~w ~w ~w ~w\n', [Name, PreconditionsT, PreconditionsF, Plan]),
   last_achievers_ids(PreconditionsT, PreconditionsF, Verify, Plan, Achievers),
   (
     functor(Name, ActionNameFull, _), sub_string(ActionNameFull, Value, _, _, '_end'), sub_string(ActionNameFull, _, Value, _, ActionName) 
@@ -367,14 +367,27 @@ generate_plan_hl(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPla
     )
   ),
   append([Length-Name-TempLastAchievers], LastAchievers, NewLastAchievers),
+  % append([Length-Name-[]], LastAchievers, NewLastAchievers),
   debug_format('Last achievers: ~w\n', [TempLastAchievers]),
   % Change state and add action to plan
   stack(NewState, Been_list, NewBeen_list),
   debug_format('New state: ~w\n', [NewState]),
   stack([Length-Name], Plan, NewPlan),
   debug_format('New plan: ~w\n', [NewPlan]),
+  % (
+  %   NewPlan = [[1-_]|_]
+  %   -> (leash(-all), trace)
+  %   ;  true
+  % ),
   generate_plan_hl(NewState, Goal, NewBeen_list, NewPlan, NewLastAchievers, MaxDepth, FinalPlan, FinalLastAchievers),
   true.
+
+generate_plan_hl(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPlan, FinalLastAchievers) :-
+  \+equal_set(State, Goal),
+  length(Plan, Length), 
+  Length >= MaxDepth,
+  debug_format('Max depth reached\n\n'),
+  fail.
 
 generate_plan_hl(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPlan, FinalLastAchievers) :-
   fail. 
