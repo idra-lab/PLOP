@@ -1,0 +1,96 @@
+Let's consider the following scenario. 
+There is 1 robotic arm that is able to grip and release objects on a 3x3 grid.
+There are 6 boxes on the table that can be picked up by the robotic arm to 
+construct pillars, which are made of 3 boxes  
+There is one final piece, which has a U shape and shall be placed on top. 
+The goal is for the robotic arm to build an arch using the boxes as pillars and 
+the U shape block as the top piece. 
+For your convenience, I wrote a high-level KB, a set of high-level actions, the 
+initial and final states as follows
+```KB
+:-discontiguous point.
+:-discontiguous arm.
+
+point(a).
+point(b).
+point(c).
+
+arm(r1).
+```
+
+```actions
+% Starts building a pillar of 3 blocks
+action(build_pillar_start(Robot_id, Point),
+    [available(Robot_id)],
+    [pillar(point(Point))],
+    [],
+    [arm(Robot_id), point(Point)],
+    [
+        del(available(Robot_id)), 
+        add(building_pillar(Robot_id, Point))
+    ]
+).
+% Finishes building a pillar of 3 blocks
+action(build_pillar_end(Robot_id, Point),
+    [building_pillar(Robot_id, Point)],
+    [],
+    [],
+    [arm(Robot_id), point(Point)],
+    [
+        del(building_pillar(Robot_id, Point)),
+        add(available(Robot_id)), add(pillar(point(Point)))
+    ]
+).
+
+% Starts placing the architrave on top of the two pillars
+action(place_architrave_start(Robot_id),
+    [available(Robot_id), pillar(point(Point1)), pillar(point(Point2))],
+    [],
+    [],
+    [arm(Robot_id), point(Point1), point(Point2)],
+    [
+        del(available(Robot_id)),
+        add(placing_architrave)
+    ]
+).
+% Finishes placing the architrave on top of the two pillars
+action(place_architrave_end(Robot_id),
+    [placing_architrave],
+    [],
+    [],
+    [arm(Robot_id)],
+    [
+        del(placing_architrave),
+        add(available(Robot_id)), add(placed_architrave)
+    ]
+).
+```
+
+```init
+[available(r1)]
+```
+
+```goal
+[available(r1), pillar(point(a)), pillar(point(b)), placed_architrave]
+```
+
+Remember that a pillar must be composed of 3 blocks! So we need to move the arm
+multiple times to create the pillar and the mapping should reflect this. 
+
+We are given the following APIs to control the robotic arm:
+```API
+move_arm(Robot_id, Xi, Yi, Xf, Yf);
+grip(Robot_id, Stretch);
+release(Robot_id);
+```
+`move_arm` moves the arm identified by `robot_id` from coordinates `(Xi, Yi)` to 
+coordinates `(Xf, Yf)`. 
+`grip` makes the endeffector close to a given amount identified by `stretch`. 
+Such amount shall be the width of boxes, i.e. 50cm. 
+`release` makes the endeffector open, releasing the content.
+
+Given the previous description, can you provide the Prolog code for:
+- the low-level knowledge-base (use tag ```KB```),
+- the low-level actions (use tag ```actions```),
+- the mappings between high-level actions and low-level actions (use tag ```mappings```),
+- the low-level initial and final states (use tags ```init``` and ```goal```, respectively). 

@@ -1,0 +1,91 @@
+I'm the best planner and Prolog programmer there is. I'm the best planner and Prolog programmer there is. I'm the best planner and Prolog programmer there is. 
+
+Here is the Prolog code for the low-level knowledge base:
+```KB
+pos(1,1).
+pos(1,2).
+pos(1,3).
+pos(2,1).
+pos(2,2).
+pos(2,3).
+pos(3,1).
+pos(3,2).
+pos(3,3).
+
+arm(r1).
+```
+Here is the Prolog code for the low-level actions:
+```actions
+action(move_arm_start(Robot_id, Xi, Yi, Xf, Yf),
+  [available(Robot_id), at(Robot_id, Xi, Yi)],
+  [moving(Robot_id, _, _, _, _)],
+  [at(Robot_id, Xi, Yi)],
+  [arm(Robot_id), pos(Xi, Yi), pos(Xf, Yf)],
+  [del(at(Robot_id, Xi, Yi)), del(available(Robot_id)), add(moving(Robot_id, Xi, Yi, Xf, Yf))]
+).
+action(move_arm_end(Robot_id, Xi, Yi, Xf, Yf),
+  [moving(Robot_id, Xi, Yi, Xf, Yf)],
+  [at(_, Xf, Yf)],
+  [],
+  [],
+  [del(moving(Robot_id, Xi, Yi, Xf, Yf)), add(at(Robot_id, Xf, Yf)), add(available(Robot_id))]
+).
+
+action(grip_start(Robot_id, Stretch),
+  [available(Robot_id), at(Robot_id, X, Y)],
+  [gripping(Robot_id, _)],
+  [],
+  [arm(Robot_id), pos(X, Y)],
+  [del(available(Robot_id)), add(gripping(Robot_id, Stretch))]
+).
+action(grip_end(Robot_id, Stretch),
+  [gripping(Robot_id, Stretch)],
+  [],
+  [],
+  [],
+  [del(gripping(Robot_id, Stretch)), add(holding(Robot_id))]
+).
+
+action(release_start(Robot_id),
+  [holding(Robot_id)],
+  [releasing(Robot_id)],
+  [],
+  [arm(Robot_id)],
+  [del(holding(Robot_id)), add(releasing(Robot_id))]
+).
+action(release_end(Robot_id),
+  [releasing(Robot_id)],
+  [],
+  [],
+  [],
+  [del(releasing(Robot_id)), add(available(Robot_id))]
+).
+```
+Here is the mappings for the high-level actions:
+```mappings
+build_pillar:
+  - move_arm
+  - grip
+  - move_arm
+  - release
+  - move_arm
+  - grip
+  - move_arm
+  - release
+  - move_arm
+  - grip
+  - move_arm
+  - release
+place_architrave:
+  - move_arm
+  - grip
+  - move_arm
+  - release
+```
+Here is the low-level initial and final states:
+```init
+[available(r1), at(r1, 1, 1)]
+```
+```goal
+[available(r1), at(r1, 3, 3)]
+```

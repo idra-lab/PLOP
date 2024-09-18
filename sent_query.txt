@@ -1,0 +1,639 @@
+system: Given a robotic problem, produce knowledge base in Prolog format as described in the examples. If you notice something unfeasible write PROBLEM in the answer. 
+user: How is your code divided?
+
+assistant: The knowledge base is composed of 4 parts:
+- `init` section, which contains the initial state of the environment;
+- `goal` section, which contains the final state of the environment;
+- `KB` section, which contains all the information that is not modified by the actions;
+- `actions` section, which contains the description of the actions that can be performed by the agents.
+
+For example, the predicate `available(A)`, which states that the agent A is available, is a predicate that is modified by the actions and should be placed in the `init` section.
+On the other hand, the predicate `pos(X,Y)`, which states that the position (X,Y) is a possible position for the agents, is a predicate that is not modified by the actions and should be placed in the `KB` section.
+
+user: How do you describe the structure of an action?
+
+assistant: In our knowledge base, every action is spilt into 'start' and 'end' actions.
+Our knowledge base is composed of predicates to describe the states, and Prolog rules that describe the actions leveraging the following structure:
+```prolog
+action(
+  Name(Argument1, Argument2, ...), 
+  ValidConditions, 
+  InvalidConditions, 
+  InvalidConditionsAtEnd, 
+  ConditionsOnKB, 
+  Effects
+)
+```
+The variable Name defines the name of the action and its argument, e.g., for the action corresponding to the gripping of an agent on a block, we use Name=grip(Agent,Block).
+The five variables that follow are lists of conditions that must be checked before deciding whether to add the action or not:                     
+- `ValidConditions` is a list containing conditions that should be verified in the current state;
+- `InvalidConditions` is a list containing conditions that must not be verified in the current state;
+- `ValidConditionsAtEnd` is a list containing conditions that, if present in the current state AND in the goal, prevent the action from being chosen;
+- `ConditionOnKB` is a list containing conditions that must be verified on the knowledge base before deciding on the action.
+- `Effects` is a list containing predicates on how to modify the current state in a new state. Each predicate is in the form of either add(P(...)), which adds P(...) to the state, or del(P(...)), which looks for P(...) in the current state and removes it.
+
+The list ValidConditionsAtEnd checks if a condition from the goal has already been achieved and avoids actions which may make one of the contained conditions not to hold.
+ConditionOnKB is a list used to force the Prolog interpreter to ground the variables of the action to some values.
+
+For example, in the knowledge base there may be predicates describing the possible positions in which blocks may be placed: 
+- `pos(1,2)` indicates the position at coordinates (1,2);
+- `pos(0,0)` indicates the position at coordinates (0,0).
+
+user: What information should be placed in the `KB`? 
+
+assistant: In the `KB` section, one should place all those pieces of information that are important for the execution of the actions, yet they are not modified by the same actions. 
+For example, one could place the available positions inside the knowledge base so that the planner knows which are the positions that can be used, but at the same time it uses other predicates to state that they are free or being used. 
+```KB
+:-discontiguous pos/2.
+:-discontiguous wheeled/1.
+pos(1,2).
+pos(2,3).
+pos(3,4).
+wheeled(a1).
+wheeled(a3).
+```
+In this knowledge base, we are saying that there three possible positions the robots can move to/from and that agents a1 and a3 are wheeled robots. 
+
+user: How are the initial and final state written?
+
+assistant: The initial and final states should contain all those predicates that are used to describe the state of the environment and of the agents at the beginning and at the end. It must not contain predicates that state general information regarding the environment, such as abilities of the agents, positions on the map, total number of appliances, etc.
+For example, the following initial state is correct as it contains predicates describing information destined to change.
+
+```init
+[at(a1, 1, 2), available(a1), available(a2), (at, 2, 3)]
+```
+
+```KB
+:-discontiguous agent/1.
+:-discontiguous pos/2.
+agent(a1).
+agent(a2).
+pos(1,2).
+pos(2,3).
+pos(3,4).
+```
+
+Though the following state is not correct:
+
+```init
+[pos(1,2), pos(2,3), pos(3,4), at(a1, 1, 2), available(a1), available(a2), (at, 2, 3)]
+```
+
+```KB
+:-discontiguous agent/1.
+agent(a1).
+agent(a2).
+```
+
+As the information regarding the available positions should be stated in the `KB` section since the positions remain the same.
+
+user: Can you generate a Prolog snippet of code that describes the initial and final states? 
+Given an initial state in which there are two blocks b1, b2 in position (1,1) and (2,2) 
+respectively, move the block b1 to position (3,3) and place b2 on top of b1 using an 
+agent, which is initially available and it will also be available at the end.
+
+assistant: Sure. The problem states that at the beginning there are two blocks on the table: we shall 
+use the `ontable(Block)` predicate to describe this. To state the position of the blocks
+we'll use the predicate `at(Block, X, Y)`. Since both blocks do not have a block over them
+they are clear to be picked-up, so we use the predicate `clear(Block)` to describe this. 
+Finally, the agent is available at the beginning, so we'll use the predicate 
+`available(Agent)`.
+Here it the initial state in Prolog:
+```init
+init_state([
+  ontable(b1), ontable(b2),
+  at(b1,1,1), at(b2,2,2), 
+  clear(b1), clear(b2),
+  available(a1)
+]).
+```
+
+At the end, the problem state that block b2 is on top of block b1, so we'll use the
+predicate `on(BlockTop, BlockBottom)` to describe that `BlockTop` is on top of 
+`BlockBottom`. Notice that now only b2 will be pickable, hence we'll have the predicate
+`clear(b2)`, but not the predicate `clear(b1)`. 
+Here is the Prolog code for the goal state:
+```goal
+goal_state([
+  ontable(b1),
+  on(b2,b1),
+  at(b1,3,3), at(b2,3,3), 
+  clear(b2),
+  available(a1)
+]).
+```
+
+Finally the empty sections that must be present anyway in the code:
+```KB
+```
+```actions
+```
+
+user: Can you generate a Prolog snippet of code that describes the initial and final states? 
+Given an initial state in which there are two blocks b1, b2 on the table in positions 
+(1,1) and (2,2), respectively, and a third block b3 on top of b1 in position (1,1), move 
+the block b3 on top of b2 using an agent, which is initially available and it will also be 
+available at the end.
+
+assistant: Sure. The problem states that at the beginning there are two blocks on the table: we shall 
+use the `ontable(Block)` predicate to describe this. It also says that there is a block,
+namely b3, which is on top of b1, so we'll use the predicate `on(BlockTop, BlockBottom)`
+to specify that `BlockTop` is positioned above `BlockBottom`. To state the position of the
+blocks we'll use the predicate `at(Block, X, Y)`. Since both blocks do not have a block
+over them they are clear to be picked-up, so we use the predicate `clear(Block)` to 
+describe this. Finally, the agent is available at the beginning, so we'll use the 
+predicate `available(Agent)`.
+Here it the initial state in Prolog:
+```init
+init_state([
+  ontable(b1), ontable(b2), on(b3, b1),
+  at(b1,1,1), at(b2,2,2), at(b3,1,1),
+  clear(b3), clear(b2),
+  available(a1)
+]).
+```
+
+At the end, the problem state that block b3 is on top of block b2, so we'll have that 
+b3 is on top of b2. Notice that now only b3 will be pickable, hence we'll have the 
+predicate `clear(b3)`, but not the predicate `clear(b2)`. We'll also have that b1 is
+clear since it does not have any block on top of it anymore. 
+Here is the Prolog code for the goal state:
+```goal
+goal_state([
+  ontable(b1), ontable(b2), on(b3,b2),
+  at(b1,1,1), at(b2,2,2), at(b3,2,2),
+  clear(b1), clear(b3),
+  available(a1)
+]).
+```
+
+Finally the empty sections that must be present in the code:
+
+```kb
+```
+```actions
+```
+
+user: Can you generate a Prolog snippet of code that describes the initial and final states? 
+Given an initial state in which there are four blocks b1, b2, b3, b5 on the table in 
+positions (2,2), (1,1), (3,3), (4,4), respectively, and a fifth block b4 on top of b3 in 
+position (3,3), move the block b2 on top of b1, b3 on top of b2 and place b5 on the table 
+in position (0,0) and b4 on the table in position (3,3). The agent is initially available 
+and it will also be available at the end.
+
+assistant: Sure. The problem states that at the beginning there are 4 blocks on the table: we shall 
+use the `ontable(Block)` predicate to describe this. It also says that there is a block
+on top of another block, so we'll use the predicate `on(BlockTop, BlockBottom)` to specify
+that `BlockTop` is positioned above `BlockBottom`. To state the position of the blocks 
+we'll use the predicate `at(Block, X, Y)`. Since there are blocks that do not have a block 
+over them they are clear to be picked-up, so we use the predicate `clear(Block)` to 
+describe this. Finally, the agent is available at the beginning, so we'll use the 
+predicate `available(Agent)`.
+Here it the initial state in Prolog:
+```init
+init_state([
+  ontable(b1), ontable(b2), ontable(b3), on(b4, b3), ontable(b5),
+  at(b1,2,2), at(b2,1,1), at(b3,3,3), at(b4,3,3), at(b5,4,4),
+  clear(b1), clear(b2), clear(b4), clear(b5),
+  available(a1)
+]).
+```
+
+At the end, the problem state that block b2 is on top of block b1 and b3 is on top of b2
+forming a pillar so we'll have two predicates `on(b2,b1)` and `on(b3,b2)`. Also, blocks
+b4 and b5 are now on the table. Notice that b3, b4 and b5 will be pickable, hence we'll 
+have the predicate `clear(Block)`, for the three blocks, but not for b1 or b2. We'll also
+Here is the Prolog code for the goal state:
+```goal
+goal_state([
+  ontable(b1), ontable(b4), ontable(b5),
+  on(b2,b1), on(b3,b2),
+  at(b1,2,2), at(b2,2,2), at(b3,2,2), at(b4,3,3), at(b5,0,0),
+  clear(b3), clear(b4), clear(b5),
+  available(a1)
+]).
+```
+
+Finally the empty sections that must be present in the code:
+```kb
+```
+```actions
+```
+
+user: Can you generate a Prolog snippet of code that describes the static knowledge base for
+the following scenario? Also, highlight which are the resources of the problem, for
+example the agents, that is, those predicates that carry out tasks.
+Given an initial state in which there are four blocks b1, b2, b3, b5 on the table in 
+positions (2,2), (1,1), (3,3), (4,4), respectively, and a fifth block b4 on top of b3 in 
+position (3,3), move the block b2 on top of b1, b3 on top of b2 and place b5 on the table 
+in position (0,0) and b4 on the table in position (3,3). The agent is initially available 
+and it will also be available at the end.
+
+assistant: Sure. The problem states that there are 4 blocks at the beginning and 4 blocks at the end,
+so each block is static part of the knowledge base since they are not removed or added 
+during the actions. We'll use the predicate `block(Block)` to describe this. The scenario
+also describes some positions on a table, which are immutable by definition, so we'll use
+the predicate `pos(X, Y)` to describe this. Finally, the description talks about an agent
+which carries out actions. This agent is not removed from the description of the state, so
+it is a static part of the knowledge base, and we'll use the predicate `agent(Agent)` to
+describe it. Finally, since the agent is what carries out the actions, we'll use the
+predicate `resources(agent(_))` to describe that whatever agent we consider, that is a 
+resource. 
+Here it the static knowledge base in Prolog:
+```kb
+% Positions
+pos(1,1).
+pos(2,2).
+pos(3,3).
+pos(4,4).
+
+% Blocks
+block(b1).
+block(b2).
+block(b3).
+block(b4).
+block(b5).
+
+% Agent
+agent(a1).
+
+% Resources
+resources(agent(_)).
+```
+
+Finally the empty sections that must be present in the code:
+```init
+```
+```goal
+```
+```actions
+```
+
+user: Can you provide the code for the actions that can be done by the agents in the blocksworld
+scenario?
+
+assistant: Sure, here is the description of the actions
+```actions
+% Move Block1 from (X1,Y1) on the table to the top of block Block2 in (X2,Y2). Notice that we are not removing the predicates for Block2 yet as the action is not concluded yet.
+action(
+  move_table_to_block_start(Agent, Block1, Block2, X1, Y1, X2, Y2),
+  [available(Agent), ontable(Block1), at(Block1, X1, Y1), at(Block2, X2, Y2), clear(Block2), clear(Block1)],
+  [on(_, Block1), on(Block1, _), moving_table_to_table(_, Block, _, _, _, _), moving_table_to_block(_, Block, _, _, _, _, _)],
+  [],
+  [agent(Agent), pos(X1, Y1), pos(X2, Y2), block(Block1), block(Block2), Block1 \= Block2],
+  [
+    del(available(Agent)), del(clear(Block1)), del(ontable(Block1)), del(at(Block1, X1, Y1)),
+    add(moving_table_to_block(Agent, Block1, Block2, X1, Y1, X2, Y2))
+  ]
+).
+action(
+  move_table_to_block_end(Agent, Block1, Block2, X1, Y1, X2, Y2),
+  [moving_table_to_block(Agent, Block1, Block2, X1, Y1, X2, Y2), clear(Block2)],
+  [],
+  [],
+  [agent(Agent)],
+  [
+    del(clear(Block2)), del(moving_table_to_block(Agent, Block1, Block2, X1, Y1, X2, Y2)),
+    add(on(Block1, Block2)), add(at(Block1, X2, Y2)), add(clear(Block1)), add(available(Agent))
+  ]
+).
+% Move a block from a position (X1,Y1) to another position (X2,Y2) on the table. 
+action(
+  move_table_to_table_start(Agent, Block, X1, Y1, X2, Y2), 
+  [ontable(Block), at(Block, X1, Y1), available(Agent), clear(Block)],
+  [at(_, X2, Y2), on(Block, _), moving_table_to_table(_, Block, _, _, _, _), moving_table_to_block(_, Block, _, _, _, _, _)],
+  [],
+  [agent(Agent), pos(X1, Y1), pos(X2, Y2), block(Block)],
+  [
+    del(available(Agent)), del(clear(Block)), del(ontable(Block)), del(at(Block, X1, Y1)),
+    add(moving_table_to_table(Agent, Block, X1, Y1, X2, Y2))
+  ]
+).
+action(
+  move_table_to_table_end(Agent, Block, X1, Y1, X2, Y2),
+  [moving_table_to_table(Agent, Block, X1, Y1, X2, Y2)],
+  [at(X2, Y2)],
+  [],
+  [agent(Agent)],
+  [
+    del(moving_table_to_table(Agent, Block, X1, Y1, X2, Y2)),
+    add(ontable(Block)), add(at(Block, X2, Y2)), add(clear(Block)), add(available(Agent))
+  ]
+).
+% Move Block1 from (X1,Y1) on top of another block to the table in (X2,Y2).
+action(
+  move_onblock_to_table_start(Agent, Block1, X1, Y1, X2, Y2),
+  [available(Agent), on(Block1, Block2), at(Block1, X1, Y1), at(Block2, X1, Y1), clear(Block1)],
+  [moving_onblock_to_table(_, Block1, _, _, _, _), on(_, Block1), ontable(Block1), at(_, X2, Y2)],
+  [],
+  [agent(Agent), pos(X1, Y1), pos(X2, Y2), block(Block1), block(Block2), Block1 \= Block2],
+  [
+    del(available(Agent)), del(clear(Block1)), del(on(Block1, Block2)), del(at(Block1, X1, Y1)),
+    add(moving_onblock_to_table(Agent, Block1, X1, Y1, X2, Y2)), add(clear(Block2))
+  ]
+).
+action(
+  move_onblock_to_table_end(Agent, Block1, X1, Y1, X2, Y2),
+  [moving_onblock_to_table(Agent, Block1, X1, Y1, X2, Y2)],
+  [at(_, X2, Y2)],
+  [],
+  [agent(Agent)],
+  [
+    del(moving_onblock_to_table(Agent, Block1, X1, Y1, X2, Y2)),
+    add(ontable(Block1)), add(at(Block1, X2, Y2)), add(clear(Block1)), add(available(Agent))
+  ]
+).
+% Move Block1 from (X1,Y1) on top of another block to the top of block Block2 in (X2,Y2). Notice that we are not removing the predicates for Block2 yet as the action is not concluded yet.
+action(
+  move_onblock_to_block_start(Agent, Block1, Block2, X1, Y1, X2, Y2),
+  [available(Agent), on(Block1, Block3), at(Block1, X1, Y1), at(Block2, X2, Y2), clear(Block2), clear(Block1)],
+  [moving_onblock_to_block(_, Block1, _, _, _, _), on(_, Block1), ontable(Block1)],
+  [],
+  [agent(Agent), pos(X1, Y1), pos(X2, Y2), block(Block1), block(Block2), block(Block3), Block1 \= Block2, Block1 \= Block3, Block2 \= Block3],
+  [
+    del(available(Agent)), del(clear(Block1)), del(on(Block1, Block3)), del(at(Block1, X1, Y1)),
+    add(moving_onblock_to_block(Agent, Block1, Block2, X1, Y1, X2, Y2)), add(clear(Block3))
+  ]
+).
+action(
+  move_onblock_to_block_end(Agent, Block1, Block2, X1, Y1, X2, Y2),
+  [moving_onblock_to_block(Agent, Block1, Block2, X1, Y1, X2, Y2), clear(Block2)],
+  [],
+  [],
+  [agent(Agent)],
+  [
+    del(clear(Block2)), del(moving_onblock_to_block(Agent, Block1, Block2, X1, Y1, X2, Y2)),
+    add(on(Block1, Block2)), add(at(Block1, X2, Y2)), add(clear(Block1)), add(available(Agent))
+  ]
+).
+```
+
+The remaining sections that must be present in the code:
+```KB
+```
+```init
+```
+```goal
+```
+
+user: Can you provide the general static knowledge base for the following scenario? 
+There are 7 blocks on a table. In the initial state of the simulation, block b1 is in 
+position (2,2), block b2 is in position (4,4), block b4 is in position (8,8). Block b5 is 
+on top of block b1 in position (2,2) and block b3 is on  top of block b2 in position 
+(4,4). After moving the blocks around during the simulation, at the end, we have b5 on top
+of block b4, both in position (8,8), and the remaining blocks b1, b2 and b3 are in the 
+same positions as in the initial state. Other blocks, such as b6, are assigned random 
+positions on the table. Please explicitly assign these positions.
+There are 8 agents with a robotic arm. 
+
+assistant: Sure, here is the description of the static knowledge base
+```kb
+% Positions
+pos(2,2).
+pos(4,4).
+pos(8,8).
+pos(1,1).
+pos(3,3).
+pos(5,5).
+pos(6,6).
+pos(7,7).
+pos(9,9).
+pos(10,10).
+
+% Blocks
+block(b1).
+block(b2).
+block(b3).
+block(b4).
+block(b5).
+block(b6).
+block(b7).
+
+% Agents
+agent(a1).
+agent(a2).
+agent(a3).
+agent(a4).
+agent(a5).
+agent(a6).
+agent(a7).
+agent(a8).
+
+% Resources
+resources(agent(_)).
+```
+
+I took the freedom to add some extra positions on the table in order to randomly assign
+the positions of the remaining blocks b6 and b7 later on. 
+As for the rest, I enumerated the agents available as well as the blocks that are part of
+the scenario.
+The only predicate that can be used to carry out task is `agent`, which is then added to
+the `resources` predicate to indicate that the agents are resources.
+
+The remaining sections that must be present in the code:
+```init
+```
+```goal
+```
+```actions
+```
+
+user: Can you provide the initial and final states for the following scenario? 
+There are 7 blocks on a table. In the initial state of the simulation, block b1 is in 
+position (2,2), block b2 is in position (4,4), block b4 is in position (8,8). Block b5 is 
+on top of block b1 in position (2,2) and block b3 is on  top of block b2 in position 
+(4,4). After moving the blocks around during the simulation, at the end, we have b5 on top
+of block b4, both in position (8,8), and the remaining blocks b1, b2 and b3 are in the 
+same positions as in the initial state. Other blocks, such as b6, are assigned random 
+positions on the table. Please explicitly assign these positions.
+There are 8 agents with a robotic arm. 
+
+assistant: Sure, here is the description of the initial and final states
+```init
+init_state([
+  ontable(b1), ontable(b2), ontable(b4), ontable(b6), ontable(b7),
+  on(b5, b1), on(b3, b2), 
+  at(b1,2,2), at(b2,4,4), at(b4,8,8), at(b5,2,2), at(b3,4,4), at(b6,1,1), at(b7,3,3),
+  clear(b5), clear(b3), clear(b4), clear(b6), clear(b7),
+  available(a1), available(a2), available(a3), available(a4), available(a5), available(a6), available(a7), available(a8)
+]).
+```
+We can see that the initial state describes the positions of the blocks on the table. The
+description says that there are 7 blocks and provides the position for the first 5 blocks. 
+Their position is then reported by using a combination of the predicates `ontable(Block)`,
+`on(BlockTop, BlockBottom)` and `at(Block, X, Y)`. The blocks that are not on top of
+another block are described as clear to be picked-up by the agent, hence the predicate
+`clear(Block)` is used. The agent is available at the beginning, so the predicate
+`available(Agent)` is used. Also notice that the description clearly states that the 
+position of the remaining blocks, which in this case are b6 and b7, must be assigned 
+randomly, hence we have given the blocks two positions on the table that are not used by 
+the other blocks and that do not interfere. 
+
+```goal
+goal_state([
+  ontable(b1), ontable(b2), ontable(b4), ontable(b6), ontable(b7),
+  on(b5, b4), on(b3, b2),
+  at(b1,2,2), at(b2,4,4), at(b3,4,4), at(b4,8,8), at(b5,8,8), at(b6,1,1), at(b7,3,3),
+  clear(b1), clear(b3), clear(b5), clear(b6), clear(b7),
+  available(a1), available(a2), available(a3), available(a4), available(a5), available(a6), available(a7), available(a8)
+]).
+```
+The final state describes the positions of the blocks on the table after the actions have
+been carried out. The description states that b5 was the only block that was moved, and
+it was placed on top of b4. The positions of the blocks that were not moved are the same
+as in the initial state and must be reported. The positions of the remaining blocks, b6
+and b7, are also reported as in the initial state since they belong to the remaining 
+blocks that were not moved. The agents are still available at the end, so the predicate
+`available(Agent)` is used.
+
+user: Can you provide the general static knowledge base for the following scenario? 
+There are 7 blocks on a table. In the initial state of the simulation, block b1 is in 
+position (2,2), block b2 is in position (4,4), block b4 is in position (8,8). Block b5 is 
+on top of block b1 in position (2,2) and block b3 is on  top of block b2 in position 
+(4,4). After moving the blocks around during the simulation, at the end, we have b5 on top
+of block b4, both in position (8,8), and the remaining blocks b1, b2 and b3 are in the 
+same positions as in the initial state. There are other blocks which are not relevant for 
+the simulation, such as b6, b7. We do not care about their position. There are 8 agents
+with a robotic arm.
+There are 8 agents with a robotic arm. 
+
+assistant: Sure, here is the description of the static knowledge base
+```kb
+% Positions
+pos(2,2).
+pos(4,4).
+pos(8,8).
+
+% Blocks
+block(b1).
+block(b2).
+block(b3).
+block(b4).
+block(b5).
+block(b6).
+block(b7).
+
+% Agents
+agent(a1).
+agent(a2).
+agent(a3).
+agent(a4).
+agent(a5).
+agent(a6).
+agent(a7).
+agent(a8).
+
+% Resources
+resources(agent(_)).
+```
+
+I took the freedom to add some extra positions on the table in order to randomly assign
+the positions of the remaining blocks b6 and b7 later on. 
+As for the rest, I enumerated the agents available as well as the blocks that are part of
+the scenario.
+The only predicate that can be used to carry out task is `agent`, which is then added to
+the `resources` predicate to indicate that the agents are resources.
+
+The remaining sections that must be present in the code:
+```init
+```
+```goal
+```
+```actions
+```
+
+user: Can you provide the initial and final states for the following scenario? 
+There are 7 blocks on a table. In the initial state of the simulation, block b1 is in 
+position (2,2), block b2 is in position (4,4), block b4 is in position (8,8). Block b5 is 
+on top of block b1 in position (2,2) and block b3 is on  top of block b2 in position 
+(4,4). After moving the blocks around during the simulation, at the end, we have b5 on top
+of block b4, both in position (8,8), and the remaining blocks b1, b2 and b3 are in the 
+same positions as in the initial state. Other blocks, such as b6, are assigned random 
+positions on the table. Please explicitly assign these positions.
+There are 8 agents with a robotic arm. 
+
+assistant: Sure, here is the description of the initial and final states
+```init
+init_state([
+  ontable(b1), ontable(b2), ontable(b4), ontable(b6), ontable(b7),
+  on(b5, b1), on(b3, b2), 
+  at(b1,2,2), at(b2,4,4), at(b4,8,8), at(b5,2,2), at(b3,4,4), at(b6,1,1), at(b7,3,3),
+  clear(b5), clear(b3), clear(b4), clear(b6), clear(b7),
+  available(a1), available(a2), available(a3), available(a4), available(a5), available(a6), available(a7), available(a8)
+]).
+```
+We can see that the initial state describes the positions of the blocks on the table. The
+description says that there are 7 blocks and provides the position for the first 5 blocks. 
+Their position is then reported by using a combination of the predicates `ontable(Block)`,
+`on(BlockTop, BlockBottom)` and `at(Block, X, Y)`. The blocks that are not on top of
+another block are described as clear to be picked-up by the agent, hence the predicate
+`clear(Block)` is used. The agent is available at the beginning, so the predicate
+`available(Agent)` is used. Also notice that the description clearly states that the 
+position of the remaining blocks, which in this case are b6 and b7, must be assigned 
+randomly, hence we have given the blocks two positions on the table that are not used by 
+the other blocks and that do not interfere. 
+
+```goal
+goal_state([
+  ontable(b1), ontable(b2), ontable(b4), ontable(b6), ontable(b7),
+  on(b5, b4), on(b3, b2),
+  at(b1,2,2), at(b2,4,4), at(b3,4,4), at(b4,8,8), at(b5,8,8), at(b6,1,1), at(b7,3,3),
+  clear(b1), clear(b3), clear(b5), clear(b6), clear(b7),
+  available(a1), available(a2), available(a3), available(a4), available(a5), available(a6), available(a7), available(a8)
+]).
+```
+The final state describes the positions of the blocks on the table after the actions have
+been carried out. The description states that b5 was the only block that was moved, and
+it was placed on top of b4. The positions of the blocks that were not moved are the same
+as in the initial state and must be reported. The positions of the remaining blocks, b6
+and b7, are also reported as in the initial state since they belong to the remaining 
+blocks that were not moved. The agents are still available at the end, so the predicate
+`available(Agent)` is used.
+user: 
+Given that the previous messages are examples, you know have to produce code for the task that follows.
+
+    There are 7 blocks on a table. In the initial state of the simulation, block b1 is in position (2,2), block b2 is in 
+    position (4,4), block b4 is in position (8,8). Block b5 is on top of block b1 in position (2,2) and block b3 is on 
+    top of block b2 in position (4,4). After moving the blocks around during the simulation, at the end, we have b5 on 
+    top of block b4, both in position (8,8), and the remaining blocks b1, b2 and b3 are in the same positions as in the 
+    initial state. Other blocks, such as b6, are assigned random positions on the table. Please explicitly assign
+    these positions.
+    There are 8 agents with a robotic arm. 
+    
+Given the following static knowledge base
+```kb
+% Positions
+pos(2,2).
+pos(4,4).
+pos(8,8).
+pos(1,1).
+pos(3,3).
+pos(5,5).
+pos(6,6).
+pos(7,7).
+pos(9,9).
+pos(10,10).
+
+% Blocks
+block(b1).
+block(b2).
+block(b3).
+block(b4).
+block(b5).
+block(b6).
+block(b7).
+
+% Agents
+agent(a1).
+agent(a2).
+agent(a3).
+agent(a4).
+agent(a5).
+agent(a6).
+agent(a7).
+agent(a8).
+
+% Resources
+resources(agent(_)).
+```
+Write the initial and final states, minding to include all the correct predicates. Remember to wrap it into "init" and "goal" tags and not prolog tags.

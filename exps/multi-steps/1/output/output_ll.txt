@@ -1,0 +1,197 @@
+Adding examples from file: ./LLM/few-shots-cc.yaml
+Adding examples from file: ./LLM/few_shots_cc/hl.yaml
+Adding examples from file: ./LLM/few_shots_cc/ll.yaml
+LLM configuration file:  /home/enrico/Projects/prolog_planner/LLM/conf/gpt4o.yaml
+LLM_VERSION:  LLMPlanning4o
+API_KEY_NAME:  OPENAI_API_KEY
+ENDPOINT:  https://disi-logic-programming.openai.azure.com/
+API_VERSION:  2023-05-15
+[92m [1m [CC] Checking LLM comprehension of scenario for high-level [0m
+[INFO] connecting to the LLM ...
+[94m LLM has correctly understood the scenario [0m 
+OK. The scenario is feasible. The initial and final states of the blocks are clearly described, and the task involves moving block b3 from position (3,3) to position (1,1) on top of block b1. There are two agents available to carry out the task, which is sufficient for the described actions. The agents are available at the beginning and will be available at the end, which ensures that the task can be completed as described.
+[92m [1m [CC] Checking LLM comprehension of scenario for low-level [0m
+[INFO] connecting to the LLM ...
+[94m LLM has correctly understood the scenario [0m 
+OK. The scenario is feasible. The description provides the initial and final positions of the blocks and specifies that there are two robotic arms available to carry out the task. The initial positions of the arms are given, and it is stated that their final positions do not matter. The task involves moving block b3 from position (3,3) to on top of block b1 at position (1,1), which is achievable with the given robotic arms.
+
+Finally the empty sections that must be present in the code:
+```kb
+```
+```init
+```
+```goal
+```
+```actions
+```
+[92m [1m [CC] Checking LLM comprehension of scenario for both scenarios [0m
+[INFO] connecting to the LLM ...
+[94m LLM has correctly understood the scenario [0m 
+OK. The high-level and low-level descriptions are consistent with each other. Both descriptions specify the initial and final positions of the blocks and the availability of two agents. The low-level description adds details about the type of agents (robotic arms) and their initial positions, which do not conflict with the high-level description. The task described is feasible with the given agents.
+
+Finally the empty sections that must be present in the code:
+```kb
+```
+```init
+```
+```goal
+```
+```actions
+```
+[92m [1m [HL] Extracting HL knowledge base [0m
+Adding examples from file: ./LLM/few-shots-hl.yaml
+Adding examples from file: ./LLM/few_shots_hl/general_multi.yaml
+Adding examples from file: ./LLM/few_shots_hl/blocksworld_multi.yaml
+LLM configuration file:  /home/enrico/Projects/prolog_planner/LLM/conf/gpt4o.yaml
+LLM_VERSION:  LLMPlanning4o
+API_KEY_NAME:  OPENAI_API_KEY
+ENDPOINT:  https://disi-logic-programming.openai.azure.com/
+API_VERSION:  2023-05-15
+[92m [HL] Generating knowledge base [0m
+[INFO] connecting to the LLM ...
+True Sure, here is the static knowledge base for the given task. The static knowledge base includes the positions, blocks, and agents. The agents are the resources that carry out the tasks.
+
+```kb
+% Positions
+pos(1,1).
+pos(2,2).
+pos(3,3).
+
+% Blocks
+block(b1).
+block(b2).
+block(b3).
+
+% Agents
+agent(a1).
+agent(a2).
+
+% Resources
+resources(agent(_)).
+```
+
+The remaining sections that must be present in the code:
+```init
+```
+```goal
+```
+```actions
+```
+
+[92m [HL] Generating initial state [0m
+[INFO] connecting to the LLM ...
+True Sure, here is the Prolog code for the initial and final states based on the given scenario:
+
+```init
+init_state([
+  ontable(b1), ontable(b2), ontable(b3),
+  at(b1,1,1), at(b2,2,2), at(b3,3,3),
+  clear(b1), clear(b2), clear(b3),
+  available(a1), available(a2)
+]).
+```
+
+```goal
+goal_state([
+  ontable(b1), ontable(b2), on(b3, b1),
+  at(b1,1,1), at(b2,2,2), at(b3,1,1),
+  clear(b2), clear(b3),
+  available(a1), available(a2)
+]).
+```
+
+The initial state describes that all three blocks are on the table and clear, and both agents are available. The final state describes that block b3 is on top of block b1, and both agents are still available.
+
+[92m [1m [LL] Extract LL knowledge base [0m
+Adding examples from file: ./LLM/few-shots-ll.yaml
+Adding examples from file: ./LLM/few_shots_ll/general_multi.yaml
+Adding examples from file: ./LLM/few_shots_ll/blocks_case_multi.yaml
+LLM configuration file:  /home/enrico/Projects/prolog_planner/LLM/conf/gpt4o.yaml
+LLM_VERSION:  LLMPlanning4o
+API_KEY_NAME:  OPENAI_API_KEY
+ENDPOINT:  https://disi-logic-programming.openai.azure.com/
+API_VERSION:  2023-05-15
+[92m [LL] Generating knowledge base [0m
+[INFO] connecting to the LLM ...
+True Sure, here is the updated general knowledge base to include the new low-level predicates and resources:
+
+```kb
+% Positions on the table
+pos(1,1).
+pos(2,2).
+pos(3,3).
+
+% Blocks
+block(b1).
+block(b2).
+block(b3).
+
+% Agents
+agent(a1).
+agent(a2).
+
+% Arms
+ll_arm(a1).
+ll_arm(a2).
+
+% Resources
+resources(agent(_)).
+resources(ll_arm(_)).
+```
+
+This updated knowledge base now includes the low-level predicates for the robotic arms (`ll_arm/1`) and also considers these arms as resources (`resources(ll_arm(_))`).
+[92m [LL] Generating initial and final states [0m
+[INFO] connecting to the LLM ...
+True Sure, here is the updated code with the initial and final states reflecting the changes in the description for the low-level:
+
+```actions
+```
+
+```KB
+% Positions on the table
+pos(1,1).
+pos(2,2).
+pos(3,3).
+
+% Blocks
+block(b1).
+block(b2).
+block(b3).
+
+% Agents
+agent(a1).
+agent(a2).
+
+% Arms
+ll_arm(a1).
+ll_arm(a2).
+
+% Resources
+resources(agent(_)).
+resources(ll_arm(_)).
+```
+
+```init
+init_state([
+  ontable(b1), ontable(b2), ontable(b3),
+  at(b1,1,1), at(b2,2,2), at(b3,3,3),
+  clear(b1), clear(b2), clear(b3),
+  available(a1), available(a2),
+  ll_arm_at(a1,0,0), ll_arm_at(a2,10,10)
+]).
+```
+
+```goal
+goal_state([
+  ontable(b1), ontable(b2), on(b3, b1),
+  at(b1,1,1), at(b2,2,2), at(b3,1,1),
+  clear(b2), clear(b3),
+  available(a1), available(a2),
+  ll_arm_at(a1,_,_), ll_arm_at(a2,_,_)
+]).
+```
+
+```mappings
+```
+
+This code includes the necessary predicates to reflect the initial and final states of the simulation, considering the positions of the blocks and the availability and positions of the agents with robotic arms.

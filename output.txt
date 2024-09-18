@@ -1,0 +1,68 @@
+Adding examples from file: ./LLM/few-shots-cc.yaml
+Adding examples from file: ./LLM/few_shots_cc/hl.yaml
+Adding examples from file: ./LLM/few_shots_cc/ll.yaml
+LLM configuration file:  /home/enrico/Projects/prolog_planner/LLM/conf/gpt4o.yaml
+LLM_VERSION:  LLMPlanning4o
+API_KEY_NAME:  OPENAI_API_KEY
+ENDPOINT:  https://disi-logic-programming.openai.azure.com/
+API_VERSION:  2023-05-15
+[92m [1m [CC] Checking LLM comprehension of scenario for high-level [0m
+[INFO] connecting to the LLM ...
+Traceback (most recent call last):
+  File "/home/enrico/Projects/prolog_planner/ui_multi_steps.py", line 322, in <module>
+    main()
+  File "/home/enrico/Projects/prolog_planner/ui_multi_steps.py", line 279, in main
+    if not llm_scenario_comprehension(query_hl, query_ll):
+  File "/home/enrico/Projects/prolog_planner/ui_multi_steps.py", line 43, in llm_scenario_comprehension
+    succ, response = llm_scenario.query(scenario_query_hl)
+  File "/home/enrico/Projects/prolog_planner/LLM/LLM.py", line 92, in query
+    llm_output = self.__connect_openai(self.messages)
+  File "/home/enrico/Projects/prolog_planner/venv/lib/python3.10/site-packages/decorator.py", line 232, in fun
+    return caller(func, *(extras + args), **kw)
+  File "/home/enrico/Projects/prolog_planner/venv/lib/python3.10/site-packages/retry/api.py", line 73, in retry_decorator
+    return __retry_internal(partial(f, *args, **kwargs), exceptions, tries, delay, max_delay, backoff, jitter,
+  File "/home/enrico/Projects/prolog_planner/venv/lib/python3.10/site-packages/retry/api.py", line 33, in __retry_internal
+    return f()
+  File "/home/enrico/Projects/prolog_planner/LLM/LLM.py", line 113, in __connect_openai
+    response = client.chat.completions.create(
+  File "/home/enrico/Projects/prolog_planner/venv/lib/python3.10/site-packages/openai/_utils/_utils.py", line 277, in wrapper
+    return func(*args, **kwargs)
+  File "/home/enrico/Projects/prolog_planner/venv/lib/python3.10/site-packages/openai/resources/chat/completions.py", line 579, in create
+    return self._post(
+  File "/home/enrico/Projects/prolog_planner/venv/lib/python3.10/site-packages/openai/_base_client.py", line 1240, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+  File "/home/enrico/Projects/prolog_planner/venv/lib/python3.10/site-packages/openai/_base_client.py", line 921, in request
+    return self._request(
+  File "/home/enrico/Projects/prolog_planner/venv/lib/python3.10/site-packages/openai/_base_client.py", line 952, in _request
+    response = self._client.send(
+  File "/home/enrico/Projects/prolog_planner/venv/lib/python3.10/site-packages/httpx/_client.py", line 914, in send
+    response = self._send_handling_auth(
+  File "/home/enrico/Projects/prolog_planner/venv/lib/python3.10/site-packages/httpx/_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+  File "/home/enrico/Projects/prolog_planner/venv/lib/python3.10/site-packages/httpx/_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+  File "/home/enrico/Projects/prolog_planner/venv/lib/python3.10/site-packages/httpx/_client.py", line 1015, in _send_single_request
+    response = transport.handle_request(request)
+  File "/home/enrico/Projects/prolog_planner/venv/lib/python3.10/site-packages/httpx/_transports/default.py", line 233, in handle_request
+    resp = self._pool.handle_request(req)
+  File "/home/enrico/Projects/prolog_planner/venv/lib/python3.10/site-packages/httpcore/_sync/connection_pool.py", line 216, in handle_request
+    raise exc from None
+  File "/home/enrico/Projects/prolog_planner/venv/lib/python3.10/site-packages/httpcore/_sync/connection_pool.py", line 196, in handle_request
+    response = connection.handle_request(
+  File "/home/enrico/Projects/prolog_planner/venv/lib/python3.10/site-packages/httpcore/_sync/connection.py", line 101, in handle_request
+    return self._connection.handle_request(request)
+  File "/home/enrico/Projects/prolog_planner/venv/lib/python3.10/site-packages/httpcore/_sync/http11.py", line 143, in handle_request
+    raise exc
+  File "/home/enrico/Projects/prolog_planner/venv/lib/python3.10/site-packages/httpcore/_sync/http11.py", line 113, in handle_request
+    ) = self._receive_response_headers(**kwargs)
+  File "/home/enrico/Projects/prolog_planner/venv/lib/python3.10/site-packages/httpcore/_sync/http11.py", line 186, in _receive_response_headers
+    event = self._receive_event(timeout=timeout)
+  File "/home/enrico/Projects/prolog_planner/venv/lib/python3.10/site-packages/httpcore/_sync/http11.py", line 224, in _receive_event
+    data = self._network_stream.read(
+  File "/home/enrico/Projects/prolog_planner/venv/lib/python3.10/site-packages/httpcore/_backends/sync.py", line 126, in read
+    return self._sock.recv(max_bytes)
+  File "/usr/lib/python3.10/ssl.py", line 1288, in recv
+    return self.read(buflen)
+  File "/usr/lib/python3.10/ssl.py", line 1161, in read
+    return self._sslobj.read(len)
+KeyboardInterrupt

@@ -7,270 +7,72 @@ entries:
       Q:
         role: 'user'
         content: |
-          Can you generate a prolog code including a set of actions in order for an agent to grip a block on the table at coordinate(X,Y) in accordance with the information provided?
-      A: 
-        role : 'assistant' 
-        content: | 
-          Sure, here is the Prolog code:
-          ```actions
-          % The robot starts to grip the block
-          action(
-          grip_ontable_start(Agent, Block), 
-            [ontable(Block, X, Y), available(Agent), clear(Block)],
-            [gripped(_, Block), gripping(_, Block)],
-            [ontable(Block, X, Y)],
-            [],
-            [del(available(Agent)), add(gripping(Agent, Block))]
-          ).                           
+          Consider the following query for the high-level part:
+          "There are 3 blocks on a table. In the initial state of the simulation, block b1 is in 
+          position (1,1), block b2 is in position (2,2), block b3 is in position (3,3). After the 
+          execution of the plan, b1 on the table in position (1,1), b2 is on the table in position 
+          (2,2) and b3 is on top of b1 in position (1,1). There are two available agents that can 
+          carry out the task. They are available at the beginning and will be available at the end."
+          And consider the following general knowledge base provided by the high-level:
+          ```kb
+          % Positions on the table
+          pos(1,1).
+          pos(2,2).
+          pos(3,3).
 
-          % The robot finalize gripping the block
-          action(grip_end(Agent, Block),
-            [gripping(Agent, Block)],
-            [],
-            [],
-            [],
-            [del(clear(Block)), del(gripping(Agent, Block)), add(gripped(Agent, Block))]
-          ).
-          ```
-          The above prolog code involving start and end actions allows an agent(robot) to grip an object. 
-          The predicate 'clear' represents that there is no other block above the given block. 
-          In order for the agent to start performing the gripping action, the object must not be held by another agent. Therefore, it is pointed out in the 'InvalidConditions' of the 'grip_ontable_start' action that the target object(Block1) must not be in the 'gripped' or 'gripping' conditions.
-          The predicate 'gripped' represents that the target object is already gripped by an agent.
-          The predicate 'gripping'  represents that an agent has started to perform gripping action but not finalized it yet.               
-          A gripping action can only be finalized when the agent has already begun gripping. Therefore, gripping(Agent1, Block1) is in the ValidConditions.
-                                
-          In InvalidConditions of the action 'grip_ontable_start', [gripped(_, Block), gripping(_, Block)] implies that the object must not have already been held or started to be held by any robot.
+          % Blocks
+          block(b1).
+          block(b2).
+          block(b3).
 
-          ```KB
+          % Agents
+          agent(a1).
+          agent(a2).
+
+          % Resources
+          resources(agent(_)).
           ```
-          ```init
-          ```
-          ```goal
-          ```
-    
-    ###########################################################################
-    ##############################     1     ##################################
-    ###########################################################################
-    1:
-      Q:
-        role: 'user'
-        content: | 
-          Can you generate a Prolog snippet of code that states a set of predicates describing a block that is on the table at coordinate(X,Y)?
-      A:
-        role : 'assistant'
-        content: |
-          Sure, here is the Prolog code: 
-          ```prolog
-          onTable(block, X, Y), clear(block)
-          ```
-    ############################################################################
-    ###############################     2     ##################################
-    ############################################################################
-    2:
-      Q: 
-        role: 'user'
-        content: |     
-          Can you create a Prolog snippet of code for set of predicates respresenting the fact that the block 2 and block 3 are stacked from top to bottom on the table at coordinates (X,Y)?
-    
+          Now, consider the following query for the low-level part:
+          "There are 3 blocks on a table. In the initial state of the simulation, block b1 is in 
+          position (1,1), block b2 is in position (2,2), block b3 is in position (3,3). After the 
+          execution of the plan, b1 on the table in position (1,1), b2 is on the table in position
+          (2,2) and b3 is on top of b1 in position (1,1). There are 2 agents with a robotic arm that
+          are available at the beginning and will be available at the end, which can be used to pick
+          objects.""
+          Please update the high-level knowledge base to reflect the changes in the description for 
+          the low-level, and identify new possible resources to be used.
+          Remember to prepend the low-level predicates with "ll_" to avoid conflicts with the 
+          high-level predicates.
+
       A:
         role: 'assistant'
         content: |
-          Sure, here is the Prolog code: 
-          ```prolog
-          onTable(b3, X, Y), on(b2, b3, X, Y), clear(b2)
-          ```            
-    ############################################################################
-    ###############################     3     ##################################
-    ############################################################################
-    3:
-      Q: 
-        role: 'user'
-        content: |     
-          Can you create a snippet of code in Prolog for a set of predicates respresenting the fact that the block 3 is on the table at coordinates (3,5)?
-      A:
-        role: 'assistant'
-        content: |
-          Sure, here is the Prolog code: 
-          ```prolog
-          onTable(b3, 3, 5)
-          ```    
-    ############################################################################
-    ###############################     4     ##################################
-    ############################################################################
-    4:
-      Q:
-        role: 'user'
-        content: |     
-          Can you create a snippet of code for a set of predicates respresenting the fact that the block 2 is on the table at coordinates (7,-5) with no other block on top of it?
-      
-      A: 
-        role: 'assistant'
-        content: |
-          Sure, here is the Prolog code: 
-          ```prolog
-          onTable(b2, 7, -5), clear(b2)
+          Sure. The knowledge base provided in the high-level is updated as follows:
+          ```kb
+          % Positions on the table
+          pos(1,1).
+          pos(2,2).
+          pos(3,3).
 
-          ```       
-    ############################################################################
-    ###############################     5     ##################################
-    ############################################################################
-    5:
-      Q:
-        role: 'user'
-        content: |     
-          Can you create a snippet of code for set of predicates in Prolog respresenting the fact that the block 1 is on the table at the point (7,-5) and the block 2 and block 3 are stacked from top to bottom on the table at coordinates (3,3)? Can you also provide a description of the set you produced?
-      A: 
-        role: 'assistant'
-        content: |
-          Sure, here is the Prolog code: 
-          ```prolog
-          onTable(b3, 3, 3), on(b2, b3, 3, 3) ,onTable(b1, 7, -5), clear(b1), clear(b2)
+          % Blocks
+          block(b1).
+          block(b2).
+          block(b3).
+
+          % Agents
+          agent(a1).
+          agent(a2).
+
+          % Arms
+          ll_arm(a1).
+          ll_arm(a2).
+
+          % Resources
+          resources(agent(_)).
+          resources(ll_arm(_)).
           ```
-          The predicate 'onTable' implies the block is placed on a table. On the other hand, the predicate 'on' implies that the block is on top of another block at given coordinates.  
-          Above prolog code respresents that the block 1 is on the table at the point (7,-5) and the block 2 and block 3 are stacked from top to bottom on the table at coordinates (3,3).
-
-    ############################################################################
-    ###############################     6     ##################################
-    ############################################################################
-    6:
-      Q:
-        role: 'user'
-        content: |
-          Can you create a snippet of code in Prolog for a set of predicates respresenting the fact that the block 1 is on the table at the point (7,-5) and the block 3 is placed on the table at coordinates (3,3)? They both don't have blocks placed on top of them.   
-      A: 
-        role: 'assistant'
-        content: |
-          Sure, here is the Prolog code: 
-          ```prolog
-          onTable(b3, 3, 3), onTable(b1, 7, -5), clear(b1), clear(b3)
-          ```       
-    ############################################################################
-    ###############################     7     ##################################
-    ############################################################################
-    7:
-      Q:
-        role: 'user'
-        content: |
-          Can you create a snippet of Prolog code for a set of predicates stating that agent 1 is available to be used?
-      A: 
-        role: 'assistant'
-        content: |
-          Sure, here is the Prolog code: 
-          ```prolog
-          available(a1)
-          ```    
-    ############################################################################
-    ###############################     8     ##################################
-    ############################################################################
-    8:
-      Q:
-        role: 'user'
-        content: |   
-          Can you create a snippet of code for a set of predicates stating that agent 2 is available to be used?
-      A: 
-        role: 'assistant'
-        content: |
-          Sure, here is the Prolog code: 
-          ```prolog
-          available(a2)
-          ```    
-    ############################################################################
-    ###############################     9     ##################################
-    ############################################################################
-    9:
-      Q:
-        role: 'user'
-        content: |
-          Can you create a snippet of code for a set of predicates stating that agent 1 and agent 2 are available to be used and the block 2 and block 4 are on the table at coordinates (7,-5) and (5,-7), respectively, without any block on top of them?
-      A: 
-        role: 'assistant'
-        content: |
-          Sure, here is the Prolog code: 
-          ```prolog
-          available(a1), available(a2), onTable(b2, 7, -5), onTable(b4, 5, -7), clear(b2), clear(b4)
-          ```    
-
-    ############################################################################
-    ###############################     10     ##################################
-    ############################################################################
-    10:
-      Q: 
-        role: 'user'
-        content: |
-          Can you generate a prolog code including a set of actions in order for an agent to grip a block that is placed on top of another one at uncoordinate (X,Y)?
-      A: 
-        role: 'assistant'
-        content: |
-          Sure, here is the Prolog code:
-          ```actions
-          action(
-            grip_on_start(Agent, Block), 
-            [on(Block, Block1, X, Y), available(A), clear(Block)],
-            [gripped(_, Block), gripping(_, Block)],
-            [on(B, B1, X, Y)],
-            [],
-            [del(available(A)), add(gripping(A, B))]
-          ).
-
-          action(grip_end(Agent, Block),
-            [gripping(Agent, Block)],
-            [],
-            [],
-            [],
-            [del(clear(Block)), del(gripping(Agent, Block1)), add(gripped(Agent, Block))]
-          ).
-          ```
-          In the description it is implied that the agent must be available for it to grip a block and that the block being gripped must be clear.
-          Moreover, once the block has been gripped, then the agent is not available and the block gripped is not clear.
-
-          ```KB
-          ```
-          
-          ```init
-          ```
-
-          ```goal
-          ```
-
-    ############################################################################
-    ###############################     11     ##################################
-    ############################################################################
-    11:
-      Q: 
-        role: 'user'
-        content: |
-          To query for a solution, we provide the initial and final states as input to the `go` function.
-
-          Consider the following test cases in which some agents(a1, a2,..) are used to move a set of boxes (b1, b2, b3, ...) from an initial state to a final state.
-
-          % From b1 at the point (2,2), b2 on the table at point (1,1) to b2,b1 stacked at point (3,3).
-          test1 :- go(
-            [available(a1), available(a2), available(a3), ontable(b1, 2, 2), ontable(b2, 1, 1), clear(b1), clear(b2)],
-            [available(a1), available(a2), available(a3), ontable(b2,3,3), on(b1, b2, 3, 3), clear(b1)]
-          ).
-          % From b2,b1 stacked to b1, b2 on the table.
-          test2 :- go(
-            [available(a1), available(a2), available(a3), ontable(b2,1,1), on(b1, b2, 1, 1), clear(b1)],
-            [available(a1), available(a2), available(a3), ontable(b1,2,2), ontable(b2, 3, 3), clear(b1), clear(b2)]
-          ).
-          % From b2,b1 stacked and b3 on the table to b1,b2,b3 stacked.
-          test3 :- go(
-            [available(a1), available(a2), available(a3), ontable(b2,1,1), on(b1, b2, 1, 1), clear(b1), ontable(b3, 2, 2), clear(b3)],
-            [available(a1), available(a2), available(a3), ontable(b1,3,3), on(b2, b1, 3, 3), on(b3, b2, 3, 3), clear(b3)]
-          ).
-          
-          Can you generate a prolog code containing a new test case, namely testCase, in which we use 3 agents to move the boxes b1, b2, b3, b4 on the table, which are at (1,1),(2,2),(3,3),(4,4), respectively, to a final stack [b1,b2,b3,b4] at point (6,6), which is ordered from top to bottom?
-
-    
-      A: 
-        role: 'assistant'
-        content: |
-          Sure , here is the Prolog code to go from b1 at (1,1), b2 at (2,2), b3 at (3,3), and b4 at (4,4) to b1,b2,b3, b4 stacked at (6,6).
-          ```init
-          [available(a1), available(a2), available(a3), ontable(b1,1,1), clear(b1), ontable(b2,2,2), clear(b2), ontable(b3,3,3), clear(b3),ontable(b4,4,4), clear(b4)],
-          ```
-
-          ```goal
-          [available(a1), available(a2), available(a3), ontable(b4,6,6), on(b4, b3, 6, 6), on(b3, b2, 6, 6), on(b2, b1, 6, 6), clear(b1)]
-          ```
-
+          The new knowledge base reflects the changes in the description for the low-level and 
+          identifies new possible resources to be used. In particular, the new knowledge base 
+          includes the arms that the agents have, which can be used to pick objects. These arms are
+          also considered as resources that can be used in the task. In the description no other 
+          change was made, so the knowledge base remains the same.

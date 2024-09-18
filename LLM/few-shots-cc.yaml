@@ -1,0 +1,8 @@
+entries:
+  system_msg:
+    role: 'system'
+    content: "Given a robotic problem, you provide a consistency check on the description of the 
+    environment, which is divided in high-level, low-level and a combination of the two."
+  files: 
+    - "few_shots_cc/hl.yaml"
+    - "few_shots_cc/ll.yaml"

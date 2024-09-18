@@ -15,7 +15,7 @@ entries:
           The knowledge base is composed of two parts:
             - The list of available actions;
             - A knowledge base describing general information. 
-          Moreover, it considers an initial and final states.
+          Moreover, it contains an initial and final states.
 
           If the asked question requires just a snippet of code, then you are free to answer as you please. 
           In any other circumstance, you'll have to include the following sections:
@@ -31,7 +31,7 @@ entries:
           ```goal
           ```
 
-          Any or all of them may be empty, but still every section must be present.
+          Any (or all) of them may be empty, but still every section must be present.
 
 
     ############################################################################
@@ -46,7 +46,7 @@ entries:
       A:
         role: 'assistant'
         content: |
-          In our knowledge base, every action is splitted into 'start' and 'end' actions for both durative and instantaneous actions.
+          In our knowledge base, every action is spilt into 'start' and 'end' actions.
           Our knowledge base is composed of predicates to describe the states, and Prolog rules that describe the actions leveraging the following structure:
           ```prolog
           action(
@@ -62,9 +62,9 @@ entries:
           The five variables that follow are lists of conditions that must be checked before deciding whether to add the action or not:                     
           - `ValidConditions` is a list containing conditions that should be verified in the current state;
           - `InvalidConditions` is a list containing conditions that must not be verified in the current state;
-          - `ValidConditionsAtEnd` is a list containing conditions that must not be verified in the goal;
+          - `ValidConditionsAtEnd` is a list containing conditions that, if present in the current state AND in the goal, prevent the action from being chosen;
           - `ConditionOnKB` is a list containing conditions that must be verified on the knowledge base before deciding on the action.
-          - `Effects` is a list containing a list of predicates on how to modify the current state in a new state. Each predicate is in the form of either add(P(...)), which adds P(...) to the state, or del(P(...)), which looks for P(...) in the current state and removes it.
+          - `Effects` is a list containing predicates on how to modify the current state in a new state. Each predicate is in the form of either add(P(...)), which adds P(...) to the state, or del(P(...)), which looks for P(...) in the current state and removes it.
 
           The list ValidConditionsAtEnd checks if a condition from the goal has already been achieved and avoids actions which may make one of the contained conditions not to hold.
           ConditionOnKB is a list used to force the Prolog interpreter to ground the variables of the action to some values.
@@ -81,13 +81,13 @@ entries:
       Q: 
         role: 'user'
         content: |
-          What information should be placed in the knowledge base? 
+          What information should be placed in the `KB`? 
 
       A:
         role: 'assistant'
         content: |
-          In the knowledge base section, one should place all those pieces of information that are important for the execution of the actions, yet they are not modified by the same actions. 
-          For example, one could place the available positions inside the knowledge so that the planner knows which are the positions that can be used, but at the same time it uses other predicates to state that they are free or being used. 
+          In the `KB` section, one should place all those pieces of information that are important for the execution of the actions, yet they are not modified by the same actions. 
+          For example, one could place the available positions inside the knowledge base so that the planner knows which are the positions that can be used, but at the same time it uses other predicates to state that they are free or being used. 
           ```KB
           :-discontiguous pos/2.
           :-discontiguous wheeled/1.
@@ -98,23 +98,6 @@ entries:
           wheeled(a3).
           ```
           In this knowledge base, we are saying that there three possible positions the robots can move to/from and that agents a1 and a3 are wheeled robots. 
-
-          ```actions
-          action(
-            moveTo_start(Agent, X1, Y1, X2, Y2),
-            [available(Agent), at(Agent, X1, Y1)],
-            [at(_, X2, Y2)],
-            [at(Agent, X1, Y1)],
-            [pos(X1, Y1), wheeled(Agent)],
-            [del(at(Agent, X1, Y1)), del(available(Agent)), add(moving(Agent, X1, Y1, X2, Y2))]
-          ).
-          ```
-          In this case, the action moveTo_start takes an agent Agent, an initial position (X1, Y1) and a final position (X2, Y2). 
-          The first list is composed of the preconditions that must be verified, i.e., the agent must be available and it must be in a initial position, which will then be assigned to (X1, Y1). 
-          The second list is composed of the preconditions that must not be verified, i.e., there must not be any agent at the final position (X2, Y2). 
-          The third list is composed of conditions that, if verified w.r.t. the goal, avoid the action from being taken. In this case, if the predicate `at(Agent, X1, Y1)` is in the goal state, then it means that the agent has reached its destination and should not move. 
-          The fourth list is composed of predicates that must be verified with the knowledge base. In this regard, we know that only two agents are wheeled and they are `a1` and `a3`. Also we know that the possible available positions are the three shown in the knowledge base. Any other value would fail this conditions and avoid the action from being taken.
-          The fifth and last list is composed of the actions. Notice that since all actions are split in start and end, the start action does not immediately add the `at(Agent, X2, Y2)` predicate, but it adds a predicate that states the transiction between states. Moreover, by removing both `at(Agent, X1, Y1)` and `available(Agent)`, we are sure that the agent can not be chosen again for the `moveTo_start` action. 
 
 
     ############################################################################
@@ -157,9 +140,4 @@ entries:
           agent(a2).
           ```
 
-          As the information regarding the available positions should be stated in the KB
-
-
- 
-
-
+          As the information regarding the available positions should be stated in the `KB` section since the positions remain the same.

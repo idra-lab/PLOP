@@ -1,0 +1,101 @@
+I'm the best planner and Prolog programmer there is. I'm the best planner and Prolog programmer there is. I'm the best planner and Prolog programmer there is.
+
+Now, let's proceed with the task.
+
+Here is the Prolog code for the low-level knowledge base:
+```prolog
+:- discontiguous at/2.
+:- discontiguous box/1.
+
+% Define the points on the grid
+at(point(a), (0, 0)).
+at(point(b), (1, 0)).
+at(point(c), (2, 0)).
+
+% Define the boxes and their initial positions
+box(box1).
+box(box2).
+box(box3).
+box(box4).
+box(box5).
+box(box6).
+box(architrave).
+
+% Define the arm
+arm(r1).
+```
+
+Here is the Prolog code for the low-level actions:
+```prolog
+action(move_arm_start(Robot_id, Xi, Yi, Xf, Yf),
+    [available(Robot_id), at(Robot_id, (Xi, Yi))],
+    [moving(Robot_id)],
+    [],
+    [arm(Robot_id)],
+    [del(available(Robot_id)), add(moving(Robot_id, (Xf, Yf)))]
+).
+action(move_arm_end(Robot_id, Xi, Yi, Xf, Yf),
+    [moving(Robot_id, (Xf, Yf))],
+    [],
+    [],
+    [arm(Robot_id)],
+    [del(moving(Robot_id, (Xf, Yf))), add(available(Robot_id)), add(at(Robot_id, (Xf, Yf)))]
+).
+
+action(grip_start(Robot_id, Stretch),
+    [available(Robot_id), not(holding(Robot_id, _))],
+    [],
+    [],
+    [arm(Robot_id)],
+    [del(available(Robot_id)), add(gripping(Robot_id, Stretch))]
+).
+action(grip_end(Robot_id, Stretch),
+    [gripping(Robot_id, Stretch)],
+    [],
+    [],
+    [arm(Robot_id)],
+    [del(gripping(Robot_id, Stretch)), add(holding(Robot_id, Stretch))]
+).
+
+action(release_start(Robot_id),
+    [holding(Robot_id, _)],
+    [],
+    [],
+    [arm(Robot_id)],
+    [del(holding(Robot_id, _)), add(releasing(Robot_id))]
+).
+action(release_end(Robot_id),
+    [releasing(Robot_id)],
+    [],
+    [],
+    [arm(Robot_id)],
+    [del(releasing(Robot_id)), add(available(Robot_id))]
+).
+```
+
+Here is the mappings between high-level actions and low-level actions:
+```mappings
+build_pillar_start:
+  - move_arm
+  - grip
+build_pillar_end:
+  - move_arm
+  - release
+place_architrave_start:
+  - move_arm
+  - grip
+place_architrave_end:
+  - move_arm
+  - release
+```
+
+And finally, the low-level initial and final states:
+```init
+[available(r1), at(r1, (0, 0)), at(box1, (0, 1)), at(box2, (0, 2)), at(box3, (1, 1)), at(box4, (1, 2)), at(box5, (2, 1)), at(box6, (2, 2)), at(architrave, (1, 0))]
+```
+
+```goal
+[available(r1), at(r1, (0, 0)), pillar(point(a)), pillar(point(b)), placed_architrave]
+```
+
+Please note that the exact coordinates for the boxes and the architrave are not specified in the high-level description, so I've made an assumption about their initial positions. Adjust these as necessary to match the actual environment setup.

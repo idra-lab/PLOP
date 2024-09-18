@@ -1,0 +1,119 @@
+I'm the best planner and Prolog programmer there is.
+I'm the best planner and Prolog programmer there is.
+I'm the best planner and Prolog programmer there is.
+
+Now, let's proceed with the Prolog code for the low-level knowledge base, actions, mappings, and initial and final states.
+
+```KB
+:-discontiguous at/3.
+:-discontiguous box/1.
+:-discontiguous arm/1.
+
+% Define the points on the grid
+point(1,1).
+point(1,2).
+point(1,3).
+point(2,1).
+point(2,2).
+point(2,3).
+point(3,1).
+point(3,2).
+point(3,3).
+
+% Define the boxes and their initial positions
+box(box1).
+box(box2).
+box(box3).
+box(box4).
+box(box5).
+box(box6).
+box(architrave).
+
+% Define the robotic arm
+arm(r1).
+```
+
+```actions
+% Move arm to position
+action(move_arm_start(Robot_id, Xi, Yi, Xf, Yf),
+  [available(Robot_id), at(Xi, Yi)],
+  [moving(Robot_id)],
+  [],
+  [arm(Robot_id), point(Xi, Yi), point(Xf, Yf)],
+  [del(available(Robot_id)), add(moving(Robot_id, Xf, Yf))]
+).
+action(move_arm_end(Robot_id, Xi, Yi, Xf, Yf),
+  [moving(Robot_id, Xf, Yf)],
+  [],
+  [],
+  [arm(Robot_id), point(Xi, Yi), point(Xf, Yf)],
+  [del(moving(Robot_id, Xf, Yf)), add(available(Robot_id)), add(at(Xf, Yf))]
+).
+
+% Grip a box
+action(grip_start(Robot_id, Stretch),
+  [available(Robot_id)],
+  [holding(Robot_id, _)],
+  [],
+  [arm(Robot_id)],
+  [del(available(Robot_id)), add(gripping(Robot_id, Stretch))]
+).
+action(grip_end(Robot_id, Stretch),
+  [gripping(Robot_id, Stretch)],
+  [],
+  [],
+  [arm(Robot_id)],
+  [del(gripping(Robot_id, Stretch)), add(holding(Robot_id, Stretch))]
+).
+
+% Release a box
+action(release_start(Robot_id),
+  [holding(Robot_id, _)],
+  [],
+  [],
+  [arm(Robot_id)],
+  [del(holding(Robot_id, _)), add(releasing(Robot_id))]
+).
+action(release_end(Robot_id),
+  [releasing(Robot_id)],
+  [],
+  [],
+  [arm(Robot_id)],
+  [del(releasing(Robot_id)), add(available(Robot_id))]
+).
+```
+
+```mappings
+build_pillar_start:
+  - move_arm
+  - grip
+  - move_arm
+  - release
+  - move_arm
+  - grip
+  - move_arm
+  - release
+  - move_arm
+  - grip
+  - move_arm
+  - release
+build_pillar_end:
+  - move_arm
+place_architrave_start:
+  - move_arm
+  - grip
+  - move_arm
+  - release
+place_architrave_end:
+  - move_arm
+```
+
+```init
+[at(1,1), at(1,2), at(1,3), at(2,1), at(2,2), at(2,3), at(3,1), at(3,2), at(3,3), available(r1)]
+```
+
+```goal
+[available(r1), pillar(point(a)), pillar(point(b)), placed_architrave]
+```
+
+Please note that the `at/3` predicate in the initial state should be associated with the boxes and the architrave, and their specific starting positions should be defined. The `pillar/1` and `placed_architrave/0` predicates in the goal state represent the completed structure. The mappings provided are a high-level overview and would need to be expanded with specific coordinates for the boxes and the architrave, as well as the specific sequence of moves for the arm to build the pillars and place the architrave.

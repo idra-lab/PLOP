@@ -1,0 +1,5 @@
+LLM_VERSION : "LLMPlanning4o"
+API_KEY_NAME : "OPENAI_API_KEY"
+ENDPOINT : "https://disi-logic-programming.openai.azure.com/"
+API_VERSION : "2023-05-15"
+SYSTEM_FINGERPRINT : "None"

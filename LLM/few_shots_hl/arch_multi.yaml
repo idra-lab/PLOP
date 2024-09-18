@@ -19,7 +19,7 @@ entries:
           Initially, the blocks are free and the agents are available. Moreover, one block is in position c, another is 
           in position d and the architrave is in position e.
           We want to construct the first pillar on a, the second pillar on b and the arch on top of them. 
-          There are two agents that can carry out this task, namely a1 and a2. 
+          There are two agents that can carry out this task, namely a1 and a2. They are free both at the beginning and at the end.
           Can you provide the general knowledge base and specify the resources available?
 
       A:
@@ -71,8 +71,8 @@ entries:
           - d: (5, 5, 0)
           - e: (9, 9, 0)
           - f: (1.5, 1.5, 0)
-          Initially, the blocks are free and the agents are available. Moreover, one block is in position c, another is 
-          in position d and the architrave is in position e.
+          Initially, the blocks are free and the agents are available. 
+          Moreover, one block is in position c, another is in position d and the architrave is in position e.
           We want to construct the first pillar on a, the second pillar on b and the arch on top of them. 
           There are two agents that can carry out this task, namely a1 and a2. 
           Also the knowledge base extracted before is the following:

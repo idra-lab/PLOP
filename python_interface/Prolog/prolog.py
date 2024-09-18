@@ -75,12 +75,12 @@ def extract_tt_actions(tt_actions, res_x_action) -> dict:
 
     return ret
 
-def execTest(test = "plan") -> dict:
+def execTest(query = "plan", kb_path = "") -> dict:
     """
-    Looks for the planner in the prolog_planner directory and executes the test specified in the argument.
+    Looks for the planner in the prolog_planner directory and executes the query specified in the argument.
 
     Args:
-        test (str): The test to be executed. Defaults to "plan/5".
+        query (str): The query to be executed. Defaults to "plan/5".
     
     Returns:
         dict: A dictionary containing the snap actions ('actions'), 
@@ -88,14 +88,16 @@ def execTest(test = "plan") -> dict:
             the list of resources ('resources'), 
             and the dictionary of resources used per action ('res_x_actions').
     """
-    print(f"Executing {test} from Prolog")
+    print(f"Executing {query} from Prolog")
     
     prolog = Prolog()
     # planner_path = os.path.join(os.getcwd(), "..", "prolog_planner")
     print(f"Looking for planner at {PLANNER_PATH}")
+    if kb_path != "":
+        prolog.consult(kb_path)
     prolog.consult(PLANNER_PATH)
 
-    planner = Functor(test, 5)
+    planner = Functor(query, 5)
     actions_var = Variable()
     tt_actions_var = Variable()
     adj_matrix_var = Variable()

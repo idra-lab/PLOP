@@ -1,0 +1,5 @@
+There are 3 blocks on a table. In the initial state of the simulation, block b1 is in position (1,1), block b2 is in 
+position (2,2), block b3 is in position (3,3). After the execution of the plan, b1 on the table in position (1,1), 
+b2 is on the table in position (2,2) and b3 is on top of b1 in position (1,1).
+There are two available agents that can carry out the task. They are available at the beginning and will be 
+available at the end. 

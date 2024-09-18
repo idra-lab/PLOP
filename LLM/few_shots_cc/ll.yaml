@@ -1,0 +1,121 @@
+entries:
+  convo:
+    ############################################################################
+    ###############################     0     ##################################
+    ############################################################################
+    0: 
+      Q:
+        role: 'user'
+        content: | 
+          Consider the following description of a scenario. State if this scenario is feasible or
+          not. Please write OK if it is, PROBLEM, if it is not. Also describe you thought process. 
+          Given an initial state in which there are two blocks b1, b2 in position (1,1) and (2,2) 
+          respectively, move the block b1 to position (3,3) and place b2 on top of b1 using 2 
+          agents, which are initially available and it will also be available at the end. The agents
+          are robotics arm that can pick and move objects around. The initial positions of the
+          arms are (0,0) and (10,10), while it does not matter where they are at the end.
+
+      A:
+        role : 'assistant'
+        content: |
+          OK. The scenario is feasible. The description provides details on the agents stating that 
+          they are robotics arms able to move the blocks. The initial position of the arms is given, 
+          while it is specified that at the end it does not matter where they are. 
+
+          Finally the empty sections that must be present in the code:
+          ```kb
+          ```
+          ```init
+          ```
+          ```goal
+          ```
+          ```actions
+          ```
+
+    ############################################################################
+    ###############################     1     ##################################
+    ############################################################################
+    1: 
+      Q:
+        role: 'user'
+        content: | 
+          Consider the following description of a scenario. State if this scenario is feasible or
+          not. Please write OK if it is, PROBLEM, if it is not. Also describe you thought process. 
+          Given an initial state in which there are two blocks b1, b2 in position (1,1) and (2,2) 
+          respectively, move the block b1 to position (3,3) and place b2 on top of b1 using 2 
+          agents, which are initially available and it will also be available at the end. The agents
+          are robotics arm that can pick and move objects around. The initial positions of the
+          arms are (0,0) and (0,0), while it does not matter where they are at the end.
+
+      A:
+        role : 'assistant'
+        content: |
+          PROBLEM. The scenario is not feasible. Indeed, the description states that the two arms
+          would start from the same position, which is not possible. The arms should start from
+          different positions. 
+
+          Finally the empty sections that must be present in the code:
+          ```kb
+          ```
+          ```init
+          ```
+          ```goal
+          ```
+          ```actions
+          ```
+
+    ############################################################################
+    ###############################     2     ##################################
+    ############################################################################
+    2: 
+      Q:
+        role: 'user'
+        content: | 
+          Consider the following description of a scenario. State if this scenario is feasible or
+          not. Please write OK if it is, PROBLEM, if it is not. Also describe you thought process. 
+          Given an initial state in which there are two blocks b1, b2 in position (1,1) and (2,2) 
+          respectively, move the block b1 to position (3,3) and place b2 on top of b1 using 1 
+          agent, which is initially available and it will also be available at the end. The agent
+          is a car-like robot. Its initial position is (0,0) and it does not matter where they are 
+          at the end.
+
+      A:
+        role : 'assistant'
+        content: |
+          PROBLEM. The scenario is not feasible. Indeed, the description states that the agent is a 
+          car-like robot. This type of agent is not able to pick and move objects around.
+
+          Finally the empty sections that must be present in the code:
+          ```kb
+          ```
+          ```init
+          ```
+          ```goal
+          ```
+          ```actions
+          ```
+
+    ############################################################################
+    ###############################     3     ##################################
+    ############################################################################
+    3: 
+      Q:
+        role: 'user'
+        content: | 
+          Nothing to do here.
+
+      A:
+        role : 'assistant'
+        content: |
+          OK. We do not care about the low-level part in this case. 
+
+          Finally the empty sections that must be present in the code:
+          ```kb
+          ```
+          ```init
+          ```
+          ```goal
+          ```
+          ```actions
+          ```
+    

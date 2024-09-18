@@ -1,7 +1,6 @@
 import yaml
 import os
 
-import openai
 from openai import AzureOpenAI
 from retry import retry
 
@@ -13,7 +12,7 @@ except ImportError:
 
 class LLM:
     llm_default_config = {
-        "max_tokens": 1000,
+        "max_tokens": 4096,
         "temperature": 0.0,
         "top_p": 0.0,
         "frequency_penalty": 0.0,
@@ -26,20 +25,20 @@ class LLM:
         self.messages = []
         self.system_msg = ""
 
-        if examples_yaml_file != None:
+        if len(examples_yaml_file) > 0 :
             for file in examples_yaml_file:
+                if file == "":
+                    continue
                 assert os.path.isfile(file), "File {} does not exist".format(file)
                 tmp_messages = []
                 utility.includeYAML(file, tmp_messages, self.system_msg)
                 self.messages += tmp_messages
-                print(self.messages, tmp_messages, end="\n\n\n\n")
         else:
             print("No examples provided")
 
         print("LLM configuration file: ", llm_connection_config_file)
         if llm_connection_config_file.endswith(".yaml") and os.path.isfile(llm_connection_config_file):
             with open(llm_connection_config_file) as file:
-                print("Opened")
                 llm_connection_config = yaml.load(file, Loader=yaml.FullLoader)
 
                 self.engine  = llm_connection_config["LLM_VERSION"]
@@ -78,6 +77,10 @@ class LLM:
         conn_success, llm_output = False, ""
         
         self.messages.append({"role": "user", "content": prompt})
+
+        with open("sent_query.txt", "w") as f:
+            for msg in self.messages:
+                f.write(f"{msg['role']}: {msg['content']}\n")
         
         n_retry = 0
         while not conn_success:
@@ -92,6 +95,8 @@ class LLM:
                 print(f"[ERROR] LLM error: {e}")
                 if end_when_error:
                     break
+
+        self.messages = self.messages[:-1]
         
         return conn_success, llm_output
     

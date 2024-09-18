@@ -1,0 +1,88 @@
+Adding examples from file: ./LLM/few-shots-cc.yaml
+Adding examples from file: ./LLM/few_shots_cc/hl.yaml
+Adding examples from file: ./LLM/few_shots_cc/ll.yaml
+LLM configuration file:  /home/enrico/Projects/prolog_planner/LLM/conf/gpt4o.yaml
+LLM_VERSION:  LLMPlanning4o
+API_KEY_NAME:  OPENAI_API_KEY
+ENDPOINT:  https://disi-logic-programming.openai.azure.com/
+API_VERSION:  2023-05-15
+[CC] Checking LLM comprehension of scenario for high-level
+[INFO] connecting to the LLM ...
+LLM has correctly understood the scenario
+OK. The scenario is feasible. The initial and final states of the blocks are clearly described, and the task involves moving block b3 from position (3,3) to position (1,1) on top of block b1. There are two agents available to carry out the task, which is sufficient for the described actions. The agents are available at the beginning and will be available at the end, which ensures that the task can be completed as described.
+[CC] Checking LLM comprehension of scenario for low-level
+[INFO] connecting to the LLM ...
+LLM has correctly understood the scenario
+OK. The description "Nothing to do here" implies that there is no specific scenario or task to evaluate. Therefore, there is no problem with the description as it stands.
+[CC] Checking LLM comprehension of scenario for both scenarios
+[INFO] connecting to the LLM ...
+LLM has correctly understood the scenario
+OK. The high-level description of the scenario is consistent and feasible. The initial and final positions of the blocks are clearly stated, and the presence of two available agents capable of carrying out the task is mentioned. The low-level description states "Nothing to do here," which implies that no additional low-level details are necessary for understanding or executing the scenario. Therefore, the scenario is feasible as described.
+Press enter to continue...
+[HL] Extracting HL knowledge base
+Adding examples from file: ./LLM/few-shots-hl.yaml
+Adding examples from file: ./LLM/few_shots_hl/general_multi.yaml
+Adding examples from file: ./LLM/few_shots_hl/blocksworld_multi.yaml
+LLM configuration file:  /home/enrico/Projects/prolog_planner/LLM/conf/gpt4o.yaml
+LLM_VERSION:  LLMPlanning4o
+API_KEY_NAME:  OPENAI_API_KEY
+ENDPOINT:  https://disi-logic-programming.openai.azure.com/
+API_VERSION:  2023-05-15
+[HL] Generating knowledge base
+[INFO] connecting to the LLM ...
+True Sure, here is the static knowledge base for the given task. The static knowledge base includes the positions on the table, the blocks, and the agents. The agents are the resources that can carry out the tasks.
+
+```kb
+% Positions
+pos(1,1).
+pos(2,2).
+pos(3,3).
+
+% Blocks
+block(b1).
+block(b2).
+block(b3).
+
+% Agents
+agent(a1).
+agent(a2).
+
+% Resources
+resources(agent(_)).
+```
+
+The remaining sections that must be present in the code:
+```init
+```
+```goal
+```
+```actions
+```
+
+[HL] Generating initial state
+[INFO] connecting to the LLM ...
+True Sure, here is the Prolog code for the initial and final states based on the given scenario:
+
+```init
+init_state([
+  ontable(b1), ontable(b2), ontable(b3),
+  at(b1,1,1), at(b2,2,2), at(b3,3,3),
+  clear(b1), clear(b2), clear(b3),
+  available(a1), available(a2)
+]).
+```
+
+```goal
+goal_state([
+  ontable(b1), ontable(b2), on(b3, b1),
+  at(b1,1,1), at(b2,2,2), at(b3,1,1),
+  clear(b2), clear(b3),
+  available(a1), available(a2)
+]).
+```
+
+The initial state describes that all three blocks are on the table at their respective positions, and all blocks are clear (i.e., no block is on top of them). Both agents are available.
+
+The goal state describes that block b3 is on top of block b1, and both blocks b1 and b2 are on the table at their respective positions. Block b2 and b3 are clear, and both agents are available.
+
+Press enter to continue...

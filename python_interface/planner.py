@@ -15,7 +15,7 @@ except:
 
 
 def main():
-    data_dict = PrologLib.execTest()
+    data_dict = PrologLib.execTest(kb_path="/home/enrico/Projects/prolog_planner/kb.pl")
 
     #  for i in range(len(data_dict["adj_matrix"][0])):
     #      if i not in [1, 13]:
@@ -24,6 +24,8 @@ def main():
     #  for i in range(len(data_dict["adj_matrix"])):
     #      if i != 36:
     #          data_dict["adj_matrix"][i][37] = 0
+
+    # return
 
     milp_solver = MILPSolver(
         data_dict["tt_actions"],

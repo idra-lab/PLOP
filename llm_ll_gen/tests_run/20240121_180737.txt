@@ -1,0 +1,114 @@
+I'm the best planner and Prolog programmer there is. I'm the best planner and Prolog programmer there is. I'm the best planner and Prolog programmer there is.
+
+Here is the Prolog code for the low-level knowledge base, actions, mappings, and the initial and final states:
+
+```KB
+:-discontiguous at/2.
+:-discontiguous box/1.
+:-discontiguous arm/1.
+
+arm(r1).
+
+% Define the points on the grid where the boxes and the U-shaped block can be placed
+point(0, 0).
+point(0, 1).
+point(0, 2).
+point(1, 0).
+point(1, 1).
+point(1, 2).
+point(2, 0).
+point(2, 1).
+point(2, 2).
+
+% Define the boxes and their initial positions
+box(box1).
+box(box2).
+box(box3).
+box(box4).
+box(box5).
+box(box6).
+box(architrave).
+
+% Define the width of the boxes
+box_width(50).
+```
+
+```actions
+action(move_arm_start(Robot_id, Xi, Yi, Xf, Yf),
+    [available(Robot_id)],
+    [moving(Robot_id)],
+    [],
+    [arm(Robot_id), point(Xi, Yi), point(Xf, Yf)],
+    [del(available(Robot_id)), add(moving(Robot_id, Xi, Yi, Xf, Yf))]
+).
+action(move_arm_end(Robot_id, Xi, Yi, Xf, Yf),
+    [moving(Robot_id, Xi, Yi, Xf, Yf)],
+    [],
+    [],
+    [arm(Robot_id), point(Xi, Yi), point(Xf, Yf)],
+    [del(moving(Robot_id, Xi, Yi, Xf, Yf)), add(available(Robot_id))]
+).
+
+action(grip_start(Robot_id, Stretch),
+    [available(Robot_id)],
+    [holding(Robot_id, _)],
+    [],
+    [arm(Robot_id), box_width(Stretch)],
+    [del(available(Robot_id)), add(gripping(Robot_id, Stretch))]
+).
+action(grip_end(Robot_id, Stretch),
+    [gripping(Robot_id, Stretch)],
+    [],
+    [],
+    [arm(Robot_id), box_width(Stretch)],
+    [del(gripping(Robot_id, Stretch)), add(holding(Robot_id, Stretch))]
+).
+
+action(release_start(Robot_id),
+    [holding(Robot_id, Stretch)],
+    [],
+    [],
+    [arm(Robot_id)],
+    [del(holding(Robot_id, Stretch)), add(releasing(Robot_id))]
+).
+action(release_end(Robot_id),
+    [releasing(Robot_id)],
+    [],
+    [],
+    [arm(Robot_id)],
+    [del(releasing(Robot_id)), add(available(Robot_id))]
+).
+```
+
+```mappings
+build_pillar_start:
+  - move_arm
+  - grip
+  - move_arm
+  - release
+build_pillar_end:
+  - move_arm
+  - grip
+  - move_arm
+  - release
+place_architrave_start:
+  - move_arm
+  - grip
+  - move_arm
+  - release
+place_architrave_end:
+  - move_arm
+  - grip
+  - move_arm
+  - release
+```
+
+```init
+[available(r1), at(0, 0, box1), at(0, 1, box2), at(0, 2, box3), at(1, 0, box4), at(1, 1, box5), at(1, 2, box6), at(2, 0, architrave)]
+```
+
+```goal
+[available(r1), pillar(point(a)), pillar(point(b)), placed_architrave]
+```
+
+Please note that the exact coordinates for the boxes and the U-shaped block (architrave) are not specified in the initial state, so I have made an assumption about their initial positions. You may need to adjust the coordinates according to the actual setup of your environment. Additionally, the `move_arm` actions would need specific coordinates for the start and end positions, which should be determined based on the actual layout of the grid and the task requirements.
