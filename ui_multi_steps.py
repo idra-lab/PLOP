@@ -1,45 +1,22 @@
 # This file is the main file which coordinates the different aspects of the planner. 
 
-from python_interface import planner
-from LLM.LLM import LLM
 import re
 import os, sys
 
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-
-def INFO(*args, **kwargs):
-    if 'imp' in kwargs and kwargs['imp']:
-        kwargs.pop('imp')
-        print(bcolors.OKGREEN, end="")
-        print(bcolors.BOLD, end="")
-        print(*args, **kwargs)
-        print(bcolors.ENDC, end="")
-    else:
-        print(bcolors.OKGREEN, end="")
-        print(*args, **kwargs)
-        print(bcolors.ENDC, end="")
-
-def FAIL(*args, **kwargs):
-    print(bcolors.FAIL, end="")
-    print(*args, **kwargs)
-    print(bcolors.ENDC, end="")
-
-def MSG(*args, **kwargs):
-    print(bcolors.OKBLUE, end="")
-    print(*args, **kwargs)
-    print(bcolors.ENDC, end="")
+from python_interface import planner
+from LLM.LLM import LLM
+from python_interface.utility.utility import INFO, MSG, FAIL
 
 
-def scan_and_extract(kb, response, hierarchy=False):
+def scan_and_extract(kb, response):
+    """
+    :brief: This function scans the code produced by the LLM and extracts the different parts that are in the form of
+            ```<tag> 
+            <content>
+            ```
+            If content is not empty, it is added to the knowledge base, even if the key was already present.
+    :return: None
+    """
     pattern = re.compile(r'\`\`\`\s*(\w+)\s*([^\`]*?)\`\`\`', re.DOTALL)
     matches = pattern.findall(response)
     for Key, value in matches:
@@ -58,7 +35,7 @@ def llm_scenario_comprehension(query_hl, query_ll) -> bool:
         examples_yaml_file = ["./LLM/few-shots-cc.yaml"]
     )
 
-    llm_scenario.max_tokens = 1000
+    llm_scenario.max_tokens = 100
 
     INFO("\r[CC] Checking LLM comprehension of scenario for high-level", imp=True)
     scenario_query_hl = f"Given the following scenario:\n{query_hl}\nIf you think that there is a problem with the description, then write 'PROBLEM' and describe the problem, otherwise write 'OK'"

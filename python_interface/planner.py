@@ -35,7 +35,8 @@ def main():
     )
 
     milp_solver.solve()
-    milp_solver.draw_graph_from_matrix("MILP.html", open_browser=False)
+    os.makedirs("output", exist_ok=True)
+    milp_solver.draw_graph_from_matrix(os.path.join("output", "MILP.html"), open_browser=False)
 
     # bt = BehaviourTree(stn)
     # bt.draw()
