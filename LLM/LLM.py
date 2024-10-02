@@ -78,7 +78,9 @@ class LLM:
         
         self.messages.append({"role": "user", "content": prompt})
 
-        with open("sent_query.txt", "w") as f:
+        if not os.path.exists("output"):
+            os.makedirs("output")
+        with open(os.path.join("output", "sent_query.txt"), "w") as f:
             for msg in self.messages:
                 f.write(f"{msg['role']}: {msg['content']}\n")
         

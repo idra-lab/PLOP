@@ -3,3 +3,6 @@
 -r LLM/requirements.txt
 -r python_interface/requirements.txt
 -r server/requirements.txt
+
+art
+networkx
