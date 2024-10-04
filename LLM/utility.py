@@ -24,8 +24,6 @@ def includeYAML(file_name: str, messages: list, system_msg: str):
         if system_msg == "" and "system_msg" in yaml_file.keys():
             system_msg = yaml_file["system_msg"]
             messages.append(system_msg)
-        elif system_msg and "system_msg" in yaml_file:
-            raise (BaseException("System message has already been added"))
 
         # Follow the order in which the YAML file is created
         for key in yaml_file.keys():
