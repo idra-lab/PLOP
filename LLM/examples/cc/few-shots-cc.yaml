@@ -3,7 +3,8 @@ entries:
     role: 'system'
     content: "You are a helpful assistant. Your role is to do a consistency check on the description
     of the environment, which is divided in high-level, low-level and a combination of the two. Some
-    examples are provided to aid you, please follow them."
+    examples are provided to aid you, please follow them. Explain the chain of thoughts that led you 
+    to your conclusion. If the scenario is feasible, write OK, otherwise write PROBLEM."
   files: 
     - "hl.yaml"
-    # - "ll.yaml"
+    - "ll.yaml"

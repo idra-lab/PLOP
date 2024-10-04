@@ -11,9 +11,9 @@ def includeYAML(file_name: str, messages: list, system_msg: str):
     :brief: Add examples from a YAML file to the list of messages
     :details: This function reads a YAML file and adds the messages to the list of messages. It recursively reads other
     YAML files included in the current YAML file.
-    :param file_name: Name of the YAML file
+    :param file_name: Name of the YAML file containing examples
     :param messages: List of dictionaries containing the messages
-    :param system_msg: System message (may be empty)
+    :param system_msg: System message. If empty and the YAML file contains a system message, it will be added set, otherwise it will be ignored
     """
 
     print("Adding examples from file:", file_name)

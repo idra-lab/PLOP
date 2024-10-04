@@ -1,4 +1,11 @@
 entries:
+  system_msg:
+    role: 'system'
+    content: "You are a helpful assistant. Your role is to do a consistency check on the description
+    of the environment, which is divided in high-level, low-level and a combination of the two. Some
+    examples are provided to aid you, please follow them. Explain the chain of thoughts that led you 
+    to your conclusion. If the scenario is feasible, write OK, otherwise write PROBLEM."
+    
   convo:
     ############################################################################
     ###############################     0     ##################################
@@ -7,13 +14,14 @@ entries:
       Q:
         role: 'user'
         content: | 
-          Consider the following low-level description of a scenario. State if this scenario is feasible or
-          not. Please write OK if it is, PROBLEM, if it is not. Also describe you thought process. 
-          Given an initial state in which there are two blocks b1, b2 in position (1,1) and (2,2) 
-          respectively, move the block b1 to position (3,3) and place b2 on top of b1 using 2 
-          agents, which are initially available and it will also be available at the end. The agents
-          are robotics arm that can pick and move objects around. The initial positions of the
-          arms are (0,0) and (10,10), while it does not matter where they are at the end.
+          Consider the following low-level description of a scenario. State if this scenario is 
+          feasible or not. Please write OK if it is, PROBLEM, if it is not. Also describe you 
+          thought process. Given an initial state in which there are two blocks b1, b2 in position 
+          (1,1) and (2,2) respectively, move the block b1 on the table to position (3,3) and place 
+          b2 on top of b1 using 2 agents, which are initially available and it will also be 
+          available at the end. The agents are robotics arm that can pick and move objects around. 
+          The initial positions of the arms are (0,0) and (10,10), while it does not matter where 
+          they are at the end.
 
       A:
         role : 'assistant'
@@ -21,6 +29,8 @@ entries:
           OK. The scenario is feasible. The description provides details on the agents stating that 
           they are robotics arms able to move the blocks. The initial position of the arms is given, 
           while it is specified that at the end it does not matter where they are. 
+          Also the blocks are in feasible positions both at the beginning and at the end of the
+          scenario.
 
 
     ############################################################################
@@ -71,15 +81,33 @@ entries:
     ############################################################################
     ###############################     3     ##################################
     ############################################################################
-    # 3: 
-    #   Q:
-    #     role: 'user'
-    #     content: | 
-    #       Nothing to do here.
+    3: 
+      Q:
+        role: 'user'
+        content: | 
+          Consider the following low-level description of a scenario. State if this scenario is 
+          feasible or not. Please write OK if it is, PROBLEM, if it is not. Also describe you 
+          thought process. 
+          There are 3 blocks on a table. In the initial state of the simulation, block b1 is in 
+          position (1,1), block b2 is in position (2,2), block b3 is in position (3,3). After the 
+          execution of the plan, b1 and b2 are in the same positions as in the initial state, 
+          whereas b3 has been moved on top of b1. The positions are taken from a 10x10 grid which 
+          represents the table seen from above. 
+          There are two available agents that can carry out the task. They are available at the 
+          beginning and will be available at the end. The agents are actually robotic arms that can 
+          pick up blocks and move them around. At the beginning, the arms are in positions (0,0) and 
+          (10,10), respectively, while we do not care were they are at the end.
 
-    #   A:
-    #     role : 'assistant'
-    #     content: |
-    #       OK. We do not care about the low-level part in this case. 
+      A:
+        role : 'assistant'
+        content: |
+          OK.
+          The scenario is consistent. At the beginning the blocks are distributed on the table in
+          valid positions. Also at the end, b3 is stated to be on top of b1, which is a feasible 
+          since no other block is impeding this and block b1 is directly on the table. The two
+          blocks are correctly sharing the same position on the grid as they are one on top of the 
+          other. The agents are available both at the beginning and at the end and they are stated 
+          to be robotic arms allowing them to pick up and place the blocks. The initial positions of 
+          the arms are given and it is stated that at the end it does not matter where they are.
 
-    
+

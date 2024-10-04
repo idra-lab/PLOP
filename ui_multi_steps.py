@@ -8,6 +8,8 @@ from LLM.LLM import LLM
 from python_interface.utility.utility import INFO, MSG, FAIL
 
 
+## General variables
+
 # LLM_CONF_PATH    = os.path.join(os.path.dirname(__file__), 'LLM', 'conf/gpt4o.yaml')
 LLM_CONF_PATH    = os.path.join(os.path.dirname(__file__), 'LLM', 'conf/gpt40-128k.yaml')
 # LLM_CONF_PATH    = os.path.join(os.path.dirname(__file__), 'LLM', 'conf/gpt40-32k.yaml')
@@ -17,8 +19,10 @@ CC_EXAMPLES_PATH = os.path.join(EXAMPLES_PATH, 'cc', 'few-shots-cc.yaml')
 LL_EXAMPLES_PATH = os.path.join(EXAMPLES_PATH, 'multi', 'few-shots-ll.yaml')
 HL_EXAMPLES_PATH = os.path.join(EXAMPLES_PATH, 'multi', 'few-shots-hl.yaml')
 
-wait = True
+WAIT = True
 
+
+## FUNCTIONS
 
 def scan_and_extract(kb, response):
     """
@@ -46,9 +50,9 @@ def scan_and_extract(kb, response):
 def llm_scenario_comprehension(query_hl, query_ll) -> bool:
     llm_scenario = LLM(
         llm_connection_config_file=LLM_CONF_PATH,
-        examples_yaml_file = [CC_EXAMPLES_PATH]
+        # examples_yaml_file = [CC_EXAMPLES_PATH]
+        examples_yaml_file = [os.path.join(EXAMPLES_PATH, 'cc', 'hl.yaml')]
     )
-
     llm_scenario.max_tokens = 1000
 
     INFO("\r[CC] Checking LLM comprehension of scenario for high-level", imp=True)
@@ -63,6 +67,12 @@ def llm_scenario_comprehension(query_hl, query_ll) -> bool:
     else: 
         FAIL(f"Problem with the LLM\n{response}")
         sys.exit(1)
+
+    llm_scenario = LLM(
+        llm_connection_config_file=LLM_CONF_PATH,
+        examples_yaml_file = [os.path.join(EXAMPLES_PATH, 'cc', 'll.yaml')]
+    )
+    llm_scenario.max_tokens = 1000
 
     INFO("\r[CC] Checking LLM comprehension of scenario for low-level", imp=True)
     scenario_query_ll = f"Given the following low-level scenario:\n{query_ll}\nIf you think that there is a problem with the description, then write 'PROBLEM' and describe the problem, otherwise write 'OK'"
@@ -114,7 +124,7 @@ def hl_llm_multi_step(query) -> tuple:
     print()
     scan_and_extract(kb, response)
 
-    if wait:
+    if WAIT:
         input("Press enter to continue...")
 
     # Generate initial and final states
@@ -283,6 +293,15 @@ def main():
     available at the end. The agents are actually robotic arms that can pick up blocks and move them around. At the 
     beginning, the arms are in positions (0,0) and (10,10), respectively, while we do not care were they are at the end.
     """
+
+    query_ll = """
+    There are 3 blocks on a table. In the initial state of the simulation, block b1 is in position (1,1), block b2 is in 
+    position (2,2), block b3 is in position (3,3). After the execution of the plan, b1 and b2 are in the same positions
+    as in the initial state, whereas b3 has been moved on top of b1.
+    There are two available agents that can carry out the task. They are available at the beginning and will be 
+    available at the end. The agents are actually robotic arms that can pick up blocks and move them around. At the 
+    beginning, the arms are in positions (0,0) and (10,10), respectively, while we do not care were they are at the end.
+    """
     # Remember to prepend the low-level predicates with 'll_'.
 
     # query_ll = """
@@ -305,14 +324,14 @@ def main():
         FAIL("There was a problem with the comprehension of the scenario")
         return
     
-    if wait:
+    if WAIT:
         input("Press enter to continue...")
 
     # Use HL LLM to extract HL knowledge base
     # hl_kb, response = hl_llm(query_hl)
     hl_kb, response = hl_llm_multi_step(query_hl)
 
-    if wait:
+    if WAIT:
         input("Press enter to continue...")
 
     # use LL LLM to extract LL knowledge base
