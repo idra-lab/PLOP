@@ -8,6 +8,18 @@ from LLM.LLM import LLM
 from python_interface.utility.utility import INFO, MSG, FAIL
 
 
+# LLM_CONF_PATH    = os.path.join(os.path.dirname(__file__), 'LLM', 'conf/gpt4o.yaml')
+LLM_CONF_PATH    = os.path.join(os.path.dirname(__file__), 'LLM', 'conf/gpt40-128k.yaml')
+# LLM_CONF_PATH    = os.path.join(os.path.dirname(__file__), 'LLM', 'conf/gpt40-32k.yaml')
+
+EXAMPLES_PATH    = os.path.join(os.path.dirname(__file__), 'LLM', 'examples')
+CC_EXAMPLES_PATH = os.path.join(EXAMPLES_PATH, 'cc', 'few-shots-cc.yaml')
+LL_EXAMPLES_PATH = os.path.join(EXAMPLES_PATH, 'multi', 'few-shots-ll.yaml')
+HL_EXAMPLES_PATH = os.path.join(EXAMPLES_PATH, 'multi', 'few-shots-hl.yaml')
+
+wait = True
+
+
 def scan_and_extract(kb, response):
     """
     :brief: This function scans the code produced by the LLM and extracts the different parts that are in the form of
@@ -15,6 +27,8 @@ def scan_and_extract(kb, response):
             <content>
             ```
             If content is not empty, it is added to the knowledge base, even if the key was already present.
+    :param kb: Dictionary where the extracted information will be stored
+    :param response: The response from the LLM
     :return: None
     """
     pattern = re.compile(r'\`\`\`\s*(\w+)\s*([^\`]*?)\`\`\`', re.DOTALL)
@@ -31,14 +45,14 @@ def scan_and_extract(kb, response):
 
 def llm_scenario_comprehension(query_hl, query_ll) -> bool:
     llm_scenario = LLM(
-        llm_connection_config_file=os.path.join(os.path.dirname(__file__), 'LLM', 'conf/gpt4o.yaml'),
-        examples_yaml_file = ["./LLM/few-shots-cc.yaml"]
+        llm_connection_config_file=LLM_CONF_PATH,
+        examples_yaml_file = [CC_EXAMPLES_PATH]
     )
 
-    llm_scenario.max_tokens = 100
+    llm_scenario.max_tokens = 1000
 
     INFO("\r[CC] Checking LLM comprehension of scenario for high-level", imp=True)
-    scenario_query_hl = f"Given the following scenario:\n{query_hl}\nIf you think that there is a problem with the description, then write 'PROBLEM' and describe the problem, otherwise write 'OK'"
+    scenario_query_hl = f"Given the following high-level scenario:\n{query_hl}\nIf you think that there is a problem with the description, then write 'PROBLEM' and describe the problem, otherwise write 'OK'"
     succ, response = llm_scenario.query(scenario_query_hl)
     if succ and "OK" in response:
         MSG("\rLLM has correctly understood the scenario") 
@@ -50,20 +64,20 @@ def llm_scenario_comprehension(query_hl, query_ll) -> bool:
         FAIL(f"Problem with the LLM\n{response}")
         sys.exit(1)
 
-    # INFO("\r[CC] Checking LLM comprehension of scenario for low-level", imp=True)
-    # scenario_query_ll = f"Given the following scenario:\n{query_ll}\nIf you think that there is a problem with the description, then write 'PROBLEM' and describe the problem, otherwise write 'OK'"
-    # succ, response = llm_scenario.query(scenario_query_ll)
-    # if succ and "OK" in response:
-    #     MSG("\rLLM has correctly understood the scenario") 
-    #     print(response)
-    # elif succ and "PROBLEM" in response:
-    #     FAIL(f"\rLLM has not correctly understood the scenario or there is a problem in the scenario\n{response}")
-    #     return
-    # else: 
-    #     FAIL(f"Problem with the LLM\n{response}")
-    #     sys.exit(1)
+    INFO("\r[CC] Checking LLM comprehension of scenario for low-level", imp=True)
+    scenario_query_ll = f"Given the following low-level scenario:\n{query_ll}\nIf you think that there is a problem with the description, then write 'PROBLEM' and describe the problem, otherwise write 'OK'"
+    succ, response = llm_scenario.query(scenario_query_ll)
+    if succ and "OK" in response:
+        MSG("\rLLM has correctly understood the scenario") 
+        print(response)
+    elif succ and "PROBLEM" in response:
+        FAIL(f"\rLLM has not correctly understood the scenario or there is a problem in the scenario\n{response}")
+        return
+    else: 
+        FAIL(f"Problem with the LLM\n{response}")
+        sys.exit(1)
 
-    # INFO("\r[CC] Checking LLM comprehension of scenario for both scenarios", imp=True)
+    # INFO("\r[CC] Checking LLM comprehension of scenario for both levels", imp=True)
     # scenario_query = f"Given the following high-level description of a scenario:\n{query_hl}\nAnd the following low-level description of the same scenario\n{query_ll}\nIf you think that there is a problem with the description, then write 'PROBLEM' and describe the problem, otherwise write 'OK'"
     # succ, response = llm_scenario.query(scenario_query)
     # if succ and "OK" in response:
@@ -83,8 +97,8 @@ def hl_llm_multi_step(query) -> tuple:
     # Extract HL knowledge base
     INFO("\r[HL] Extracting HL knowledge base", imp=True)
     llm = LLM(
-        llm_connection_config_file=os.path.join(os.path.dirname(__file__), 'LLM', 'conf/gpt4o.yaml'),
-        examples_yaml_file = ["./LLM/few-shots-hl.yaml"]
+        llm_connection_config_file=LLM_CONF_PATH,
+        examples_yaml_file = [HL_EXAMPLES_PATH]
     )
 
     kb = {}
@@ -93,15 +107,18 @@ def hl_llm_multi_step(query) -> tuple:
     INFO("\r[HL] Generating knowledge base")
     kb_query = "\nGiven that the previous messages are examples, you now have to produce code for the task that follows.\n" +\
         query +\
-        "\nWrite the static knowledge base. Remember to specify all the correct predicates and identify which are the predicates that are resources and to wrap it into \"kb\" tags and not prolog tags."
+        "\nWrite the static knowledge base. Remember to specify all the correct predicates and identify which are the predicates that are resources and to wrap it into \"kb\" tags and NOT prolog tags."
     succ, response = llm.query(kb_query)
     assert succ == True, "Failed to generate final state"
     print(succ, response)
     print()
     scan_and_extract(kb, response)
 
+    if wait:
+        input("Press enter to continue...")
+
     # Generate initial and final states
-    INFO("\r[HL] Generating initial state")
+    INFO("\r[HL] Generating initial and final states")
     states_query = "\nGiven that the previous messages are examples, you know have to produce code for the task that follows.\n" + query + \
         "\nGiven the following static knowledge base\n```kb\n{}\n```".format(kb["kb"]) +\
         "\nWrite the initial and final states, minding to include all the correct predicates. Remember to wrap it into \"init\" and \"goal\" tags and not prolog tags."
@@ -145,17 +162,21 @@ def ll_llm_multi_step(query, kb) -> tuple:
     ```kb
     {}
     ```
-    """.format(kb["kb"])
+    ```init
+    {}
+    ```
+    ```goal
+    {}
+    ```
+    """.format(kb["kb"], kb["init"], kb["goal"])
 
     # Extract LL knowledge base
     INFO("\r[LL] Extract LL knowledge base", imp=True)
     llm = LLM(
-        llm_connection_config_file=os.path.join(os.path.dirname(__file__), 'LLM', 'conf/gpt4o.yaml'),
-        examples_yaml_file = ["./LLM/few-shots-ll.yaml"]
+        llm_connection_config_file=LLM_CONF_PATH,
+        examples_yaml_file = [LL_EXAMPLES_PATH]
     )
     
-    valid = True
-
     # Generate static knowledge-base
     INFO("\r[LL] Generating knowledge base")
     kb_query = "\nGiven that the previous messages are examples, you know have to produce code for the task that follows.\n" + query + \
@@ -217,6 +238,11 @@ def execute_plan(plan):
 
 
 def main():
+    assert os.path.exists(LLM_CONF_PATH), f"LLM configuration file not found at {LLM_CONF_PATH}"
+    assert os.path.exists(CC_EXAMPLES_PATH), f"CC examples path not found at {CC_EXAMPLES_PATH}"
+    assert os.path.exists(LL_EXAMPLES_PATH), f"Low-level examples path not found at {LL_EXAMPLES_PATH}"
+    assert os.path.exists(HL_EXAMPLES_PATH), f"High-level examples path not found at {HL_EXAMPLES_PATH}"
+
     # query = input("Describe your problem: ")
 
     query_hl = """
@@ -235,8 +261,8 @@ def main():
     position (4,4), block b4 is in position (8,8). Block b5 is on top of block b1 in position (2,2) and block b3 is on 
     top of block b2 in position (4,4). After moving the blocks around during the simulation, at the end, we have b5 on 
     top of block b4, both in position (8,8), and the remaining blocks b1, b2 and b3 are in the same positions as in the 
-    initial state. Other blocks, such as b6, are assigned random positions on the table. Please explicitly assign
-    these positions.
+    initial state. The position of other blocks, such as b6, is irrelevant at the moment and can be considered as random
+    positions on the table. Please explicitly assign these positions when generating the knowledge base.
     There are 8 agents with a robotic arm. 
     """
 
@@ -255,7 +281,7 @@ def main():
     b2 is on the table in position (2,2) and b3 is on top of b1 in position (1,1).
     There are two available agents that can carry out the task. They are available at the beginning and will be 
     available at the end. The agents are actually robotic arms that can pick up blocks and move them around. At the 
-    beginning, the arms are in position (0,0), (10,10), while we do not care were they are at the end.
+    beginning, the arms are in positions (0,0) and (10,10), respectively, while we do not care were they are at the end.
     """
     # Remember to prepend the low-level predicates with 'll_'.
 
@@ -274,9 +300,6 @@ def main():
     # Remember to prepend the low-level predicates with 'll_'.
 
     # query_ll = "Nothing to do here"
-
-    wait = True
-    # wait = False
 
     if not llm_scenario_comprehension(query_hl, query_ll):
         FAIL("There was a problem with the comprehension of the scenario")

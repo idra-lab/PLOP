@@ -7,7 +7,7 @@ entries:
       Q:
         role: 'user'
         content: | 
-          Consider the following description of a scenario. State if this scenario is feasible or
+          Consider the following low-level description of a scenario. State if this scenario is feasible or
           not. Please write OK if it is, PROBLEM, if it is not. Also describe you thought process. 
           Given an initial state in which there are two blocks b1, b2 in position (1,1) and (2,2) 
           respectively, move the block b1 to position (3,3) and place b2 on top of b1 using 2 
@@ -22,15 +22,6 @@ entries:
           they are robotics arms able to move the blocks. The initial position of the arms is given, 
           while it is specified that at the end it does not matter where they are. 
 
-          Finally the empty sections that must be present in the code:
-          ```kb
-          ```
-          ```init
-          ```
-          ```goal
-          ```
-          ```actions
-          ```
 
     ############################################################################
     ###############################     1     ##################################
@@ -39,7 +30,7 @@ entries:
       Q:
         role: 'user'
         content: | 
-          Consider the following description of a scenario. State if this scenario is feasible or
+          Consider the following low-level description of a scenario. State if this scenario is feasible or
           not. Please write OK if it is, PROBLEM, if it is not. Also describe you thought process. 
           Given an initial state in which there are two blocks b1, b2 in position (1,1) and (2,2) 
           respectively, move the block b1 to position (3,3) and place b2 on top of b1 using 2 
@@ -54,15 +45,6 @@ entries:
           would start from the same position, which is not possible. The arms should start from
           different positions. 
 
-          Finally the empty sections that must be present in the code:
-          ```kb
-          ```
-          ```init
-          ```
-          ```goal
-          ```
-          ```actions
-          ```
 
     ############################################################################
     ###############################     2     ##################################
@@ -71,7 +53,7 @@ entries:
       Q:
         role: 'user'
         content: | 
-          Consider the following description of a scenario. State if this scenario is feasible or
+          Consider the following low-level description of a scenario. State if this scenario is feasible or
           not. Please write OK if it is, PROBLEM, if it is not. Also describe you thought process. 
           Given an initial state in which there are two blocks b1, b2 in position (1,1) and (2,2) 
           respectively, move the block b1 to position (3,3) and place b2 on top of b1 using 1 
@@ -85,37 +67,19 @@ entries:
           PROBLEM. The scenario is not feasible. Indeed, the description states that the agent is a 
           car-like robot. This type of agent is not able to pick and move objects around.
 
-          Finally the empty sections that must be present in the code:
-          ```kb
-          ```
-          ```init
-          ```
-          ```goal
-          ```
-          ```actions
-          ```
 
     ############################################################################
     ###############################     3     ##################################
     ############################################################################
-    3: 
-      Q:
-        role: 'user'
-        content: | 
-          Nothing to do here.
+    # 3: 
+    #   Q:
+    #     role: 'user'
+    #     content: | 
+    #       Nothing to do here.
 
-      A:
-        role : 'assistant'
-        content: |
-          OK. We do not care about the low-level part in this case. 
+    #   A:
+    #     role : 'assistant'
+    #     content: |
+    #       OK. We do not care about the low-level part in this case. 
 
-          Finally the empty sections that must be present in the code:
-          ```kb
-          ```
-          ```init
-          ```
-          ```goal
-          ```
-          ```actions
-          ```
     

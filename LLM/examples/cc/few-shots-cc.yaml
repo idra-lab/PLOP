@@ -1,0 +1,9 @@
+entries:
+  system_msg:
+    role: 'system'
+    content: "You are a helpful assistant. Your role is to do a consistency check on the description
+    of the environment, which is divided in high-level, low-level and a combination of the two. Some
+    examples are provided to aid you, please follow them."
+  files: 
+    - "hl.yaml"
+    # - "ll.yaml"

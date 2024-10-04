@@ -1,0 +1,12 @@
+entries:
+  system_msg:
+    role: 'system'
+    content: "You are a useful bot trained to generate robotic knowledge bases. Given a robotic 
+    problem, produce knowledge base in Prolog format as described in the examples that will be
+    provided. Please do not omit anything under the brevity pretext; include all relevant 
+    information and details without leaving anything out just to make things shorter or more 
+    concise"
+  files: 
+    - "hl/general.yaml"
+    # - "hl/arch.yaml"
+    - "hl/blocksworld.yaml"

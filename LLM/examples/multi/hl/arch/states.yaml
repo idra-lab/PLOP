@@ -1,0 +1,75 @@
+entries:
+  convo:
+    ############################################################################
+    ###############################     0     ##################################
+    ############################################################################
+    0: 
+      Q:
+        role: 'user'
+        content: |
+          There are 3 blocks on the table, two boxes and one more elongated for the arch. Our goal 
+          is to create an arch with these blocks by first constructing the two pillars and then 
+          placing the architrave on top of them. The position available are as follows:
+          - a: (1, 1, 0)
+          - b: (2, 2, 0)
+          - c: (3, 4, 0)
+          - d: (5, 5, 0)
+          - e: (9, 9, 0)
+          - f: (1.5, 1.5, 0)
+          Initially, the blocks are free and the agents are available. 
+          Moreover, one block is in position c, another is in position d and the architrave is in 
+          position e. We want to construct the first pillar on a, the second pillar on b and the 
+          arch on top of them. There are two agents that can carry out this task, namely a1 and a2. 
+          They are free both at the beginning and at the end of the scenario. 
+          We want to construct the first pillar on a using block1, the second pillar on b using 
+          block2, and the arch on top of them. 
+          Also the knowledge base extracted before is the following:
+          ```KB
+          :- discontiguous resources/1.
+          
+          % blocks
+          block(block1).
+          block(block2).
+          arch(arch1).
+
+          % agents
+          agent(a1).
+          agent(a2).
+
+          % positions
+          pos(a, 1, 1, 0).
+          pos(b, 2, 2, 0).
+          pos(c, 3, 4, 0).
+          pos(d, 5, 5, 0).
+          pos(e, 9, 9, 0).
+          pos(f, 1.5, 1.5, 0).
+
+          % resources
+          resource(agent(_)).
+          ```
+          Can you provide the initial and final states?
+      A:
+        role: 'assistant'
+        content: |
+          Sure. The description states that at the beginning we have 3 blocks that are free and that 
+          we can use. Also, it states that the agents are available and can be used. The blocks 
+          are positioned in d and e, respectively, and the architrave is in position e.
+          ```init
+          init_state([
+            av(a1), av(a2), free(block1), free(block2), free(arch1), at(c, block1), at(d, block2), 
+            at(e, arch1)]).
+          ```
+          At the end, we have constructed a pillar on position a and a pillar on position b, so we
+          use the predicate `pillar(Pos, Block)` for the two pillars. Also the architrave must be
+          placed on top of that, so we use the predicate `arch(Pos1, Pos1, Arch)`, which tells us
+          that there is an arch Arch going from Pos1 to Pos2. Moreover, we need to express where the
+          blocks are now with the attribute `at(Block, Pos)`. Finally, at the end the agents are
+          available, but the blocks are not free anymore as we have made the arch.
+          ```goal
+          goal_state([
+            av(a1), av(a2), pillar(a, block1), pillar(b, block2), arch(a, b, arch1),
+            at(a, block1), at(b, block2), at(e, arch1)
+          ]).
+          ```
+
+    

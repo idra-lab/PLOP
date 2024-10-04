@@ -47,17 +47,7 @@ entries:
           It's true that the description talks about 3 blocks and then mentions b1, b2, b4 and not
           b3, but it's possible that b3 is not relevant for the problem and the number of blocks
           is still correct. 
-          
-          
-          Finally the empty sections that must be present in the code:
-          ```kb
-          ```
-          ```init
-          ```
-          ```goal
-          ```
-          ```actions
-          ```
+
 
     ############################################################################
     ###############################     5     ##################################
@@ -88,16 +78,6 @@ entries:
           b7, are not directly described, it is stated that they can be assigned random positions 
           on the table as we do not care about them. 
           
-          
-          Finally the empty sections that must be present in the code:
-          ```kb
-          ```
-          ```init
-          ```
-          ```goal
-          ```
-          ```actions
-          ```
 
     ############################################################################
     ###############################     6     ##################################
@@ -129,16 +109,6 @@ entries:
           Moreover, there is just one agent available, meaning that it's not possible to use two
           agents to pick up both blocks and put them down in the correct order anyway. 
           
-          
-          Finally the empty sections that must be present in the code:
-          ```kb
-          ```
-          ```init
-          ```
-          ```goal
-          ```
-          ```actions
-          ```
 
     ############################################################################
     ###############################     7     ##################################
@@ -168,16 +138,6 @@ entries:
           in (3,3) or on top of b3, respectively. Finally, the agent will place b2 first in (1,1) 
           and then b1 on top of b2 in (1,1). 
           
-          
-          Finally the empty sections that must be present in the code:
-          ```kb
-          ```
-          ```init
-          ```
-          ```goal
-          ```
-          ```actions
-          ```
 
     ############################################################################
     ###############################     8     ##################################
@@ -202,16 +162,6 @@ entries:
           The description is not consistent. The goal states that both b2 and b3 are directly on top
           of b1 in position (1,1), which cannot be possible since two blocks cannot occupy the same 
           position at the same time.           
-          
-          Finally the empty sections that must be present in the code:
-          ```kb
-          ```
-          ```init
-          ```
-          ```goal
-          ```
-          ```actions
-          ```
     
     ############################################################################
     ###############################     9     ##################################
@@ -225,26 +175,16 @@ entries:
       A:
         role : 'assistant'
         content: |
-          OK. We do not care about the this part in this case. 
-
-          Finally the empty sections that must be present in the code:
-          ```kb
-          ```
-          ```init
-          ```
-          ```goal
-          ```
-          ```actions
-          ```
+          OK. We do not care about the this part in this c
 
     ############################################################################
-    ###############################     10     ##################################
+    ###############################     10     #################################
     ############################################################################
     10: 
       Q:
         role: 'user'
         content: | 
-          Given the following description of the environment, can you please state if the 
+          Given the following high-level description of the environment, can you please state if the 
           description is consistent or if it contains errors? If it's fine, please write OK, 
           otherwise write PROBLEM. In both cases, please describe your thoughts.
         
@@ -253,8 +193,9 @@ entries:
           on top of block b1 in position (2,2) and block b3 is on top of block b2 in position (4,4).
           After moving the blocks around during the simulation, at the end, we have b5 on top of 
           block b4, both in position (8,8), and the remaining blocks b1, b2 and b3 are in the same 
-          positions as in the initial state. Other blocks, such as b6, are assigned random positions 
-          on the table. Please explicitly assign these positions.
+          positions as in the initial state. The position of other blocks, such as b6, is irrelevant
+          at the moment and can be considered as random positions on the table. Please explicitly 
+          assign these positions when generating the knowledge base.
           There are 8 agents with a robotic arm. 
       A:
         role : 'assistant'
@@ -264,19 +205,63 @@ entries:
           the position of the others is explicitly said to be irrelevant and that they can be 
           assigned random positions. The initial state describes the position of 5 out of the 7
           blocks. The remaining two blocks are said to not be relevant for the problem, and that 
-          their positions can be assigned randomly. The final state describes the position of the
-          blocks after the actions have been performed highlighting the position of the blocks that
-          have changed. Finally, both the initial and final states describe the number of agents
-          available to perform the actions.
-
-          Finally the empty sections that must be present in the code:
-          ```kb
-          ```
-          ```init
-          ```
-          ```goal
-          ```
-          ```actions
-          ```
+          their positions can be assigned randomly. It will be my task to complete the 
+          knowledge-base with random positions making it consistent. The final state describes the 
+          position of the blocks after the actions have been performed highlighting the position of 
+          the blocks that have changed. Finally, both the initial and final states describe the 
+          number of agents available to perform the act
 
 
+
+    ############################################################################
+    ###############################     11    ##################################
+    ############################################################################
+    11: 
+      Q:
+        role: 'user'
+        content: | 
+          Given the following high-level description of the environment, can you please state if the 
+          description is consistent or if it contains errors? If it's fine, please write OK, 
+          otherwise write PROBLEM. In both cases, please describe your thoughts.
+        
+          There are 5 blocks on a table. In the initial state of the simulation, block b1 is in 
+          position (1,1), block b2 is in position (2,2), block b3 is in position (3,3), b4 is in
+          position (4,4) and b5 is in position (5,5). After the execution of the plan, the blocks 
+          are still on the table, but their positions are b1: (5,5), b2: (4,4), b3: (3,3), b4: (2,2)
+          and b5: (1,1). There is one available agents that can carry out the task. It is available 
+          at the beginning and will be available at the end.
+      A:
+        role : 'assistant'
+        content: |
+          PROBLEM.
+          The description is inconsistent. Even though the blocks have valid positions and there
+          is an agent that can carry out the task, the final state is not reachable since the only
+          positions specified are the ones where the blocks are and it is not possible to swap the
+          blocks. 
+
+
+    ############################################################################
+    ###############################     12    ##################################
+    ############################################################################
+    12: 
+      Q:
+        role: 'user'
+        content: | 
+          Given the following high-level description of the environment, can you please state if the 
+          description is consistent or if it contains errors? If it's fine, please write OK, 
+          otherwise write PROBLEM. In both cases, please describe your thoughts.
+        
+          There are 5 blocks on a table. In the initial state of the simulation, block b1 is in 
+          position (1,1), block b2 is in position (2,2), block b3 is in position (3,3), b4 is in
+          position (4,4) and b5 is in position (5,5). After the execution of the plan, the blocks 
+          are still on the table, but their positions are b1: (5,5), b2: (4,4), b3: (3,3), b4: (2,2)
+          and b5: (1,1). There are two available agents that can carry out the task. They are
+          available at the beginning and will be available at the end.
+      A:
+        role : 'assistant'
+        content: |
+          OK.
+          The description is inconsistent. Even though it may SEEM to be unfeasible since the only 
+          positions specified are the ones where the blocks are and it is not possible to swap the
+          blocks, the fact that there are two agents available makes it possible to swap the blocks
+          by making one of the agents pick up the blocks freeing one position to swap the blocks.

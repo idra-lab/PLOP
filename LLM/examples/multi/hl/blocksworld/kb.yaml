@@ -1,0 +1,166 @@
+entries:
+  convo:
+    ############################################################################
+    ###############################     0     ##################################
+    ############################################################################
+    0: 
+      Q:
+        role: 'user'
+        content: | 
+          Can you generate a Prolog snippet of code that describes the static knowledge base for
+          the following scenario? Also, highlight which are the resources of the problem, for
+          example the agents, that is, those predicates that carry out tasks.
+          Given an initial state in which there are four blocks b1, b2, b3, b5 on the table in 
+          positions (2,2), (1,1), (3,3), (4,4), respectively, and a fifth block b4 on top of b3 in 
+          position (3,3), move the block b2 on top of b1, b3 on top of b2 and place b5 on the table 
+          in position (0,0) and b4 on the table in position (3,3). The agent is initially available 
+          and it will also be available at the end.
+
+      A:
+        role : 'assistant'
+        content: |
+          Sure. The problem states that there are 4 blocks at the beginning and 4 blocks at the end,
+          so each block is static part of the knowledge base since they are not removed or added 
+          during the actions. We'll use the predicate `block(Block)` to describe this. The scenario
+          also describes some positions on a table, which are immutable by definition, so we'll use
+          the predicate `pos(X, Y)` to describe this. Moreover, the description talks about an agent
+          which carries out actions. This agent is not removed from the description of the state, so
+          it is a static part of the knowledge base, and we'll use the predicate `agent(Agent)` to
+          describe it. Finally, since the agent is what carries out the actions, we'll use the
+          predicate `resources(agent(_))` to describe that whatever agent we consider, that is a 
+          resource. 
+          Here it the static knowledge base in Prolog:
+          ```kb
+          % Positions
+          pos(1,1).
+          pos(2,2).
+          pos(3,3).
+          pos(4,4).
+
+          % Blocks
+          block(b1).
+          block(b2).
+          block(b3).
+          block(b4).
+          block(b5).
+
+          % Agent
+          agent(a1).
+
+          % Resources
+          resources(agent(_)).
+          ```
+          
+          Notice that we do not add more blocks or positions than the ones specified in the problem
+          as we do not have knowledge of them. 
+
+
+    ############################################################################
+    ###############################     1     ##################################
+    ############################################################################
+    1:
+      Q:
+        role: 'user'
+        content: |     
+          Can you provide the general static knowledge base for the following scenario? 
+          There are 7 blocks on a table. In the initial state of the simulation, block b1 is in 
+          position (2,2), block b2 is in position (4,4), block b4 is in position (8,8). Block b5 is 
+          on top of block b1 in position (2,2) and block b3 is on top of block b2 in position 
+          (4,4). After moving the blocks around during the simulation, at the end, we have b5 on top
+          of block b4, both in position (8,8), and the remaining blocks b1, b2 and b3 are in the 
+          same positions as in the initial state. There are other blocks which are not relevant for 
+          the simulation, such as b6, b7. We do not care about their position. 
+          There are 8 agents with a robotic arm. 
+      A: 
+        role: 'assistant'
+        content: |
+          Sure, here is the description of the static knowledge base
+          ```kb
+          % Positions
+          pos(2,2).
+          pos(4,4).
+          pos(8,8).
+
+          % Blocks
+          block(b1).
+          block(b2).
+          block(b3).
+          block(b4).
+          block(b5).
+          block(b6).
+          block(b7).
+
+          % Agents
+          agent(a1).
+          agent(a2).
+          agent(a3).
+          agent(a4).
+          agent(a5).
+          agent(a6).
+          agent(a7).
+          agent(a8).
+
+          % Resources
+          resources(agent(_)).
+          ```
+
+          As for the rest, I enumerated the agents available as well as the blocks that are part of
+          the scenario.
+          The only predicate that can be used to carry out task is `agent`, which is then added to
+          the `resources` predicate to indicate that the agents are resources.
+
+
+    ############################################################################
+    ###############################     2     ##################################
+    ############################################################################
+    2:
+      Q:
+        role: 'user'
+        content: |     
+          Can you provide the general knowledge base for the following scenario? 
+          "There are 5 blocks on a table. In the initial state of the simulation, block b1 is in 
+          position (1,1), block b2 is in position (2,2), block b3 is in position (3,3), b4 is in
+          position (4,4) and b5 is in position (5,5). After the execution of the plan, the blocks 
+          are still on the table, but their positions are b1: (5,5), b2: (4,4), b3: (3,3), b4: (2,2)
+          and b5: (1,1). There are two available agents that can carry out the task. They are 
+          available at the beginning and will be available at the end."
+      
+      A: 
+        role: 'assistant'
+        content: |
+          Sure, here is the description of the static knowledge base
+          ```kb
+          % Positions
+          pos(2,2).
+          pos(4,4).
+          pos(8,8).
+
+          % Blocks
+          block(b1).
+          block(b2).
+          block(b3).
+          block(b4).
+          block(b5).
+          block(b6).
+          block(b7).
+
+          % Agents
+          agent(a1).
+          agent(a2).
+          agent(a3).
+          agent(a4).
+          agent(a5).
+          agent(a6).
+          agent(a7).
+          agent(a8).
+
+          % Resources
+          resources(agent(_)).
+          ```
+
+          I took the freedom to add some extra positions on the table in order to randomly assign
+          the positions of the remaining blocks b6 and b7 later on. 
+          As for the rest, I enumerated the agents available as well as the blocks that are part of
+          the scenario.
+          The only predicate that can be used to carry out task is `agent`, which is then added to
+          the `resources` predicate to indicate that the agents are resources.
