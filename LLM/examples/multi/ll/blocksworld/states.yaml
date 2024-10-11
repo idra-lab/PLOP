@@ -32,50 +32,63 @@ entries:
           % Resources
           resources(agent(_)).
           ```
+          and the following initial and final states:
+          ```init
+          init_state([
+            ontable(b1), ontable(b2), ontable(b3),
+            at(b1,1,1), at(b2,2,2), at(b3,3,3),
+            clear(b1), clear(b2), clear(b3),
+            available(a1), available(a2)
+          ]).
+          ```
+          ```goal
+          goal_state([
+            ontable(b1), ontable(b2), on(b3, b1),
+            at(b1,1,1), at(b2,2,2), at(b3,1,1),
+            clear(b2), clear(b3),
+            available(a1), available(a2)
+          ]).
+          ```
           Now, consider the following query for the low-level part:
           "There are 3 blocks on a table. In the initial state of the simulation, block b1 is in 
           position (1,1), block b2 is in position (2,2), block b3 is in position (3,3). After the 
           execution of the plan, b1 on the table in position (1,1), b2 is on the table in position
           (2,2) and b3 is on top of b1 in position (1,1). There are 2 agents with a robotic arm that
           are available at the beginning and will be available at the end, which can be used to pick
-          objects.""
-          Please update the high-level knowledge base to reflect the changes in the description for 
-          the low-level, and identify new possible resources to be used.
+          objects. Their initial position is (0,0) for agent a1 and (10,10) for agent a2. We do not
+          care about their position in the final state."
+          Please update the high-level initial and final states to reflect the changes in the 
+          description for the low-level.
           Remember to prepend the low-level predicates with "ll_" to avoid conflicts with the 
           high-level predicates.s
 
       A:
         role: 'assistant'
         content: |
-          Sure. The knowledge base provided in the high-level is updated as follows:
-          ```kb
-          % Positions on the table
-          pos(1,1).
-          pos(2,2).
-          pos(3,3).
-
-          % Blocks
-          block(b1).
-          block(b2).
-          block(b3).
-
-          % Agents
-          agent(a1).
-          agent(a2).
-
-          % Arms
-          ll_arm(a1).
-          ll_arm(a2).
-
-          % Resources
-          resources(agent(_)).
-          resources(ll_arm(_)).
+          Sure. The initial and goal states provided in the high-level are updated as follows:
+          ```init
+          init_state([
+            ontable(b1), ontable(b2), ontable(b3),
+            at(b1,1,1), at(b2,2,2), at(b3,3,3),
+            clear(b1), clear(b2), clear(b3),
+            available(a1), available(a2),
+            ll_arm_at(a1,0,0), ll_arm_at(a2,10,10)
+          ]).
           ```
-          The new knowledge base reflects the changes in the description for the low-level and 
-          identifies new possible resources to be used. In particular, the new knowledge base 
-          includes the arms that the agents have, which can be used to pick objects. These arms are
-          also considered as resources that can be used in the task. In the description no other 
-          change was made, so the knowledge base remains the same.
+          ```goal
+          goal_state([
+            ontable(b1), ontable(b2), on(b3, b1),
+            at(b1,1,1), at(b2,2,2), at(b3,1,1),
+            clear(b2), clear(b3),
+            available(a1), available(a2),
+            ll_arm_at(a1,_,_), ll_arm_at(a2,_,_)
+          ]).
+          ```
+          Indeed, the only difference is the information regarding the position of the agent with
+          the robotic arm at the beginning and at the end. In particular, we introduce a new
+          predicate, `ll_arm_at/3`, to represent the position of the agent with the robotic arm.
+          Since the description says that we do not care about the position of the arms at the end,
+          we use the wildcard `_` to represent any value for the position of the arms in the goal.
 
 
     ############################################################################
@@ -201,84 +214,6 @@ entries:
           % Resources
           resources(agent(_)).
           ```
-          Now, consider the following query for the low-level part:
-          "There are 3 blocks on a table. In the initial state of the simulation, block b1 is in 
-          position (1,1), block b2 is in position (2,2), block b3 is in position (3,3). After the 
-          execution of the plan, b1 on the table in position (1,1), b2 is on the table in position
-          (2,2) and b3 is on top of b1 in position (1,1). There are 2 agents with a robotic arm that
-          are available at the beginning and will be available at the end, which can be used to pick
-          objects.""
-          Please update the high-level knowledge base to reflect the changes in the description for 
-          the low-level, and identify new possible resources to be used.
-          Remember to prepend the low-level predicates with "ll_" to avoid conflicts with the 
-          high-level predicates.s
-
-      A:
-        role: 'assistant'
-        content: |
-          Sure. The knowledge base provided in the high-level is updated as follows:
-          ```kb
-          % Positions on the table
-          pos(1,1).
-          pos(2,2).
-          pos(3,3).
-
-          % Blocks
-          block(b1).
-          block(b2).
-          block(b3).
-
-          % Agents
-          agent(a1).
-          agent(a2).
-
-          % Arms
-          ll_arm(a1).
-          ll_arm(a2).
-
-          % Resources
-          resources(agent(_)).
-          resources(ll_arm(_)).
-          ```
-          The new knowledge base reflects the changes in the description for the low-level and 
-          identifies new possible resources to be used. In particular, the new knowledge base 
-          includes the arms that the agents have, which can be used to pick objects. These arms are
-          also considered as resources that can be used in the task. In the description no other 
-          change was made, so the knowledge base remains the same.
-
-
-    ############################################################################
-    ###############################     3     ##################################
-    ############################################################################
-    3: 
-      Q:
-        role: 'user'
-        content: |
-          Consider the following query for the high-level part:
-          "There are 3 blocks on a table. In the initial state of the simulation, block b1 is in 
-          position (1,1), block b2 is in position (2,2), block b3 is in position (3,3). After the 
-          execution of the plan, b1 on the table in position (1,1), b2 is on the table in position 
-          (2,2) and b3 is on top of b1 in position (1,1). There are two available agents that can 
-          carry out the task. They are available at the beginning and will be available at the end."
-          And consider the following general knowledge base provided by the high-level:
-          ```kb
-          % Positions on the table
-          pos(1,1).
-          pos(2,2).
-          pos(3,3).
-
-          % Blocks
-          block(b1).
-          block(b2).
-          block(b3).
-
-          % Agents
-          agent(a1).
-          agent(a2).
-
-          % Resources
-          resources(agent(_)).
-          ```
           and the following initial and final states:
           ```init
           init_state([
@@ -336,98 +271,3 @@ entries:
           predicate, `ll_arm_at/3`, to represent the position of the agent with the robotic arm.
           Since the description says that we do not care about the position of the arms at the end,
           we use the wildcard `_` to represent any value for the position of the arms in the goal.
-
-    
-    ############################################################################
-    ###############################     4     ##################################
-    ############################################################################
-    3: 
-      Q:
-        role: 'user'
-        content: |
-          Consider the following query for the high-level part:
-          "There are 5 blocks on a table. In the initial state of the simulation, block b1 is in 
-          position (1,1), block b2 is in position (2,2), block b3 is in position (3,3), b4 is in
-          position (4,4) and b5 is in position (5,5). After the execution of the plan, the blocks 
-          are still on the table, but their positions are b1: (5,5), b2: (4,4), b3: (3,3), b4: (2,2)
-          and b5: (1,1). There are two available agents that can carry out the task. They are 
-          available at the beginning and will be available at the end."
-          And consider the following general knowledge base provided by the high-level:
-          ```kb
-          % Positions on the table
-          pos(1,1).
-          pos(2,2).
-          pos(3,3).
-          pos(4,4).
-          pos(5,5).
-
-          % Blocks
-          block(b1).
-          block(b2).
-          block(b3).
-
-          % Agents
-          agent(a1).
-          agent(a2).
-
-          % Resources
-          resources(agent(_)).
-          ```
-          and the following initial and final states:
-          ```init
-          init_state([
-            ontable(b1), ontable(b2), ontable(b3),
-            at(b1,1,1), at(b2,2,2), at(b3,3,3),
-            clear(b1), clear(b2), clear(b3),
-            available(a1), available(a2)
-          ]).
-          ```
-          ```goal
-          goal_state([
-            ontable(b1), ontable(b2), on(b3, b1),
-            at(b1,1,1), at(b2,2,2), at(b3,1,1),
-            clear(b2), clear(b3),
-            available(a1), available(a2)
-          ]).
-          ```
-          Now, consider the following query for the low-level part:
-          "There are 3 blocks on a table. In the initial state of the simulation, block b1 is in 
-          position (1,1), block b2 is in position (2,2), block b3 is in position (3,3). After the 
-          execution of the plan, b1 on the table in position (1,1), b2 is on the table in position
-          (2,2) and b3 is on top of b1 in position (1,1). There are 2 agents with a robotic arm that
-          are available at the beginning and will be available at the end, which can be used to pick
-          objects. Their initial position is (0,0) for agent a1 and (10,10) for agent a2. We do not
-          care about their position in the final state."
-          Please update the high-level initial and final states to reflect the changes in the 
-          description for the low-level.
-          Remember to prepend the low-level predicates with "ll_" to avoid conflicts with the 
-          high-level predicates.s
-
-      A:
-        role: 'assistant'
-        content: |
-          Sure. The initial and goal states provided in the high-level are updated as follows:
-          ```init
-          init_state([
-            ontable(b1), ontable(b2), ontable(b3),
-            at(b1,1,1), at(b2,2,2), at(b3,3,3),
-            clear(b1), clear(b2), clear(b3),
-            available(a1), available(a2),
-            ll_arm_at(a1,0,0), ll_arm_at(a2,10,10)
-          ]).
-          ```
-          ```goal
-          goal_state([
-            ontable(b1), ontable(b2), on(b3, b1),
-            at(b1,1,1), at(b2,2,2), at(b3,1,1),
-            clear(b2), clear(b3),
-            available(a1), available(a2),
-            ll_arm_at(a1,_,_), ll_arm_at(a2,_,_)
-          ]).
-          ```
-          Indeed, the only difference is the information regarding the position of the agent with
-          the robotic arm at the beginning and at the end. In particular, we introduce a new
-          predicate, `ll_arm_at/3`, to represent the position of the agent with the robotic arm.
-          Since the description says that we do not care about the position of the arms at the end,
-          we use the wildcard `_` to represent any value for the position of the arms in the goal.
-

@@ -53,6 +53,8 @@ entries:
           
           Notice that we do not add more blocks or positions than the ones specified in the problem
           as we do not have knowledge of them. 
+          Also mind to use the term `resources(predicate)` to describe the resources of the problem, 
+          and do not itemize them as single `resource(predicate)` predicates.
 
 
     ############################################################################
@@ -108,6 +110,8 @@ entries:
           the scenario.
           The only predicate that can be used to carry out task is `agent`, which is then added to
           the `resources` predicate to indicate that the agents are resources.
+          Also mind to use the term `resources(predicate)` to describe the resources of the problem, 
+          and do not itemize them as single `resource(predicate)` predicates.
 
 
     ############################################################################
@@ -164,3 +168,86 @@ entries:
           the scenario.
           The only predicate that can be used to carry out task is `agent`, which is then added to
           the `resources` predicate to indicate that the agents are resources.
+          Also mind to use the term `resources(predicate)` to describe the resources of the problem, 
+          and do not itemize them as single `resource(predicate)` predicates.
+
+    ############################################################################
+    ###############################     3     ##################################
+    ############################################################################
+    3:
+      Q:
+        role: 'user'
+        content: |     
+          The following knowledge base has a problem with the resources predicates. Can you fix it?
+          ```kb
+          % Positions
+          pos(2,2).
+          pos(4,4).
+          pos(8,8).
+
+          % Blocks
+          block(b1).
+          block(b2).
+          block(b3).
+          block(b4).
+          block(b5).
+          block(b6).
+          block(b7).
+
+          % Agents
+          agent(a1).
+          agent(a2).
+          agent(a3).
+          agent(a4).
+          agent(a5).
+          agent(a6).
+          agent(a7).
+          agent(a8).
+
+          % Resources
+          resource(agent(a1)).
+          resource(agent(a2)).
+          resource(agent(a3)).
+          resource(agent(a4)).
+          resource(agent(a5)).
+          resource(agent(a6)).
+          resource(agent(a7)).
+          resource(agent(a8)).
+      
+      A: 
+        role: 'assistant'
+        content: |
+          Sure, the resources should be included only in the `resources` predicate, and not as
+          individual `resource` predicates. Here is the corrected knowledge base:
+          ```kb
+          % Positions
+          pos(2,2).
+          pos(4,4).
+          pos(8,8).
+
+          % Blocks
+          block(b1).
+          block(b2).
+          block(b3).
+          block(b4).
+          block(b5).
+          block(b6).
+          block(b7).
+
+          % Agents
+          agent(a1).
+          agent(a2).
+          agent(a3).
+          agent(a4).
+          agent(a5).
+          agent(a6).
+          agent(a7).
+          agent(a8).
+
+          % Resources
+          resources(agent(_)).
+          ```
+
+          To do so, we use the _ wildcard to match any agent, and then we add the `resources` 
+          predicate. This way, we can describe the resources of the problem without having to
+          enumerate them all.

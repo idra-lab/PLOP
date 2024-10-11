@@ -80,7 +80,6 @@ is_applicable(State, PreconditionsT, PreconditionsF, FinalConditionsF, Verify) :
     is_applicable(State, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, []).
 
 is_applicable(State, PreconditionsT, PreconditionsF, FinalConditionsF, Verify, Goal) :-
-    notrace,
     verify(Verify),
     % debug_format('Grounded ~w\n', [Verify]),
     (

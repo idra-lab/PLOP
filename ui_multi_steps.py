@@ -8,21 +8,23 @@ from LLM.LLM import LLM
 from python_interface.utility.utility import INFO, MSG, FAIL
 
 
-## General variables
+## General variables ###################################################################################################
 
 # LLM_CONF_PATH    = os.path.join(os.path.dirname(__file__), 'LLM', 'conf/gpt4o.yaml')
 LLM_CONF_PATH    = os.path.join(os.path.dirname(__file__), 'LLM', 'conf/gpt40-128k.yaml')
 # LLM_CONF_PATH    = os.path.join(os.path.dirname(__file__), 'LLM', 'conf/gpt40-32k.yaml')
 
-EXAMPLES_PATH    = os.path.join(os.path.dirname(__file__), 'LLM', 'examples')
-CC_EXAMPLES_PATH = os.path.join(EXAMPLES_PATH, 'cc', 'few-shots-cc.yaml')
-LL_EXAMPLES_PATH = os.path.join(EXAMPLES_PATH, 'multi', 'few-shots-ll.yaml')
-HL_EXAMPLES_PATH = os.path.join(EXAMPLES_PATH, 'multi', 'few-shots-hl.yaml')
+EXAMPLES_PATH           = os.path.join(os.path.dirname(__file__), 'LLM', 'examples')
+CC_EXAMPLES_CONFIG_PATH = os.path.join(EXAMPLES_PATH, 'cc', 'few-shots-cc.yaml')
+CC_EXAMPLES_HL_PATH     = os.path.join(EXAMPLES_PATH, 'cc', 'hl.yaml')
+CC_EXAMPLES_LL_PATH     = os.path.join(EXAMPLES_PATH, 'cc', 'll.yaml')
+LL_EXAMPLES_CONFIG_PATH = os.path.join(EXAMPLES_PATH, 'multi', 'few-shots-ll.yaml')
+HL_EXAMPLES_CONFIG_PATH = os.path.join(EXAMPLES_PATH, 'multi', 'few-shots-hl.yaml')
 
-WAIT = True
+WAIT = False
 
 
-## FUNCTIONS
+## FUNCTIONS ###########################################################################################################
 
 def scan_and_extract(kb, response):
     """
@@ -47,11 +49,27 @@ def scan_and_extract(kb, response):
         kb[key] = value
 
 
+########################################################################################################################
+
+
 def llm_scenario_comprehension(query_hl, query_ll) -> bool:
+    """
+    :brief: This function checks if the LLM has correctly understood the scenario for both the high-level and low-level
+            descriptions. It first checks the high-level scenario and then the low-level scenario in accordance with the
+            high-level scenario.
+    :details: The function uses the LLM to check the comprehension of the scenario. It uses only high-level examples for
+                the high-level scenario and both high-level and low-level examples for the low-level scenario. The path 
+                to the high-level examples is defined in the global variable CC_EXAMPLES_HL_PATH and the path to the
+                low-level examples is defined in the global variable CC_EXAMPLES_LL_PATH. The number of token is set to 
+                1000 since it seems to be working fine for both cases, but it may be necessary to tweak it.
+                In order to check if the LLM has correctly understood the scenario, the function checks that the LLM
+                returned something successfully, and then checks if the response contains the word 'OK' or 'PROBLEM'.
+    :param query_hl: The high-level scenario
+    :param query_ll: The low-level scenario
+    """
     llm_scenario = LLM(
         llm_connection_config_file=LLM_CONF_PATH,
-        # examples_yaml_file = [CC_EXAMPLES_PATH]
-        examples_yaml_file = [os.path.join(EXAMPLES_PATH, 'cc', 'hl.yaml')]
+        examples_yaml_file = [CC_EXAMPLES_HL_PATH]
     )
     llm_scenario.max_tokens = 1000
 
@@ -59,56 +77,51 @@ def llm_scenario_comprehension(query_hl, query_ll) -> bool:
     scenario_query_hl = f"Given the following high-level scenario:\n{query_hl}\nIf you think that there is a problem with the description, then write 'PROBLEM' and describe the problem, otherwise write 'OK'"
     succ, response = llm_scenario.query(scenario_query_hl)
     if succ and "OK" in response:
-        MSG("\rLLM has correctly understood the scenario") 
-        print(response)
+        MSG(f"\rLLM has correctly understood the scenario\n{response}") 
     elif succ and "PROBLEM" in response:
         FAIL(f"\rLLM has not correctly understood the scenario or there is a problem in the scenario\n{response}")
-        return
+        return False
     else: 
         FAIL(f"Problem with the LLM\n{response}")
         sys.exit(1)
+
+    # Check comprehension of both the high-level and low-level scenarios
 
     llm_scenario = LLM(
         llm_connection_config_file=LLM_CONF_PATH,
-        examples_yaml_file = [os.path.join(EXAMPLES_PATH, 'cc', 'll.yaml')]
+        examples_yaml_file = [CC_EXAMPLES_CONFIG_PATH]
     )
     llm_scenario.max_tokens = 1000
 
-    INFO("\r[CC] Checking LLM comprehension of scenario for low-level", imp=True)
-    scenario_query_ll = f"Given the following low-level scenario:\n{query_ll}\nIf you think that there is a problem with the description, then write 'PROBLEM' and describe the problem, otherwise write 'OK'"
-    succ, response = llm_scenario.query(scenario_query_ll)
+    INFO("\r[CC] Checking LLM comprehension of scenario for both levels", imp=True)
+    scenario_query = f"Given the following high-level description of a scenario:\n{query_hl}\nAnd the following low-level description of the same scenario\n{query_ll}\nIf you think that there is a problem with the description, then write 'PROBLEM' and describe the problem, otherwise write 'OK'"
+    succ, response = llm_scenario.query(scenario_query)
     if succ and "OK" in response:
-        MSG("\rLLM has correctly understood the scenario") 
-        print(response)
+        MSG(f"\rLLM has correctly understood the scenario\n{response}") 
     elif succ and "PROBLEM" in response:
         FAIL(f"\rLLM has not correctly understood the scenario or there is a problem in the scenario\n{response}")
-        return
+        return False
     else: 
         FAIL(f"Problem with the LLM\n{response}")
         sys.exit(1)
-
-    # INFO("\r[CC] Checking LLM comprehension of scenario for both levels", imp=True)
-    # scenario_query = f"Given the following high-level description of a scenario:\n{query_hl}\nAnd the following low-level description of the same scenario\n{query_ll}\nIf you think that there is a problem with the description, then write 'PROBLEM' and describe the problem, otherwise write 'OK'"
-    # succ, response = llm_scenario.query(scenario_query)
-    # if succ and "OK" in response:
-    #     MSG("\rLLM has correctly understood the scenario") 
-    #     print(response)
-    # elif succ and "PROBLEM" in response:
-    #     FAIL(f"\rLLM has not correctly understood the scenario or there is a problem in the scenario\n{response}")
-    #     return False
-    # else: 
-    #     FAIL(f"Problem with the LLM\n{response}")
-    #     sys.exit(1)
 
     return True
 
 
-def hl_llm_multi_step(query) -> tuple:   
+########################################################################################################################
+
+
+def hl_llm_multi_step(query) -> dict:
+    """
+    :brief This function uses the LLM to extract the high-level knowledge base, the initial and final states.
+    :param query: The query that will be used to extract the knowledge base, initial and final states. 
+    :return: A tuple containing the knowledge base and the response from the LLM
+    """
     # Extract HL knowledge base
     INFO("\r[HL] Extracting HL knowledge base", imp=True)
     llm = LLM(
         llm_connection_config_file=LLM_CONF_PATH,
-        examples_yaml_file = [HL_EXAMPLES_PATH]
+        examples_yaml_file = [HL_EXAMPLES_CONFIG_PATH]
     )
 
     kb = {}
@@ -118,11 +131,10 @@ def hl_llm_multi_step(query) -> tuple:
     kb_query = "\nGiven that the previous messages are examples, you now have to produce code for the task that follows.\n" +\
         query +\
         "\nWrite the static knowledge base. Remember to specify all the correct predicates and identify which are the predicates that are resources and to wrap it into \"kb\" tags and NOT prolog tags."
-    succ, response = llm.query(kb_query)
-    assert succ == True, "Failed to generate final state"
-    print(succ, response)
-    print()
-    scan_and_extract(kb, response)
+    succ, tmp_response = llm.query(kb_query)
+    assert succ == True, "Failed to generate static knowledge base"
+    print(succ, tmp_response+'\n')
+    scan_and_extract(kb, tmp_response)
 
     if WAIT:
         input("Press enter to continue...")
@@ -132,11 +144,10 @@ def hl_llm_multi_step(query) -> tuple:
     states_query = "\nGiven that the previous messages are examples, you know have to produce code for the task that follows.\n" + query + \
         "\nGiven the following static knowledge base\n```kb\n{}\n```".format(kb["kb"]) +\
         "\nWrite the initial and final states, minding to include all the correct predicates. Remember to wrap it into \"init\" and \"goal\" tags and not prolog tags."
-    succ, response = llm.query(states_query)
-    assert succ == True, "Failed to generate initial state"
-    print(succ, response)
-    print()
-    scan_and_extract(kb, response)
+    succ, tmp_response = llm.query(states_query)
+    assert succ == True, "Failed to generate initial and final states"
+    print(succ, tmp_response+'\n')
+    scan_and_extract(kb, tmp_response)
 
     # # Generate action set
     # INFO("\r[HL] Generating actions set")
@@ -150,10 +161,13 @@ def hl_llm_multi_step(query) -> tuple:
     # print()
     # scan_and_extract(kb, response)
 
-    return kb, response
+    return kb
 
 
-def ll_llm_multi_step(query, kb) -> tuple: 
+########################################################################################################################
+
+
+def ll_llm_multi_step(query, kb) -> dict: 
     # hl_kb = """
     # ```kb
     # {}
@@ -184,12 +198,12 @@ def ll_llm_multi_step(query, kb) -> tuple:
     INFO("\r[LL] Extract LL knowledge base", imp=True)
     llm = LLM(
         llm_connection_config_file=LLM_CONF_PATH,
-        examples_yaml_file = [LL_EXAMPLES_PATH]
+        examples_yaml_file = [LL_EXAMPLES_CONFIG_PATH]
     )
     
     # Generate static knowledge-base
     INFO("\r[LL] Generating knowledge base")
-    kb_query = "\nGiven that the previous messages are examples, you know have to produce code for the task that follows.\n" + query + \
+    kb_query = "\nYou know have to produce code for the task that follows.\n" + query + \
         "Given the following high-level knowledge-base:\n{}\n".format(kb['kb']) + \
         "\nUpdate only the generals knowledge base to contain the new low-level predicates and the resources"
     succ, response = llm.query(kb_query)
@@ -199,7 +213,7 @@ def ll_llm_multi_step(query, kb) -> tuple:
 
     # Generate initial and final states
     INFO("\r[LL] Generating initial and final states")
-    states_query = "\nGiven that the previous messages are examples, you know have to produce code for the task that follows.\n" + query + \
+    states_query = "\nYou know have to produce code for the task that follows.\n" + query + \
         "Given the low-level knowledge-base:\n```kb\n{}\n```\n".format(kb["kb"]) + \
         "Given the high-level initial and final states:\n```init\n{}\n```\n```goal\n{}\n```\n".format(kb["init"], kb["goal"]) + \
         "\nUpdate the initial and final states. Mind to include all the necessary predicates."
@@ -237,21 +251,32 @@ def ll_llm_multi_step(query, kb) -> tuple:
     return kb, response
     
 
+########################################################################################################################
+
+
 def find_plan(knowledge_base) -> planner.BehaviourTree:
     # Find plan
     print("Find plan")
     
+
+########################################################################################################################
+
 
 def execute_plan(plan):
     # Execute plan
     print("Execute plan")
 
 
+########################################################################################################################
+
+
 def main():
     assert os.path.exists(LLM_CONF_PATH), f"LLM configuration file not found at {LLM_CONF_PATH}"
-    assert os.path.exists(CC_EXAMPLES_PATH), f"CC examples path not found at {CC_EXAMPLES_PATH}"
-    assert os.path.exists(LL_EXAMPLES_PATH), f"Low-level examples path not found at {LL_EXAMPLES_PATH}"
-    assert os.path.exists(HL_EXAMPLES_PATH), f"High-level examples path not found at {HL_EXAMPLES_PATH}"
+    assert os.path.exists(CC_EXAMPLES_CONFIG_PATH), f"CC examples path not found at {CC_EXAMPLES_CONFIG_PATH}"
+    assert os.path.exists(CC_EXAMPLES_HL_PATH), f"CC high-level examples path not found at {CC_EXAMPLES_HL_PATH}"
+    assert os.path.exists(CC_EXAMPLES_LL_PATH), f"CC low-level examples path not found at {CC_EXAMPLES_LL_PATH}"
+    assert os.path.exists(LL_EXAMPLES_CONFIG_PATH), f"Low-level examples path not found at {LL_EXAMPLES_CONFIG_PATH}"
+    assert os.path.exists(HL_EXAMPLES_CONFIG_PATH), f"High-level examples path not found at {HL_EXAMPLES_CONFIG_PATH}"
 
     # query = input("Describe your problem: ")
 
@@ -285,22 +310,21 @@ def main():
     # """
 
 
-    query_ll = """
-    There are 3 blocks on a table. In the initial state of the simulation, block b1 is in position (1,1), block b2 is in 
-    position (2,2), block b3 is in position (3,3). After the execution of the plan, b1 on the table in position (1,1), 
-    b2 is on the table in position (2,2) and b3 is on top of b1 in position (1,1).
-    There are two available agents that can carry out the task. They are available at the beginning and will be 
-    available at the end. The agents are actually robotic arms that can pick up blocks and move them around. At the 
-    beginning, the arms are in positions (0,0) and (10,10), respectively, while we do not care were they are at the end.
-    """
+    # query_ll = """
+    # There are 3 blocks on a table. In the initial state of the simulation, block b1 is in position (1,1), block b2 is in 
+    # position (2,2), block b3 is in position (3,3). After the execution of the plan, b1 on the table in position (1,1), 
+    # b2 is on the table in position (2,2) and b3 is on top of b1 in position (1,1).
+    # There are two available agents that can carry out the task. They are available at the beginning and will be 
+    # available at the end. The agents are actually robotic arms that can pick up blocks and move them around. At the 
+    # beginning, the arms are in positions (0,0) and (10,10), respectively, while we do not care were they are at the end.
+    # """
 
     query_ll = """
-    There are 3 blocks on a table. In the initial state of the simulation, block b1 is in position (1,1), block b2 is in 
-    position (2,2), block b3 is in position (3,3). After the execution of the plan, b1 and b2 are in the same positions
-    as in the initial state, whereas b3 has been moved on top of b1.
-    There are two available agents that can carry out the task. They are available at the beginning and will be 
+    Let the blocks and their positions be described in the high-level part.
+    There are eight available agents that can carry out the task. They are available at the beginning and will be 
     available at the end. The agents are actually robotic arms that can pick up blocks and move them around. At the 
-    beginning, the arms are in positions (0,0) and (10,10), respectively, while we do not care were they are at the end.
+    beginning, the arms are in positions (0,0), (1,1), (10,2), (3,3), (4,4), (5,5), (6,6) and (7,7), respectively, while 
+    we do not care were they are at the end.
     """
     # Remember to prepend the low-level predicates with 'll_'.
 
@@ -329,13 +353,13 @@ def main():
 
     # Use HL LLM to extract HL knowledge base
     # hl_kb, response = hl_llm(query_hl)
-    hl_kb, response = hl_llm_multi_step(query_hl)
+    hl_kb = hl_llm_multi_step(query_hl)
 
     if WAIT:
         input("Press enter to continue...")
 
     # use LL LLM to extract LL knowledge base
-    # kb, _ = ll_llm_multi_step(query_ll.format(response), hl_kb)
+    kb, _ = ll_llm_multi_step(query_ll, hl_kb)
 
     # for key, value in kb.items():
     #     print(key, value)
@@ -345,15 +369,16 @@ def main():
     with open(os.path.join("output", "kb.pl"), "w") as file:
         file.write("% This file was automatically generated by the LLM system\n")
         first_line = True
-        for key, value in hl_kb.items():
+        for key, value in kb.items():
             if not first_line:
                 file.write("\n")
             file.write(f"%%%%%%%%%%%%%%%%%%%%%%%\n% {key}\n%%%%%%%%%%%%%%%%%%%%%%%\n{value}\n")
             first_line = False
-
-        file.write("""
-:- ensure_loaded('prolog_planner/examples/blocks_world/actions.pl').
-:- ensure_loaded('prolog_planner/examples/blocks_world/mappings.pl').
+        actions_path = os.path.join(os.path.dirname(__file__), 'prolog_planner', 'examples', 'blocks_world', 'actions.pl')
+        mappings_path = os.path.join(os.path.dirname(__file__), 'prolog_planner', 'examples', 'blocks_world', 'mappings.pl')
+        file.write(f"""
+:- ensure_loaded('{actions_path}').
+:- ensure_loaded('{mappings_path}').
 """)
                    
 
@@ -362,6 +387,9 @@ def main():
 
     # Execute the plan
     # execute_plan(bt)
+
+    INFO("ALL DONE!")
+
 
 
 if __name__ == "__main__":

@@ -90,7 +90,7 @@ class LLM:
             if n_retry >= max_retry:
                 break
             try:
-                print("[INFO] connecting to the LLM ...")
+                print("[INFO] Connecting to the LLM ...")
                 llm_output = self.__connect_openai(self.messages)
                 conn_success = True
             except Exception as e:
