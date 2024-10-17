@@ -100,7 +100,7 @@ ll_action(grip_start(A),
   [],
   [ll_arm_gripping(A), ll_gripped(A)],
   [],
-  [arm(A)],
+  [ll_arm(A)],
   [
     add(ll_arm_gripping(A))
   ]
@@ -110,7 +110,7 @@ ll_action(grip_end(A),
   [ll_arm_gripping(A)],
   [],
   [],
-  [arm(A)],
+  [ll_arm(A)],
   [
     del(ll_arm_gripping(A)),
     add(ll_gripped(A))
@@ -121,7 +121,7 @@ ll_action(release_start(A),
   [ll_gripped(A)],
   [],
   [],
-  [arm(A)],
+  [ll_arm(A)],
   [
     add(ll_arm_releasing(A))
   ]
@@ -131,7 +131,7 @@ ll_action(release_end(A),
   [ll_arm_releasing(A)],
   [],
   [],
-  [arm(A)],
+  [ll_arm(A)],
   [
     del(ll_arm_releasing(A)),
     del(ll_gripped(A))
@@ -139,35 +139,35 @@ ll_action(release_end(A),
 ).
 
 ll_action(move_arm_start(A, X1, Y1, X2, Y2),
-  [ll_at_arm(A, X1, Y1)],
-  [ll_at_arm(A1, X2, Y2), ll_moving(_, _, _, X2, Y2), ll_moving(A, _, _, _, _)],
+  [ll_arm_at(A, X1, Y1)],
+  [ll_arm_at(A1, X2, Y2), ll_moving(_, _, _, X2, Y2), ll_moving(A, _, _, _, _)],
   [],
-  [arm(A), pos(X1, Y1), pos(X2, Y2)],
+  [ll_arm(A), pos(X1, Y1), pos(X2, Y2)],
   [
-    del(ll_at_arm(A, X1, Y1)),
+    del(ll_arm_at(A, X1, Y1)),
     add(ll_moving(A, X1, Y1, X2, Y2))
   ]
 ).
 
 ll_action(move_arm_end(A, X1, Y1, X2, Y2),
   [ll_moving(A, X1, Y1, X2, Y2)],
-  [ll_at_arm(_, X2, Y2)],
+  [ll_arm_at(_, X2, Y2)],
   [],
-  [arm(A)],
+  [ll_arm(A)],
   [
     del(ll_moving(A, X1, Y1, X2, Y2)),
-    add(ll_at_arm(A, X2, Y2))
+    add(ll_arm_at(A, X2, Y2))
   ]
 ).
 
 % This solves the situation in which (X1,Y1)=(X2,Y2) meaning that the arm is already in the desired position.
 ll_action(move_arm_start(A, X1, Y1, X2, Y2),
-  [ll_at_arm(A, X1, Y1), ll_at_arm(A1, X2, Y2)],
+  [ll_arm_at(A, X1, Y1), ll_arm_at(A1, X2, Y2)],
   [ll_moving(_, _, _, X2, Y2), ll_moving(A, _, _, _, _)],
   [],
-  [arm(A), pos(X1, Y1), pos(X2, Y2)],
+  [ll_arm(A), pos(X1, Y1), pos(X2, Y2)],
   [
-    del(ll_at_arm(A, X1, Y1)),
+    del(ll_arm_at(A, X1, Y1)),
     add(ll_moving(A, X1, Y1, X2, Y2))
   ]
 ).

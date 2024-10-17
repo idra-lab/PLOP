@@ -42,10 +42,152 @@ entries:
 
           Any or all of them may be empty, but still every section must be present.
 
+entries:
+  convo:
+    ############################################################################
+    ###############################     0     ##################################
+    ############################################################################
+    0: 
+      Q:
+        role: 'user'
+        content: |
+          How is your code divided?
+
+      A:
+        role: 'assistant'
+        content: |
+          The low-level knowledge base is composed of 4 parts:
+          - `init` section, which contains the initial state of the environment;
+          - `goal` section, which contains the final state of the environment;
+          - `KB` section, which contains all the information that is not modified by the actions;
+          - `actions` section, which contains the description of the actions that can be performed 
+             by the agents.
+
+          For example, the predicate `ll_arm_at(A)`, which states the position of the arm A, is 
+          a predicate that is modified by the actions and should be placed in the `init` section.
+          On the other hand, the predicate `ll_arm(A)`, which states that the agent A is an arm, is
+          a predicate that is not modified by the actions and should be placed in the `KB` section.
+
+
     ############################################################################
     ###############################     1     ##################################
     ############################################################################
     1:
+      Q: 
+        role: 'user'
+        content: | 
+          What are the syntactic differences between high-level and low-level predicates?
+
+      A:
+        role: 'assistant'
+        content: |
+          The low-level predicates must be prefixed with `ll_`. For example, `agent(A)` tells us
+          that A is an agent that can carry out actions, but `ll_arm(A)` specify the role played by 
+          A saying that it is a robotic arm.          
+
+
+    ############################################################################
+    ###############################     2     ##################################
+    ############################################################################
+    2:
+      Q: 
+        role: 'user'
+        content: |
+          What information should be placed in the `KB`? 
+
+      A:
+        role: 'assistant'
+        content: |
+          In the `KB` section, one should place all those pieces of information that are important 
+          for the execution of the actions, yet they are not modified by the same actions. 
+          For example, one could place the available positions inside the knowledge base so that the
+          planner knows which are the positions that can be used, but at the same time it uses other 
+          predicates to state whether they are free or being used. 
+          ```KB
+          :-discontiguous ll_arm/1.
+          :-discontiguous ll_wheeled/1.
+          ll_arm(a2).
+          ll_arm(a3).
+          ll_wheeled(a1).
+          ll_wheeled(a3).
+          ```
+          In this knowledge base, we are saying that there two agents that have wheels and two 
+          agents that have a robotic arm. `a3` as both wheels and a robotic arm. 
+
+
+    ############################################################################
+    ###############################     3     ##################################
+    ############################################################################
+    3:
+      Q:
+        role: 'user'
+        content: |
+          How are the initial and final state written?
+      A:
+        role: 'assistant'
+        content: |
+          The initial and final states should contain all those predicates that are used to describe 
+          the state of the environment and of the agents at the beginning and at the end. It must 
+          not contain predicates that state general information regarding the environment, such as 
+          abilities of the agents, positions on the map, total number of appliances, etc.
+          For example, the following initial state and knowledge base are correct as the former
+          contains predicates describing information destined to change and the latter contains 
+          predicates describing a static knowledge base.
+
+          ```init
+          init_state([
+            ll_arm_at(a1, 1, 2), ll_arm_at(a3 2, 3), ll_car_at(a3, 1, 2), ll_car_at(a2, 5, 5)
+          ]).
+          ```
+
+          ```KB
+          :-discontiguous ll_arm/1.
+          :-discontiguous ll_wheeled/1.
+          ll_arm(a2).
+          ll_arm(a3).
+          ll_wheeled(a1).
+          ll_wheeled(a3).
+          ```
+
+          Though the following initial state and knowledge base are not correct:  
+
+          ```init
+          init_state([
+            ll_arm_at(a1, 1, 2), ll_arm_at(a3 2, 3), ll_car_at(a3, 1, 2), ll_car_at(a2, 5, 5), 
+            ll_wheeled(a1), ll_wheeled(a3)
+          ]).
+          ```
+
+          ```KB
+          :-discontiguous ll_arm/1.
+          ll_arm(a2).
+          ll_arm(a3).
+          ```
+
+          As the information regarding the available positions should be stated in the `KB` section 
+          since the positions remain the same in time.
+
+
+    ############################################################################
+    ###############################     4     ##################################
+    ############################################################################
+    4:
+      Q:
+        role: 'user'
+        content: |
+          What is considered to be a resource?
+      A:
+        role: 'assistant'
+        content: |
+          The resources are supplies that the planner can use in order to achieve the goal. For 
+          instance, arms are considered resources, as they can be used to perform actions and the 
+          planner can assign them. 
+          
+
+    ############################################################################
+    ###############################     5     ##################################
+    ############################################################################
+    5:
       Q: 
         role: 'user'
         content: | 
@@ -77,18 +219,16 @@ entries:
           The list ValidConditionsAtEnd checks if a condition from the goal has already been achieved and avoids actions which may make one of the contained conditions not to hold.
           ConditionOnKB is a list used to force the Prolog interpreter to ground the variables of the action to some values.
 
-          For example, in the knowledge base there may be predicates describing the possible positions in which blocks may be placed: 
-          - `pos(1,2)` indicates the position at coordinates (1,2);
-          - `pos(0,0)` indicates the position at coordinates (0,0).
 
     ############################################################################
-    ###############################     2     ##################################
+    ###############################     6     ##################################
     ############################################################################
-    2:
+    6:
       Q:
         role: 'user'
         content: |
-          Given a high-level action, how do you divide it into low-level actions?
+          Given a high-level action, how do you divide it into low-level actions, i.e., how do you 
+          find a mapping for the high-level action? 
 
       A:
         role: 'assistant'
@@ -97,7 +237,7 @@ entries:
           create macro-actions only for starting high-level actions, meaning that a high-level action can be split into
           many low-level actions only after it has started and it must end after all low-level actions have finished.
           The general structure of a high-level action to low-level actions is the following Prolog predicate:
-          ```mappings
+          ```
           mapping(high_level_actions(args),
             [
               low_level_action_1_start(args_ll_a1_s), 
@@ -108,7 +248,7 @@ entries:
               low_level_action_2_end(args_ll_a3_e), 
               ...
             ]
-          )
+          ).
           ```
 
 

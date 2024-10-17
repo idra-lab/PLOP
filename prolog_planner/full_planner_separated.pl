@@ -1,43 +1,10 @@
 :- ensure_loaded('utility/utility.pl').
 :- ensure_loaded('includes.pl').
 
-extract_hl_goal(Goal, HLGoal) :-
-  findall(Action, action(Action, _, _, _, _, _), ActionsList).
-  extract_hl_goal(Actions, Goal, [], HLGoal).
 
-extract_hl_goal([], _Goal, HLGoal, HLGoal).
-extract_hl_goal([HAction|TActions], Goal, TempHLGoal, HLGoal) :-
-  action(HAction, PreconditionsT, PreconditionsF, _FinalConditionsF, _Verify, Effects),
-  check_goal_in_preconditions(Goal, PreconditionsT, RetPredicates),
-  % check_goal_in_preconditions(PreconditionsF, Goal),
-  % check_goal_in_effects(Effects, Goal)
-  true.
-
-check_goal_in_preconditions(Goal, Preconditions, RetPredicates) :-
-  check_goal_in_preconditions(Goal, Preconditions, [], RetPredicates).
-
-check_goal_in_preconditions([], _Preconditions, RetPredicates, RetPredicates).
-check_goal_in_preconditions([HGoal|TGoals], Preconditions, Predicates, RetPredicates) :-
-  (
-    match_goal(HGoal, Preconditions)
-    ->(
-      append([HGoal], Predicates, NewPredicates),
-      debug_format('Matched goal ~w in ~w\n', [HGoal, Preconditions])
-    ); (
-      append([], Predicates, NewPredicates),
-      debug_format('Goal not matched ~w in ~w\n', [HGoal, Preconditions])
-    )
-  ),
-  check_goal_in_preconditions(TGoals, Preconditions, NewPredicates, RetPredicates).
-
-match_goal(Goal, []) :- false.
-match_goal(Goal, [HPrecondition|TPreconditions]) :-
-  functor(Goal, Name, Arity),
-  (
-    functor(HPrecondition, Name, Arity)
-    -> true
-    ;  match_goal(Goal, TPreconditions)
-  ).
+goal_reached(State, Goal) :-
+  subset(Goal, State).
+  % equal_sets(Goal, State).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -120,52 +87,47 @@ add_no_mapping_achievers_wrapped(ID-Action, [PrevID-PrevAction|T], IDHLAction, T
 apply_mappings(Init, Goal, HL_Plan, HL_Achievers, LL_Plan, LL_Achievers) :-
   debug_format('[apply_mappings] The HL plan is ~w\n', [HL_Plan]),
   apply_mappings(Init, Goal, HL_Plan, HL_Achievers, [], [], LL_Plan, LL_Achievers).
+  
 
 apply_mappings(Init, Goal, [], _HL_Achievers, LL_Plan, LL_Achievers, LL_Plan, LL_Achievers) :-
   debug_format('[apply_mappings] Reached this point ~w\n', [LL_Plan]),
   true.
 
+
 apply_mappings(Init, Goal, [[IDHLAction-HL_Action]|T_HL_Actions], [IDHLAction-HL_Action-HL_Achievers|T_HL_Achievers], Plan, LastAchievers, RetPlan, RetLastAchievers) :-
-  enable_debug,
-  debug_format('\n\n[apply_mappings] HL_Action: ~w-~w\n', [IDHLAction,HL_Action]), 
   disable_debug,
-  % debug_format('[apply_mappings] HL_Achievers:\n'), 
+  debug_format('\n\n[apply_mappings] HL_Action: ~w-~w\n', [IDHLAction,HL_Action]), 
+  debug_format('[apply_mappings] HL_Achievers:\n'), 
   print_list([HL_Achievers]),
+  
   length(Plan, Length),
   action(HL_Action, PreconditionsT, PreconditionsF, _FinalConditionsF, Verify, Effects),
   append([Length-HL_Action], Plan, TempPlan),
   change_state(Init, Effects, CurrentState),
-  % debug_format('[apply_mappings] Finding last achievers for: ~w\n', [HL_Action]),
-  % debug_format('[apply_mappings] PreconditionsT: ~w\n', [PreconditionsT]),
-  % debug_format('[apply_mappings] PreconditionsF: ~w\n', [PreconditionsF]),
-  % debug_format('[apply_mappings] Verify: ~w\n', [Verify]),
-  % debug_format('[apply_mappings] Plan: ~w\n', [Plan]),
-  (
-    IDHLAction = 2
-    -> (
-      enable_debug,
-      last_achievers_ids(PreconditionsT, PreconditionsF, Verify, Plan, TempActionLastAchievers),
-      disable_debug,
-      debug_format('[apply_mappings] Last achievers for ~w: ~w\n', [HL_Action, TempActionLastAchievers])
-    );(
-      true
-    )
-  ),
-  % format(atom(Pre), '\t~w', [HL_Action]),
+
+  debug_format('[apply_mappings] Finding last achievers for: ~w\n', [HL_Action]),
+  debug_format('[apply_mappings] PreconditionsT: ~w\n', [PreconditionsT]),
+  debug_format('[apply_mappings] PreconditionsF: ~w\n', [PreconditionsF]),
+  debug_format('[apply_mappings] Verify: ~w\n', [Verify]),
+  debug_format('[apply_mappings] Plan: ~w\n', [Plan]),
+
   Pre = '\t',
   (
+    debug_format('[apply_mappings] Checking if there is a mapping for action ~w\n', [HL_Action]),
+
     mapping(HL_Action, Mappings) 
-    ->(
+    ->(      
+      debug_format('[apply_mappings] Found mapping for action ~w ~w ~w\n', [HL_Action, Mappings, Length]),
+      debug_format('[apply_mappings] Calling apply_action_map with'),
+      debug_format('[apply_mappings] Mappings: ~w\n', [Mappings]), 
+      debug_format('[apply_mappings] Length: ~w\n', [Length]), 
+      debug_format('[apply_mappings] CurrentState: ~w\n', [CurrentState]), 
+      debug_format('[apply_mappings] TempPlan: ~w\n', [TempPlan]),
+
       append([Length-HL_Action-TempActionLastAchievers], LastAchievers, TempLastAchievers),
-      % debug_format('[apply_mappings] Found mapping for action ~w ~w ~w\n', [HL_Action, Mappings, Length]),
-      % debug_format('[apply_mappings] Calling apply_action_map with'),
-      % debug_format('[apply_mappings] Mappings: ~w\n', [Mappings]), 
-      % debug_format('[apply_mappings] Length: ~w\n', [Length]), 
-      % debug_format('[apply_mappings] CurrentState: ~w\n', [CurrentState]), 
-      % debug_format('[apply_mappings] TempPlan: ~w\n', [TempPlan]),
       apply_action_map(Mappings, Length, CurrentState, TempPlan, TempLastAchievers, NewState, NewPlan, NewLastAchievers, Pre),
-      % debug_format('[apply_mappings] NewLastAchievers: ~w\n', [NewLastAchievers]),
-      true
+      
+      debug_format('[apply_mappings] NewLastAchievers: ~w\n', [NewLastAchievers])
     );(
       NewPlan = TempPlan,
       NewState = CurrentState,
@@ -173,39 +135,27 @@ apply_mappings(Init, Goal, [[IDHLAction-HL_Action]|T_HL_Actions], [IDHLAction-HL
       sub_string(ActionNameFull, Value, _, _, '_end'), 
       sub_string(ActionNameFull, _, Value, _, ActionName)
       ->(
-        % debug_format('[apply_action_map] Calling add_achievers_end_ll for ~w ~w\n', [ActionName, TempLastAchievers]),
-        % debug_format('[apply_mappings] TempPlan: \n'),
+        debug_format('[apply_action_map] Calling add_achievers_end_ll for ~w ~w\n', [ActionName, TempLastAchievers]),
+        debug_format('[apply_mappings] TempPlan: \n'),
         print_list(TempPlan),
+        
         add_achievers_end_ll(ActionName, TempPlan, TempActionLastAchievers, NewActionLastAchievers, Pre),
-        % append(TempTempLastAchievers, TempLastAchievers, NewLastAchievers),
-        % debug_format('[apply_mappings] NewActionLastAchievers: ~w\n', [NewActionLastAchievers]),
-        % (
-        %   NewActionLastAchievers = [31,32,33,34,35,36,37,38,39,30,29,19,10,9]
-        %   -> (leash(-all), trace)
-        %   ;  true
-        % ),
-        append([Length-HL_Action-NewActionLastAchievers], LastAchievers, NewLastAchievers),
-        true
+        append([Length-HL_Action-NewActionLastAchievers], LastAchievers, NewLastAchievers)
       );(
-        append([Length-HL_Action-TempActionLastAchievers], LastAchievers, NewLastAchievers),
-        true
+        append([Length-HL_Action-TempActionLastAchievers], LastAchievers, NewLastAchievers)
       )
     )
   ),
   debug_format('[apply_mappings] Action name: ~w\n', [HL_Action]),
   debug_format('[apply_mappings] Current state: ~w\n', [NewState]),
   debug_format('[apply_mappings] NewPlan: ~w\n', [NewPlan]),
-  % (
-  %   NewPlan = [19-move_onblock_to_table_end(a1,b1,2,2,0,0),18-release_end(a1),17-release_start(a1),16-move_arm_end(a1,2,2,0,0),15-move_arm_start(a1,2,2,0,0),14-grip_end(a1),13-grip_start(a1),12-move_arm_end(a1,0,0,2,2),11-move_arm_start(a1,0,0,2,2),10-move_onblock_to_table_start(a1,b1,2,2,0,0),9-move_table_to_block_end(a1,b1,b2,1,1,2,2),8-release_end(a1),7-release_start(a1),6-move_arm_end(a1,1,1,2,2),5-move_arm_start(a1,1,1,2,2),4-grip_end(a1),3-grip_start(a1),2-move_arm_end(a1,0,0,1,1),1-move_arm_start(a1,0,0,1,1),0-move_table_to_block_start(a1,b1,b2,1,1,2,2)]
-  %   -> (leash(-all), trace)
-  %   ;  true
-  % ),
+
   apply_mappings(NewState, Goal, T_HL_Actions, T_HL_Achievers, NewPlan, NewLastAchievers, RetPlan, RetLastAchievers).
+
 
 apply_mappings(_, _, _, _, _, _, _, _) :-
   debug_format('[apply_mappings] Could not apply mappings\n'),
   fail.
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -295,7 +245,7 @@ apply_action_map(_, _, _, _, _, _, _, _, _) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 generate_plan(Init, Goal, Plan, LastAchievers) :-
   debug_format('Checking if the initial state is the goal state ~w~w\n', [Init, Goal]),
-  \+equal_set(Init, Goal),
+  \+goal_reached(Init, Goal),
   debug_format('Generating the high-level temporal plan from ~w to ~w\n', [Init, Goal]),
   (
     generate_plan_hl(Init, Goal, [], [], [], 2, HL_Plan, HL_Achievers)
@@ -315,6 +265,7 @@ generate_plan(Init, Goal, Plan, LastAchievers) :-
       reverse(HL_Plan, HL_PlanReversed),
       reverse(HL_Achievers, HL_AchieversReversed),
       (
+        % leash(-all),trace,
         apply_mappings(Init, Goal, HL_PlanReversed, HL_AchieversReversed, Plan, LL_Achievers)
         ->(
           debug_format('Plan generated~w\n', [Plan]),
@@ -323,7 +274,9 @@ generate_plan(Init, Goal, Plan, LastAchievers) :-
           clean_achievers(LL_Achievers, LastAchievers)
         );(
           format('Could not apply mappings\n'), fail
-        )
+        ),
+        % notrace,
+        true
       ),
       true
     );(
@@ -337,9 +290,10 @@ generate_plan(Init, Goal, Plan, LastAchievers) :-
 % This function generates a HL plan
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 generate_plan_hl(State, Goal, _Been_list, Plan, LastAchievers, _MaxDepth, Plan, LastAchievers) :-
-  equal_set(State, Goal).
+  goal_reached(State, Goal),
+  format('Goal reached\n').
 generate_plan_hl(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPlan, FinalLastAchievers) :-
-  \+equal_set(State, Goal),
+  \+goal_reached(State, Goal),
   length(Plan, Length), Length < MaxDepth,
   debug_format('\n\nCurrent plan: ~w\n', [Plan]),
 
@@ -383,7 +337,7 @@ generate_plan_hl(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPla
   true.
 
 generate_plan_hl(State, Goal, Been_list, Plan, LastAchievers, MaxDepth, FinalPlan, FinalLastAchievers) :-
-  \+equal_set(State, Goal),
+  \+goal_reached(State, Goal),
   length(Plan, Length), 
   Length >= MaxDepth,
   debug_format('Max depth reached\n\n'),

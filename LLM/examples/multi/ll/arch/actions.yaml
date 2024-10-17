@@ -1,0 +1,187 @@
+entries:
+  convo:
+    ############################################################################
+    ###############################     0     ##################################
+    ############################################################################
+    0: 
+      Q:
+        role: 'user'
+        content: |
+          Given the high-level knowledge-base obtained from the high level description:
+          ```KB
+          :- discontiguous resources/1.
+
+          % blocks
+          block(block1).
+          block(block2).
+          arch(arch1).
+
+          % agents
+          agent(a1).
+          agent(a2).
+
+          % positions
+          pos(a, 1, 1, 0).
+          pos(b, 2, 2, 0).
+          pos(c, 3, 4, 0).
+          pos(d, 5, 5, 0).
+          pos(e, 9, 9, 0).
+          pos(f, 1.5, 1.5, 0).
+
+          % resources
+          resource(agent(_)).
+          ```
+          ```init
+          [av(a1), av(a2), free(block1), free(block2), free(arch1), at(c, block1), at(d, block2), at(e, arch1)]
+          ```
+          ```goal
+          [
+            av(a1), av(a2), pillar(a, block1), pillar(b, block2), arch(a, b, arch1),
+            at(a, block1), at(b, block2), at(e, arch1),
+
+          ]
+          ```
+          ```actions
+          action(build_pillar_start(A, Pos, Block1),
+            [av(A), free(Block1)],
+            [pillar(Pos, _), pillaring(_, Pos, _)],
+            [pillar(Pos, Block1)],
+            [block(Block1), agent(A), pos(Pos,_,_,_)],
+            [
+            del(av(A)), del(free(Block1)),
+            add(pillaring(A, Pos, Block1))
+            ]
+          ).
+          action(build_pillar_end(A, Pos, Block1),
+            [pillaring(A, Pos, Block1)],
+            [pillar(Pos, _)],
+            [],
+            [],
+            [
+              del(pillaring(A, Pos, Block1)),
+              add(av(A)), add(pillar(Pos, Block1))
+            ]
+          ).
+          action(place_arch_start(A, Pos1, Pos2, Arch),
+            [av(A), pillar(Pos1, _), pillar(Pos2, _), free(Arch)],
+            [placing_arch(_, Pos1, Pos2, _), placed_arch(Pos1, Pos2, _)],
+            [placed_arch(Pos1, Pos2, Arch)],
+            [arch(Arch), agent(A), pos(Pos1,_,_,_), pos(Pos2,_,_,_), Pos1\=Pos2],
+            [
+              del(av(A)), del(free(Arch)),
+              add(placing_arch(A, Pos1, Pos2, Arch))
+            ]
+          ).
+          action(place_arch_end(A, Pos1, Pos2, Arch),
+            [placing_arch(A, Pos1, Pos2, Arch)],
+            [arch(_, Pos1, Pos2)],
+            [],
+            [],
+            [
+              del(placing_arch(A, Pos1, Pos2, Arch)),
+              add(arch(Pos1, Pos2, Arch)), add(av(A))
+            ]
+          ).
+          ```
+
+          Consider the following description of the low-level aspect of the same problem. Each agent has an arm and a 
+          gripper and they start from position (0,0,0) for a1 and (20,20,20) for a2. Also the actual actions that the
+          agents can perform are given below:
+          move_arm(agent_id, xi, yi, zi, xf, yf, zf), which moves the arm of the agent identified by agent_id from the
+            initial position (xi, yi, zi) to the final position (xf, yf, zf).
+          open_gripper(agent_id), which opens the gripper of the agent identified by agent_id.
+          close_gripper(agent_id), which closes the gripper of the agent identified by agent_id.
+
+          Can you update the set of actions to also include actions for the low-level part?
+
+      A:
+        role: 'assistant'
+        content: |
+          Sure. First of all, since we are solving a temporal plan, we need to divide the actions into start and end. We 
+          will have then 6 snap actions, namely `move_arm_start`, `move_arm_end`, `open_gripper_start`,
+          `open_gripper_end`, `close_gripper_start`, `close_gripper_end`. 
+          `move_arm_start` has as positive precondition the position of the arm for that agent. It also requires that
+            the arm is not moving, nor gripping or releasing anything. Moreover, its arguments must be grounded, so we 
+            need to check that the agent chosen actually has an arm and that the final position exists. For the effects,
+            we add a transitioning predicate which states that the arm is moving from the initial to the final position,
+            and we remove the predicate that states that the arm is in a certain position.
+          `move_arm_end` has as positive precondition the fact that the arm is moving from the initial to the final
+            position. It has no negative preconditions. The effects are that the arm is no longer moving, the arm is in
+            the final position.
+          `open_gripper_start` it requires that the arm has something gripped and that it is not moving, nor gripping, 
+            nor releasing. Also, we must make sure that in the KB the agent A actually has a gripper. The effects are
+            that we remove the gripped predicate and that the gripper is close, while we state that the gripper is 
+            opening.
+          `open_gripper_end` has as positive precondition that the gripper is opening. It has no negative preconditions,
+            but we must make sure that the agent has a gripper. The effects are that the gripper is open and that the
+            gripper is no longer opening.
+          `close_gripper_start` it requires that the gripper is open and that it is not moving, nor gripping, nor
+            releasing, not that it has something gripped. Also, we must make sure that in the KB the agent A actually 
+            has a gripper. The effects are that we remove the open gripper predicate and we must state that the 
+            gripper is closing.
+          `close_gripper_end` has as positive precondition that the gripper is closing. It has no negative
+            preconditions, but we must make sure that the agent has a gripper. The effects are that the gripper is close
+            and that the gripper is no longer closing and that it has something gripped.
+
+          ```ll_actions
+          ll_action(move_arm_start(A, To, X1, Y1, Z1, X2, Y2, Z2),
+            [arm_at(A, X1, Y1, Z1)],
+            [moving_arm(A, _, _, _, _, _, _), gripping(A, _), releasing(A)],
+            [],
+            [arm(A), pos(To, X2, Y2, Z2)],
+            [
+              add(moving_arm(A, To, X1, Y1, Z1, X2, Y2, Z2)),
+              del(arm_at(A, X1, Y1, Z1))
+            ]
+          ).
+          ll_action(move_arm_end(A, To, X1, Y1, Z1, X2, Y2, Z2),
+            [moving_arm(A, To, X1, Y1, Z1, X2, Y2, Z2)],
+            [],
+            [],
+            [],
+            [
+              del(moving_arm(A, To, X1, Y1, Z1, X2, Y2, Z2)),
+              add(arm_at(A, X2, Y2, Z2))
+            ]
+          ).
+          ll_action(grip_start(A, B),
+            [gripper(A, open)],
+            [moving_arm(A, _, _, _, _, _, _), gripping(A, _), releasing(A), gripped(A)],
+            [],
+            [gripper(A)],
+            [
+              del(gripper(A, open)),
+              add(gripping(A, B))
+            ]
+          ).
+          ll_action(grip_end(A, B),
+            [gripping(A, B)],
+            [],
+            [],
+            [gripper(A)],
+            [
+              del(gripping(A, B)),
+              add(gripped(A)), add(gripper(A, close))
+            ]
+          ).
+          ll_action(release_start(A),
+            [gripped(A)],
+            [moving_arm(A, _, _, _, _, _, _), gripping(A, _), releasing(A)],
+            [],
+            [gripper(A)],
+            [
+              del(gripped(A)), del(gripper(A, close)),
+              add(releasing(A))
+            ]
+          ).
+          ll_action(release_end(A),
+            [releasing(A)],
+            [],
+            [],
+            [gripper(A)],
+            [
+              del(releasing(A)),
+              add(gripper(A, open))
+            ]
+          ).
+          ```

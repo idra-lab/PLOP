@@ -74,13 +74,14 @@ class LLM:
 
 
     def query(self, prompt, end_when_error=False, max_retry=5) -> tuple:
+        from datetime import datetime
         conn_success, llm_output = False, ""
         
         self.messages.append({"role": "user", "content": prompt})
 
         if not os.path.exists("output"):
             os.makedirs("output")
-        with open(os.path.join("output", "sent_query.txt"), "w") as f:
+        with open(os.path.join("output", f"sent_query_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"), "w") as f:
             for msg in self.messages:
                 f.write(f"{msg['role']}: {msg['content']}\n")
         

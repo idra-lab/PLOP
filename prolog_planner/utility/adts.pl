@@ -88,8 +88,6 @@ append_queue(First, Second, Concatenation) :-
 
 empty_set([]).
 
-member_set(E, S) :- member(E, S).
-
     % add_to_set adds a new member to a set, allowing each element
     % to appear only once
 
@@ -108,21 +106,21 @@ union([H|T], S, S_new) :-
     
 intersection([], _, []).
 intersection([H|T], S, [H|S_new]) :-
-    member_set(H, S),
+    member(H, S),
     intersection(T, S, S_new).
 intersection([_|T], S, S_new) :-
     intersection(T, S, S_new).
     
 set_diff([], _, []).
 set_diff([H|T], S, T_new) :- 
-    member_set(H, S), 
+    member(H, S), 
     set_diff(T, S, T_new).
 set_diff([H|T], S, [H|T_new]) :- 
     set_diff(T, S, T_new).
 
 subset([], _).
 subset([H|T], S) :- 
-    member_set(H, S), 
+    member(H, S), 
     subset(T, S).
 
 equal_set(S1, S2) :- 

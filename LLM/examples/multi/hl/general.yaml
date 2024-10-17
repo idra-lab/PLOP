@@ -12,7 +12,7 @@ entries:
       A:
         role: 'assistant'
         content: |
-          The knowledge base is composed of 4 parts:
+          The high-level knowledge base is composed of 4 parts:
           - `init` section, which contains the initial state of the environment;
           - `goal` section, which contains the final state of the environment;
           - `KB` section, which contains all the information that is not modified by the actions;
@@ -120,11 +120,12 @@ entries:
           the state of the environment and of the agents at the beginning and at the end. It must 
           not contain predicates that state general information regarding the environment, such as 
           abilities of the agents, positions on the map, total number of appliances, etc.
-          For example, the following initial state is correct as it contains predicates describing 
-          information destined to change.
+          For example, the following initial state and knowledge base are correct as the former
+          contains predicates describing information destined to change and the latter contains 
+          predicates describing a static knowledge base.
 
           ```init
-          [at(a1, 1, 2), available(a1), available(a2), (at, 2, 3)]
+          init_state([at(a1, 1, 2), available(a1), available(a2), (at, 2, 3)]).
           ```
 
           ```KB
@@ -137,10 +138,12 @@ entries:
           pos(3,4).
           ```
 
-          Though the following state is not correct:
+          Though the following initial state and knowledge base are not correct:
 
           ```init
-          [pos(1,2), pos(2,3), pos(3,4), at(a1, 1, 2), available(a1), available(a2), (at, 2, 3)]
+          init_state([
+            pos(1,2), pos(2,3), pos(3,4), at(a1, 1, 2), available(a1), available(a2), (at, 2, 3)
+          ]).
           ```
 
           ```KB
