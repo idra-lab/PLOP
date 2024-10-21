@@ -1,0 +1,146 @@
+entries:
+  convo:
+    ############################################################################
+    ###############################     0     ##################################
+    ############################################################################
+    0: 
+      Q:
+        role: 'user'
+        content: |
+          Once we have the high-level actions and the low-level actions, how do we map them?
+
+      A:
+        role: 'assistant'
+        content: |
+            The mapping between high-level actions and low-level actions is done using the following 
+            predicate: 
+            ```mappings
+            mapping(hl_action_name_start(hl_args),
+              [
+                ll_action_name_start(ll_args),
+                ll_action_name_end(ll_args)
+              ]
+            ).
+            ```
+            This allows us to map a high-level action to one or more low-level actions. Notice that
+            only the start actions are mapped. 
+            Regarding the choice of the low-level actions to choose for the mapping, it is based 
+            on common sense and the requirements of the scenario. For example, if the high-level
+            action is to move a block from one position to another, the low-level actions could be
+            to move the arm near the block, pick the block, move the arm to the desired position, 
+            and then release it.
+            Also notice that we use the `mappings` tag to highlight the fact that the code snippet
+            is a mapping between high-level and low-level actions.
+
+    ############################################################################
+    ###############################     1     ##################################
+    ############################################################################
+    1:
+      Q:
+        role: 'user'
+        content: |
+          Consider the following high-level action:
+          ```actions
+          % The robot starts to move the block
+          action(move_block_table_to_table_start(Agent, Block, X1, Y1, X2, Y2), 
+            [ontable(Block), at(Block, X1, Y1) available(Agent), clear(Block)],
+            [moving_block_table_to_table(_, Block, _, _), moving_block_table_to_block(_, Block, _, _, _, _, _), moving_block_on_to_table(_, Block, _, _, _, _), moving_block_on_to_block(_, Block, _, _, _, _, _)],
+            [ontable(Block), at(Block, X, Y)],
+            [pos(X1, Y1), pos(X2, Y2), block(Block), agent(Agent)],
+            [
+              del(available(Agent)), del(clear(Block)), del(at(Block, X1, Y1)), del(ontable(Block)),
+              add(moving_block_table_to_table(Agent, Block, _, _))
+            ]
+          ).  
+          ```
+          And consider the following low-level actions:
+          ```ll_actions
+          ll_action(move_arm_start(A, To, X1, Y1, X2, Y2),
+            [arm_at(A, X1, Y1)],
+            [moving_arm(A, _, _, _, _, _, _), gripping(A, _), releasing(A)],
+            [],
+            [arm(A), pos(To, X2, Y2)],
+            [
+              add(moving_arm(A, To, X1, Y1, X2, Y2)),
+              del(arm_at(A, X1, Y1))
+            ]
+          ).
+          ll_action(move_arm_end(A, To, X1, Y1, X2, Y2),
+            [moving_arm(A, To, X1, Y1, X2, Y2)],
+            [],
+            [],
+            [],
+            [
+              del(moving_arm(A, To, X1, Y1, X2, Y2)),
+              add(arm_at(A, X2, Y2))
+            ]
+          ).
+          ll_action(grip_start(A, B),
+            [gripper(A, open)],
+            [moving_arm(A, _, _, _, _, _, _), gripping(A, _), releasing(A), gripped(A)],
+            [],
+            [gripper(A)],
+            [
+              del(gripper(A, open)),
+              add(gripping(A, B))
+            ]
+          ).
+          ll_action(grip_end(A, B),
+            [gripping(A, B)],
+            [],
+            [],
+            [gripper(A)],
+            [
+              del(gripping(A, B)),
+              add(gripped(A)), add(gripper(A, close))
+            ]
+          ).
+          ll_action(release_start(A),
+            [gripped(A)],
+            [moving_arm(A, _, _, _, _, _, _), gripping(A, _), releasing(A)],
+            [],
+            [gripper(A)],
+            [
+              del(gripped(A)), del(gripper(A, close)),
+              add(releasing(A))
+            ]
+          ).
+          ll_action(release_end(A),
+            [releasing(A)],
+            [],
+            [],
+            [gripper(A)],
+            [
+              del(releasing(A)),
+              add(gripper(A, open))
+            ]
+          ).
+          ```
+          Can you provide a mapping between the high-level action and the low-level actions?
+
+      A:
+        role: 'assistant'
+        content: |
+          Sure. Here is the mapping between the high-level action and the low-level actions:
+          ```mappings
+          mapping(move_block_table_to_table_start(Agent, Block, X1, Y1, X2, Y2),
+            [
+              move_arm_start(Agent, block, _, _, X1, Y1),
+              move_arm_end(Agent, block, _, _, X1, Y1),
+              grip_start(Agent, block),
+              grip_end(Agent, block),
+              move_arm_start(Agent, block, X1, Y1, X2, Y2),
+              move_arm_end(Agent, block, X1, Y1, X2, Y2),
+              release_start(Agent),
+              release_end(Agent)
+            ]
+          ).
+          ```
+          Notice that the high-level action `move_block_table_to_table_start` is mapped to 8 low-level
+          actions, because in order to move a block, the robotic arm must be close enough to grip
+          the block with the end effector, then, after having gripped it, it must move the arm in 
+          the final position and finally it can release it.  
+          The `mappings` tag is used to highlight the fact that the code snippet is a mapping between 
+          high-level and low-level actions.
+
+          

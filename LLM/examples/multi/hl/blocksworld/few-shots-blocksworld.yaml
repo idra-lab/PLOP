@@ -1,5 +1,5 @@
 entries:
   files: 
-    # - "actions.yaml"
+    - "actions.yaml"
     - "kb.yaml"
     - "states.yaml"

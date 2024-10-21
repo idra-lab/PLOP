@@ -1,6 +1,6 @@
 entries:
   files: 
     # - "actions.yaml"
-    # - "mappings.yaml"
+    - "mappings.yaml"
     - "kb.yaml"
     - "states.yaml"

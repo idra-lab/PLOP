@@ -111,3 +111,65 @@ entries:
           the arms are given and it is stated that at the end it does not matter where they are.
 
 
+    ############################################################################
+    ###############################     4     ##################################
+    ############################################################################
+    4: 
+      Q:
+        role: 'user'
+        content: | 
+          Given the following high-level description of a scenario. 
+          There are 7 blocks on a table. In the initial state of the simulation, block b1 is in position (2,2), block b2 is in 
+          position (4,4), block b4 is in position (8,8). Block b5 is on top of block b1 in position (2,2) and block b3 is on 
+          top of block b2 in position (4,4). After moving the blocks around during the simulation, at the end, we have b5 on 
+          top of block b4, both in position (8,8), and the remaining blocks b1, b2 and b3 are in the same positions as in the 
+          initial state. The position of other blocks, such as b6, is irrelevant at the moment and can be considered as random
+          positions on the table. Please explicitly assign these positions when generating the knowledge base.
+          There are 8 agents with a robotic arm. 
+          The agents can:
+          - Move a block from a position on the table to another position on the table. At the beginning, the block must be
+            free, i.e., there is no other block on top of it, and the agent must be available. At the end, the final position
+            on the table must still be free, i.e., there are no blocks occupying it. After the execution of the action, the
+            agent is available again, the block is in the new position. The previous position has been freed as soon as the 
+            action starts. 
+          - Move a block B1 from a position on the table, to the top of another block B2. At the beginning, the B1 must be 
+            free and the agent must be available. To complete the action, B2 must be free. At the end, B1 is on top of B2,
+            and the agent is available again. The previous position of B1 has been freed as soon as the action starts.
+          - Move a block B1 from the top of another block B2 to the table. At the beginning, B1 must be on top of B2, B1 must 
+            be free and the agent must be available. At the end, B1 is on the table in a new position, and the agent is 
+            available again. B2 becomes free (since the block it had on top has been removed) as soon as the action starts.
+          - Move a block B1 from the top of another block B2 to the top of another block B3. At the beginning, B1 must be on
+            top of B2, B1 must be free and the agent must be available. To complete the action, B3 must be free, i.e., not 
+            have any other block on top of it. At the end, B1 is on top of B3, and the agent is available again. B2 becomes 
+            free as soon as the action starts.
+          
+          
+          Consider the following low-level description of the same scenario. State if this scenario 
+          is feasible or not. Please write OK if it is, PROBLEM, if it is not. Also describe you 
+          thought process. 
+          Let the blocks and their positions be described in the high-level part.
+          There are eight available agents that can carry out the task. They are available at the 
+          beginning and will be available at the end. The agents are actually robotic arms that can 
+          pick up blocks and move them around. At the beginning, the arms are in positions (0,0), 
+          (1,1), (10,2), (3,3), (4,4), (5,5), (6,6) and (7,7), respectively, while we do not care 
+          were they are at the end. The low_level action they can perform are:
+          - move_arm_start(arm, x1, y1, x2, y2), which makes the robotic arm starting to move from 
+            position (x1,y1) to position (x2,y2).
+          - move_arm_end(arm, x1, y1, x2, y2), which completes the movement of the robotic arm from 
+            position (x1,y1) to position (x2,y2).
+          - close_start(arm), which makes the gripper starting to close.
+          - close_end(arm), which indicates the gripper has closed.
+          - open_start(arm), which makes the gripper starting to open.
+          - open_end(arm), which indicates the gripper has opened.
+
+      A:
+        role : 'assistant'
+        content: |
+          OK.
+          The scenario is consistent. All the positions of the blocks are given in the high-level 
+          knowledge base, which seems to have passed the consistency check. In addition, the agents 
+          are said to be robotics arm, which have the capability of moving blocks, so also this
+          aspect is consistent. Finally, the actions that the agents can carry out at the low-level 
+          are consistent with the high-level: to move a block we need to have the possibility to 
+          move the arm where we need, to grip the block and finally to release it.
+

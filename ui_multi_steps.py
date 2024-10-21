@@ -149,17 +149,18 @@ def hl_llm_multi_step(query) -> dict:
     print(succ, tmp_response+'\n')
     scan_and_extract(kb, tmp_response)
 
-    # # Generate action set
-    # INFO("\r[HL] Generating actions set")
-    # final_query = "\nGiven that the previous messages are examples, you know have to produce code for the task that follows.\n" + query + \
-    #     "Given the following static knowledge base\n```kb\n{}\n```".format(kb["kb"]) + \
-    #     "\nKnowing that the initial state is the following\n```init\n{}\n```".format(kb["init"]) + \
-    #     "\nWrite action set. Remember to wrap it into \"actions\" tags and not prolog tags."
-    # succ, response = llm.query(final_query)
-    # assert succ == True, "Failed to generate final state"
-    # print(succ, response)
-    # print()
-    # scan_and_extract(kb, response)
+    # Generate action set
+    INFO("\r[HL] Generating actions set")
+    final_query = "\nGiven that the previous messages are examples, you know have to produce code for the task that follows.\n" + query + \
+        "Given the following static knowledge base\n```kb\n{}\n```".format(kb["kb"]) + \
+        "\nKnowing that the initial state is the following\n```init\n{}\n```".format(kb["init"]) + \
+        "\nKnowing that the goal state is the following\n```goal\n{}\n```".format(kb["goal"]) + \
+        "\nWrite the set of temporal actions divided into _start and _end actions. Remember to wrap it into \"actions\" tags and not prolog tags."
+    succ, response = llm.query(final_query)
+    assert succ == True, "Failed to generate final state"
+    print(succ, response)
+    print()
+    scan_and_extract(kb, response)
 
     return kb
 
@@ -168,20 +169,6 @@ def hl_llm_multi_step(query) -> dict:
 
 
 def ll_llm_multi_step(query, kb) -> dict: 
-    # hl_kb = """
-    # ```kb
-    # {}
-    # ```
-    # ```init
-    # {}
-    # ```
-    # ```goal
-    # {}
-    # ```
-    # ```actions
-    # {}
-    # ```""".format(kb["kb"], kb["init"], kb["goal"], kb["actions"])
-    
     hl_kb = """
     ```kb
     {}
@@ -192,7 +179,21 @@ def ll_llm_multi_step(query, kb) -> dict:
     ```goal
     {}
     ```
-    """.format(kb["kb"], kb["init"], kb["goal"])
+    ```actions
+    {}
+    ```""".format(kb["kb"], kb["init"], kb["goal"], kb["actions"])
+    
+    # hl_kb = """
+    # ```kb
+    # {}
+    # ```
+    # ```init
+    # {}
+    # ```
+    # ```goal
+    # {}
+    # ```
+    # """.format(kb["kb"], kb["init"], kb["goal"])
 
     # Extract LL knowledge base
     INFO("\r[LL] Extract LL knowledge base", imp=True)
@@ -234,19 +235,19 @@ def ll_llm_multi_step(query, kb) -> dict:
     # # print(succ, response)
     # scan_and_extract(kb, response)
 
-    # # Generate mappings
-    # print(bcolors.OKGREEN, "\r[LL] Generating mappings", bcolors.ENDC)
-    # mappings_query = "\nGiven that the previous messages are examples, you know have to produce code for the task that follows.\n" + query + \
-    #     "Given the following high-level knowledge-base:\n{}\n".format(hl_kb) + \
-    #     "Given the refactored low-level knowledge-base:\n```kb\n{}\n```\n".format(kb["kb"]) + \
-    #     "Given the low-level actions set:\n```actions\n{}\n```\n".format(kb["ll_actions"]) + \
-    #     "Given the initial state:\n```init\n{}\n```\n".format(kb["init"]) + \
-    #     "Given the final state:\n```goal\n{}\n```\n".format(kb["goal"]) + \
-    #     "\nProvide the mappings from high-level actions to low-level actions. Remember that the mappings are only for the start actions."
-    # succ, response = llm.query(mappings_query)
-    # assert succ == True, "Failed to generate LL KB"
-    # # print(succ, response)
-    # scan_and_extract(kb, response)
+    # Generate mappings
+        # "Given the low-level actions set:\n```actions\n{}\n```\n".format(kb["ll_actions"]) + \
+    INFO("\r[LL] Generating mappings")
+    mappings_query = "\nGiven that the previous messages are examples, you know have to produce code for the task that follows.\n" + query + \
+        "Given the following high-level knowledge-base:\n{}\n".format(hl_kb) + \
+        "Given the refactored low-level knowledge-base:\n```kb\n{}\n```\n".format(kb["kb"]) + \
+        "Given the initial state:\n```init\n{}\n```\n".format(kb["init"]) + \
+        "Given the final state:\n```goal\n{}\n```\n".format(kb["goal"]) + \
+        "\nProvide the mappings from high-level actions to low-level actions. Remember that the mappings are only for the start actions."
+    succ, response = llm.query(mappings_query)
+    assert succ == True, "Failed to generate LL KB"
+    print(succ, response)
+    scan_and_extract(kb, response)
 
     return kb, response
     
@@ -299,6 +300,22 @@ def main():
     initial state. The position of other blocks, such as b6, is irrelevant at the moment and can be considered as random
     positions on the table. Please explicitly assign these positions when generating the knowledge base.
     There are 8 agents with a robotic arm. 
+    The agents can:
+    - Move a block from a position on the table to another position on the table. At the beginning, the block must be
+      free, i.e., there is no other block on top of it, and the agent must be available. At the end, the final position
+      on the table must still be free, i.e., there are no blocks occupying it. After the execution of the action, the
+      agent is available again, the block is in the new position. The previous position has been freed as soon as the 
+      action starts. 
+    - Move a block B1 from a position on the table, to the top of another block B2. At the beginning, the B1 must be 
+      free and the agent must be available. To complete the action, B2 must be free. At the end, B1 is on top of B2,
+      and the agent is available again. The previous position of B1 has been freed as soon as the action starts.
+    - Move a block B1 from the top of another block B2 to the table. At the beginning, B1 must be on top of B2, B1 must 
+      be free and the agent must be available. At the end, B1 is on the table in a new position, and the agent is 
+      available again. B2 becomes free (since the block it had on top has been removed) as soon as the action starts.
+    - Move a block B1 from the top of another block B2 to the top of another block B3. At the beginning, B1 must be on
+      top of B2, B1 must be free and the agent must be available. To complete the action, B3 must be free, i.e., not 
+      have any other block on top of it. At the end, B1 is on top of B3, and the agent is available again. B2 becomes 
+      free as soon as the action starts.
     """
 
     # query_hl = """
@@ -324,7 +341,13 @@ def main():
     There are eight available agents that can carry out the task. They are available at the beginning and will be 
     available at the end. The agents are actually robotic arms that can pick up blocks and move them around. At the 
     beginning, the arms are in positions (0,0), (1,1), (10,2), (3,3), (4,4), (5,5), (6,6) and (7,7), respectively, while 
-    we do not care were they are at the end.
+    we do not care were they are at the end. The low_level actions that they can perform are:
+    - move_arm_start(arm, x1, y1, x2, y2), which makes the robotic arm starting to move from position (x1,y1) to position (x2,y2).
+    - move_arm_end(arm, x1, y1, x2, y2), which completes the movement of the robotic arm from position (x1,y1) to position (x2,y2).
+    - close_start(arm), which makes the gripper starting to close.
+    - close_end(arm), which indicates the gripper has closed.
+    - open_start(arm), which makes the gripper starting to open.
+    - open_end(arm), which indicates the gripper has opened.
     """
     # Remember to prepend the low-level predicates with 'll_'.
 

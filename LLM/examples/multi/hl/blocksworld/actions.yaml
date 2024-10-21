@@ -1,52 +1,131 @@
 entries:
   convo:
-    ############################################################################
-    ###############################     0     ##################################
-    ############################################################################
-    # 0: 
-    #   Q:
-    #     role: 'user'
-    #     content: |
-    #       Can you generate a prolog code including a set of actions in order for an agent to grip a block on the table at coordinate(X,Y) in accordance with the information provided?
-    #   A: 
-    #     role : 'assistant' 
-    #     content: | 
-    #       Sure, here is the Prolog code:
-    #       ```actions
-    #       % The robot starts to grip the block
-    #       action(
-    #       grip_ontable_start(Agent, Block), 
-    #         [ontable(Block), at(Block, X, Y) available(Agent), clear(Block)],
-    #         [gripped(_, Block), gripping(_, Block)],
-    #         [ontable(Block), at(Block, X, Y)],
-    #         [],
-    #         [del(available(Agent)), add(gripping(Agent, Block))]
-    #       ).                           
+    ###########################################################################
+    ##############################     0     ##################################
+    ###########################################################################
+    0: 
+      Q:
+        role: 'user'
+        content: |
+          Can you describe what teh actions are? 
+      A: 
+        role : 'assistant' 
+        content: | 
+          Sure. We are doing temporal planning, so we need actions that last in time and not 
+          classical actions, which are instead described in the STRIP classical planning. A temporal 
+          action is split into two snap actions: the start and the end, and it has a durative 
+          condition. Both snap actions have their own preconditions and effects. The start actions
+          are identified by appending `_start` to the action name, while the end actions are 
+          identified by appending `_end` to the action name.
 
-    #       % The robot finalize gripping the block
-    #       action(grip_end(Agent, Block),
-    #         [gripping(Agent, Block)],
-    #         [],
-    #         [],
-    #         [],
-    #         [del(clear(Block)), del(gripping(Agent, Block)), add(gripped(Agent, Block))]
-    #       ).
-    #       ```
-    #       The above prolog code involving start and end actions allows an agent(robot) to grip an object. 
-    #       The predicate 'clear' represents that there is no other block above the given block. 
-    #       In order for the agent to start performing the gripping action, the object must not be held by another agent. Therefore, it is pointed out in the 'InvalidConditions' of the 'grip_ontable_start' action that the target object(Block1) must not be in the 'gripped' or 'gripping' conditions.
-    #       The predicate 'gripped' represents that the target object is already gripped by an agent.
-    #       The predicate 'gripping'  represents that an agent has started to perform gripping action but not finalized it yet.               
-    #       A gripping action can only be finalized when the agent has already begun gripping. Therefore, gripping(Agent1, Block1) is in the ValidConditions.
-                                
-    #       In InvalidConditions of the action 'grip_ontable_start', [gripped(_, Block), gripping(_, Block)] implies that the object must not have already been held or started to be held by any robot.
+    ###########################################################################
+    ##############################     1     ##################################
+    ###########################################################################
+    1: 
+      Q:
+        role: 'user'
+        content: |
+          Can you generate a prolog code including a set of actions in order for an agent to move a 
+          block that is on a position on the table to another position on the table? The action
+          checks if the block at the beginning is on the table and is free to be moved, i.e., there
+          are no blocks on top of it, and if there is an agent available to move the block. The 
+          final part of the action can be carried out if the final position is actually free, i.e., 
+          there are no blocks occupying it. When the action is completed, the block is moved to the
+          final position and the agent is available again. The initial position of the block is
+          freed from the moment in which the action starts.
+          The predicates should be in accordance with the following knowledge-base, initial and 
+          final states?
+          ```kb
+          % Positions
+          pos(1,1).
+          pos(2,2).
+          pos(3,3).
+          pos(4,4).
 
-    #       ```KB
-    #       ```
-    #       ```init
-    #       ```
-    #       ```goal
-    #       ```
+          % Blocks
+          block(b1).
+          block(b2).
+          block(b3).
+          block(b4).
+          block(b5).
+
+          % Agent
+          agent(a1).
+
+          % Resources
+          resources(agent(_)).
+          ```
+          ```init
+          init_state([
+            ontable(b1), ontable(b2),
+            at(b1,1,1), at(b2,2,2), 
+            clear(b1), clear(b2),
+            available(a1)
+          ]).
+          ```
+          ```goal
+          goal_state([
+            ontable(b1),
+            on(b2,b1),
+            at(b1,3,3), at(b2,3,3), 
+            clear(b2),
+            available(a1)
+          ]).
+          ```
+      A: 
+        role : 'assistant' 
+        content: | 
+          Sure, here is the Prolog code:
+          ```actions
+          % The robot starts to move the block
+          action(move_block_table_to_table_start(Agent, Block, X1, Y1, X2, Y2), 
+            [ontable(Block), at(Block, X1, Y1) available(Agent), clear(Block)],
+            [moving_block_table_to_table(_, Block, _, _), moving_block_table_to_block(_, Block, _, _, _, _, _), moving_block_on_to_table(_, Block, _, _, _, _), moving_block_on_to_block(_, Block, _, _, _, _, _)],
+            [ontable(Block), at(Block, X, Y)],
+            [pos(X1, Y1), pos(X2, Y2), block(Block), agent(Agent)],
+            [
+              del(available(Agent)), del(clear(Block)), del(at(Block, X1, Y1)), del(ontable(Block)),
+              add(moving_block_table_to_table(Agent, Block, _, _))
+            ]
+          ).                           
+
+          % The robot finalizes moving the block to the final position on the table
+          action(move_block_table_to_table_end(Agent, Block, X1, Y1, X2, Y2),
+            [moving_block_table_to_table(Agent, Block, X1, Y1)],
+            [at(_, X2, Y2)],
+            [],
+            [],
+            [],
+            [
+              del(moving_block_table_to_table(Agent, Block, Pos1)), 
+              add(available(Agent)), add(at(Block, Pos2)), add(ontable(Block)), add(clear(Block))
+            ]
+          ).
+          ```
+          The above prolog code involving start and end actions allows an agent to a block from a 
+          position on the table to another position. As stated in the description, to start moving 
+          the block, it must be free, i.e., not have any other block on top of it, which is 
+          represented in the `init_state` by the `clear(Block)` predicate. The agent must also be
+          available, which is represented by the `available(Agent)` predicate. The block must be on 
+          the correct initial position in (X1, Y1), which is represented by the `at(Block, X1, Y1)`.
+          The block must also be on the table, which is represented by the `ontable(Block)` 
+          predicate. Moreover, the _start action make sure, in the second list, that there is not 
+          another agent that is moving the same block. In the third list, it ensure that the block
+          that it wants to move is not is not already in the right position for the final goal. This
+          means that, let `Block=b1` and (X,Y)=(1,1), if in the `goal_state` there are the 
+          predicates `ontable(b1)` and `at(b1, 1, 1)`, then the action will not be performed as the
+          block is already in the right place. As the effects, the action removes the 
+          `available(Agent)` predicate, the `clear(Block)` predicate, the `at(Block, X1, Y1)` 
+          predicate, and the `ontable(Block)` predicate. It adds the 
+          `moving_block_table_to_table(Agent, Block, _, _)` predicate, which represents that the 
+          block is being moved as the durative effect between the start action and the end action.
+          The end action checks that the final position is free, i.e., there is no other block 
+          occupying it, which is represented by the `at(_, X2, Y2)` predicate. The end action also
+          removes the `moving_block_table_to_table(Agent, Block, Pos1)` predicate, which represents
+          that the block is being moved, and adds the `available(Agent)` predicate, the
+          `at(Block, Pos2)` predicate, the `ontable(Block)` predicate, and the `clear(Block)`
+          predicate.
+
 
     # ############################################################################
     # ###############################     1     ##################################
